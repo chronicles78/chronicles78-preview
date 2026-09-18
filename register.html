@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Регистрация · Хроники-78</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{margin:0;background:#f3eee6;color:#2b2722;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:520px;margin:auto;padding:24px 16px}
+.card{background:#fffdf9;border:1px solid #ddd2c5;border-radius:18px;padding:18px}
+h1{font-family:Georgia,serif;margin-top:0}
+label{display:block;font-size:13px;margin:12px 0 5px}
+input{width:100%;box-sizing:border-box;border:1px solid #ddd2c5;border-radius:11px;padding:12px;font:inherit;background:#fff}
+button{width:100%;border:0;border-radius:11px;padding:12px;font:inherit;font-weight:700;margin-top:15px;background:#2b2722;color:#fff}
+.note{font-size:13px;color:#746d64;line-height:1.45}
+.msg{margin-top:12px;font-size:14px;line-height:1.45}
+.ok{color:#35623c}.err{color:#8b3b32}
+a{color:#2b2722}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Хроники-78</h1>
+    <p class="note">Регистрация участника. После создания аккаунта доступ к чату активирует администратор.</p>
+    <label>Имя</label>
+    <input id="name" autocomplete="name" placeholder="Например, Алексей">
+    <label>E-mail</label>
+    <input id="email" type="email" autocomplete="email">
+    <label>Пароль</label>
+    <input id="password" type="password" autocomplete="new-password" placeholder="Не менее 6 символов">
+    <button id="btn">Зарегистрироваться</button>
+    <div id="msg" class="msg"></div>
+    <p class="note"><a href="./">Вернуться на сайт</a></p>
+  </div>
+</div>
+<script>
+const sb=window.supabase.createClient(
+ "https://fnwpkmjjdhflnqghnogj.supabase.co",
+ "sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX"
+);
+const $=id=>document.getElementById(id);
+$("btn").onclick=async()=>{
+ const display_name=$("name").value.trim();
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ $("msg").className="msg";$("msg").textContent="";
+ if(!display_name||!email||!password){$("msg").classList.add("err");$("msg").textContent="Заполните все поля.";return}
+ if(password.length<6){$("msg").classList.add("err");$("msg").textContent="Пароль должен содержать не менее 6 символов.";return}
+ $("btn").disabled=true;
+ try{
+   const {data,error}=await sb.auth.signUp({email,password,options:{data:{display_name}}});
+   if(error) throw error;
+   $("msg").classList.add("ok");
+   $("msg").textContent=data.session
+    ?"Аккаунт создан. Сообщите администратору — он включит доступ."
+    :"Аккаунт создан. Проверьте почту и подтвердите e-mail. Затем сообщите администратору.";
+ }catch(e){
+   $("msg").classList.add("err");
+   $("msg").textContent=e.message||String(e);
+ }finally{$("btn").disabled=false}
+};
+</script>
+</body>
+</html>

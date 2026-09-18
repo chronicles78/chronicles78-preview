@@ -21,53 +21,175 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 .rooms{display:flex;gap:7px;overflow:auto;padding:9px 10px;background:var(--paper);border-bottom:1px solid var(--line)}
 .room{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 12px}.room.active{background:var(--ink);color:#fff}
 .chat{height:calc(100dvh - 58px - var(--nav) - env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:0}
-.messages{flex:1;overflow:auto;padding:12px 10px 100px}.msg{margin:9px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{max-width:84%;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:9px 10px}.mine .bubble{background:#e9dfd2}.who{font-size:11px;font-weight:700;margin-bottom:4px}.time{font-size:10px;color:var(--muted);margin-top:5px;text-align:right}
-.composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);display:flex;gap:7px;padding:8px 9px;background:linear-gradient(transparent,var(--bg) 18%);z-index:25}
-.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff;max-height:100px}
+.messages{flex:1;overflow:auto;padding:12px 10px 150px}.msg{margin:9px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{max-width:86%;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:9px 10px}
+.mine .bubble{background:#e9dfd2}.who{font-size:11px;font-weight:700;margin-bottom:4px}.time{font-size:10px;color:var(--muted);margin-top:5px;text-align:right}
+.replyQuote{border-left:3px solid #9e9182;background:#f5efe7;border-radius:7px;padding:6px 8px;margin-bottom:7px;font-size:12px;color:#5e564e}
+.attachment{display:block;max-width:100%;max-height:340px;border-radius:10px;margin-top:7px;object-fit:contain;background:#eee}
+.actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.mini{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 8px;font-size:12px}.mini.on{background:#ded2c4}
+.composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);padding:7px 9px;background:var(--bg);z-index:25;border-top:1px solid var(--line)}
+.composeRow{display:flex;gap:7px}.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff;max-height:100px}
 .send{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:0 14px;font-weight:700;white-space:nowrap}
+.composeTools{display:flex;align-items:center;gap:8px;margin-bottom:6px}.attachBtn{border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 9px;font-size:12px}.replying{flex:1;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .form label{display:block;font-size:13px;margin:10px 0 5px}.form input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}.primary{width:100%;border:0;border-radius:11px;padding:12px;background:var(--ink);color:#fff;font-weight:700;margin-top:14px}.secondary{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;margin-top:9px}
-.small{font-size:12px;color:var(--muted)}#loginError{color:#8b3b32;margin-top:10px;font-size:13px}
+.small{font-size:12px;color:var(--muted)}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
 </style>
 </head>
 <body>
 <header class="top"><div class="brand">Хроники-78</div><div class="status" id="status">Подключение…</div></header>
 <main>
-<section id="home" class="view active"><div class="pad hero"><div class="small">ПРОБНАЯ ОНЛАЙН-ВЕРСИЯ</div><h1>Хроники 78-й</h1><p>Книга, которую можно читать. Память, по которой можно ходить.</p><div class="card" style="margin-top:18px"><h2>Редколлегия</h2><div id="homeState" class="notice">Проверяю общую базу…</div></div><div class="card"><b>Цель этого запуска</b><p>Проверить на смартфоне настоящий вход, общий чат и синхронизацию сообщений через Supabase.</p></div></div></section>
-<section id="chat" class="view"><div class="chat"><div class="rooms" id="rooms"></div><div class="messages" id="messages"></div><div class="composer" id="composerWrap" style="display:none"><textarea id="composer" rows="1" placeholder="Напишите сообщение…"></textarea><button class="send" id="sendBtn">Отправить ↑</button></div></div></section>
-<section id="profile" class="view"><div class="pad"><div class="card"><h2>Профиль</h2><div id="profileBox"></div></div><div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><div id="loginError"></div></div></div></section>
+<section id="home" class="view active"><div class="pad hero"><div class="small">РАБОЧИЙ ПИЛОТ</div><h1>Хроники 78-й</h1><p>Книга, которую можно читать. Память, по которой можно ходить.</p><div class="card" style="margin-top:18px"><h2>Редколлегия</h2><div id="homeState" class="notice">Проверяю общую базу…</div></div></div></section>
+
+<section id="chat" class="view">
+<div class="chat">
+  <div class="rooms" id="rooms"></div>
+  <div class="messages" id="messages"></div>
+  <div class="composer" id="composerWrap" style="display:none">
+    <div class="composeTools">
+      <button class="attachBtn" id="attachBtn">＋ Фото</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+      <div class="replying" id="replying"></div>
+      <button class="mini" id="cancelReply" style="display:none">×</button>
+    </div>
+    <div class="composeRow"><textarea id="composer" rows="1" placeholder="Напишите сообщение…"></textarea><button class="send" id="sendBtn">Отправить ↑</button></div>
+  </div>
+</div>
+</section>
+
+<section id="profile" class="view"><div class="pad">
+<div class="card"><h2>Профиль</h2><div id="profileBox"></div></div>
+<div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
+<div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><div id="loginError"></div></div>
+</div></section>
 </main>
 <nav class="bottom"><div class="bottomIn"><button class="nav active" data-view="home"><b>⌂</b>Главная</button><button class="nav" data-view="chat"><b>◌</b>Чат</button><button class="nav" data-view="profile"><b>○</b>Профиль</button></div></nav>
+
 <script>
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsub=null;
-let rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,replyTo=null,pendingFile=null,lastMessages=[],reactionRows=[];
+const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function setStatus(t){$("status").textContent=t}
-function showView(v){document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));if(v==="chat"&&user&&profile?.is_active) loadRoom();}
+function showView(v){document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));if(v==="chat"&&user&&profile?.is_active)loadRoom()}
 document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>showView(b.dataset.view));
-function renderRooms(){$("rooms").innerHTML=rooms.map(r=>`<button class="room ${r.id===currentRoom?"active":""}" data-id="${r.id}">${esc(r.name)}</button>`).join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;renderRooms();loadRoom();subscribe()});}
-function renderProfile(){if(user&&profile){$("profileBox").innerHTML=`<b>${esc(profile.display_name)}</b><br><span class="small">Роль: ${esc(profile.role)} · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>`;$("loginBox").style.display="none";$("logoutBtn").onclick=logout;$("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="flex";setStatus("Онлайн · "+profile.role);}else{$("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("composerWrap").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");}}
-async function init(){const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(session?.access_token){sb.realtime.setAuth(session.access_token);}if(user){const {data,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(!error&&data?.is_active) profile=data;}renderRooms();renderProfile();if(profile) subscribe();}
-async function login(){$("loginError").textContent="";try{const email=$("email").value.trim(),password=$("password").value;const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;user=data.user;if(data.session?.access_token){sb.realtime.setAuth(data.session.access_token);}const {data:p,error:pe}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(pe)throw pe;if(!p?.is_active)throw new Error("Учётная запись ещё не активирована редакцией.");profile=p;renderProfile();subscribe();showView("chat");await loadRoom();}catch(e){$("loginError").textContent=e.message||String(e)}}
-async function logout(){if(unsub){unsub();unsub=null}await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home");}
+
+function renderRooms(){$("rooms").innerHTML=rooms.map(r=>'<button class="room '+(r.id===currentRoom?"active":"")+'" data-id="'+r.id+'">'+esc(r.name)+'</button>').join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;replyTo=null;pendingFile=null;renderReply();renderRooms();loadRoom();subscribe()})}
+function renderProfile(){
+ if(user&&profile){
+   $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
+   $("loginBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
+   $("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="block";setStatus("Онлайн · "+profile.role);
+ } else {
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");
+ }
+}
+async function init(){
+ const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(session?.access_token)sb.realtime.setAuth(session.access_token);
+ if(user){const {data,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(!error&&data?.is_active)profile=data}
+ renderRooms();renderProfile();if(profile)subscribe();
+}
+async function login(){
+ $("loginError").textContent="";
+ try{
+  const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;
+  user=data.user;if(data.session?.access_token)sb.realtime.setAuth(data.session.access_token);
+  const {data:p,error:pe}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(pe)throw pe;if(!p?.is_active)throw new Error("Учётная запись ещё не активирована редакцией.");
+  profile=p;renderProfile();subscribe();showView("chat");await loadRoom();
+ }catch(e){$("loginError").textContent=e.message||String(e)}
+}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
-async function loadRoom(){if(!user||!profile?.is_active)return;const {data,error}=await sb.from("messages").select("id,body,created_at,author_id,author:profiles!messages_author_id_fkey(display_name,role)").eq("room_id",currentRoom).order("created_at",{ascending:true}).limit(300);if(error){$("messages").innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}$("messages").innerHTML=(data||[]).map(m=>{const mine=m.author_id===user.id;return `<div class="msg ${mine?"mine":""}"><div class="bubble"><div class="who">${esc(m.author?.display_name||"Участник")}</div><div>${esc(m.body)}</div><div class="time">${new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</div></div></div>`}).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);}
-async function send(){const t=$("composer").value.trim();if(!t||!user)return;$("sendBtn").disabled=true;try{const {error}=await sb.from("messages").insert({room_id:currentRoom,author_id:user.id,body:t});if(error)throw error;$("composer").value="";await loadRoom();}catch(e){alert("Не отправлено: "+(e.message||e))}finally{$("sendBtn").disabled=false}}
+
+async function saveName(){
+ const name=$("displayName").value.trim();$("nameMsg").textContent="";
+ if(name.length<2){$("nameMsg").className="err";$("nameMsg").textContent="Введите имя.";return}
+ const {error}=await sb.from("profiles").update({display_name:name}).eq("id",user.id);
+ if(error){$("nameMsg").className="err";$("nameMsg").textContent=error.message;return}
+ profile.display_name=name;$("nameMsg").className="ok";$("nameMsg").textContent="Имя сохранено.";renderProfile();loadRoom();
+}
+$("saveNameBtn").onclick=saveName;
+
+async function signedImage(path){
+ if(!path)return null;
+ const {data}=await sb.storage.from("chat-media").createSignedUrl(path,3600);
+ return data?.signedUrl||null;
+}
+async function loadRoom(){
+ if(!user||!profile?.is_active)return;
+ const {data,error}=await sb.from("messages")
+  .select("id,body,created_at,author_id,reply_to,attachment_url,attachment_name,author:profiles!messages_author_id_fkey(display_name,role)")
+  .eq("room_id",currentRoom).order("created_at",{ascending:true}).limit(300);
+ if(error){$("messages").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
+ lastMessages=data||[];
+ const ids=lastMessages.map(x=>x.id);
+ reactionRows=[];
+ if(ids.length){const {data:r}=await sb.from("reactions").select("message_id,user_id,emoji").in("message_id",ids);reactionRows=r||[]}
+ const signed={};
+ for(const m of lastMessages){if(m.attachment_url)signed[m.id]=await signedImage(m.attachment_url)}
+ $("messages").innerHTML=lastMessages.map(m=>{
+   const mine=m.author_id===user.id;
+   const replied=m.reply_to?lastMessages.find(x=>x.id===m.reply_to):null;
+   const reactions=["👍","❤️","😂"].map(e=>{
+      const rows=reactionRows.filter(r=>r.message_id===m.id&&r.emoji===e), on=rows.some(r=>r.user_id===user.id);
+      return '<button class="mini '+(on?"on":"")+'" data-react="'+e+'" data-mid="'+m.id+'">'+e+(rows.length?" "+rows.length:"")+'</button>';
+   }).join("");
+   return '<div class="msg '+(mine?"mine":"")+'"><div class="bubble" data-mid="'+m.id+'">'+
+     '<div class="who">'+esc(m.author?.display_name||"Участник")+'</div>'+
+     (replied?'<div class="replyQuote"><b>'+esc(replied.author?.display_name||"Участник")+'</b><br>'+esc((replied.body||"Фото").slice(0,120))+'</div>':'')+
+     (m.body?'<div>'+esc(m.body)+'</div>':'')+
+     (signed[m.id]?'<img class="attachment" src="'+signed[m.id]+'" alt="'+esc(m.attachment_name||"Фото")+'">':'')+
+     '<div class="actions"><button class="mini" data-reply="'+m.id+'">↩ Ответить</button>'+reactions+'</div>'+
+     '<div class="time">'+new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})+'</div></div></div>';
+ }).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';
+ $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
+ $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));
+ requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);
+}
+function renderReply(){
+ if(replyTo){const m=lastMessages.find(x=>x.id===replyTo);$("replying").textContent="Ответ: "+(m?.author?.display_name||"сообщение")+" — "+((m?.body||"Фото").slice(0,55));$("cancelReply").style.display="inline-block"}
+ else {$("replying").textContent=pendingFile?"Выбрано фото: "+pendingFile.name:"";$("cancelReply").style.display="none"}
+}
+$("cancelReply").onclick=()=>{replyTo=null;renderReply()};
+
+async function toggleReaction(mid,emoji){
+ const exists=reactionRows.some(r=>r.message_id===mid&&r.user_id===user.id&&r.emoji===emoji);
+ if(exists) await sb.from("reactions").delete().eq("message_id",mid).eq("user_id",user.id).eq("emoji",emoji);
+ else await sb.from("reactions").insert({message_id:mid,user_id:user.id,emoji});
+ await loadRoom();
+}
+$("attachBtn").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=()=>{pendingFile=$("fileInput").files?.[0]||null;if(pendingFile&&pendingFile.size>8*1024*1024){alert("Максимальный размер фото — 8 МБ.");pendingFile=null;$("fileInput").value=""}renderReply()};
+
+async function uploadPending(){
+ if(!pendingFile)return null;
+ const safe=pendingFile.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+ const path=user.id+"/"+Date.now()+"-"+safe;
+ const {error}=await sb.storage.from("chat-media").upload(path,pendingFile,{contentType:pendingFile.type||"image/jpeg",upsert:false});
+ if(error)throw error;
+ return {path,name:pendingFile.name};
+}
+async function send(){
+ const t=$("composer").value.trim();if(!t&&!pendingFile)return;
+ $("sendBtn").disabled=true;
+ try{
+   const att=await uploadPending();
+   const row={room_id:currentRoom,author_id:user.id,body:t||"",reply_to:replyTo||null,attachment_url:att?.path||null,attachment_name:att?.name||null};
+   const {error}=await sb.from("messages").insert(row);if(error)throw error;
+   $("composer").value="";$("fileInput").value="";pendingFile=null;replyTo=null;renderReply();await loadRoom();
+ }catch(e){alert("Не отправлено: "+(e.message||e))}
+ finally{$("sendBtn").disabled=false}
+}
 $("sendBtn").onclick=send;$("composer").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
-function subscribe(){if(!user||!profile?.is_active)return;if(unsub){unsub();unsub=null}
- const roomAtSubscribe=currentRoom;
- const ch=sb.channel("chronicles78-"+roomAtSubscribe)
-   .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"room_id=eq."+roomAtSubscribe},payload=>{
-      if(currentRoom===roomAtSubscribe){loadRoom();}
-   })
-   .subscribe(status=>{
-      if(status==="SUBSCRIBED") setStatus("Онлайн · realtime");
-      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT") setStatus("Онлайн · без realtime");
-   });
- unsub=()=>sb.removeChannel(ch);
+
+function subscribe(){
+ if(!user||!profile?.is_active)return;
+ if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();
+ const room=currentRoom;
+ const ch1=sb.channel("msg-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"room_id=eq."+room},()=>{if(currentRoom===room)loadRoom()}).subscribe(s=>{if(s==="SUBSCRIBED")setStatus("Онлайн · realtime");if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")setStatus("Онлайн · без realtime")});
+ const ch2=sb.channel("react-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"reactions"},()=>{if(currentRoom===room)loadRoom()}).subscribe();
+ unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);
 }
 init();
 </script>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2b2722">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Хроники-78 · Редколлегия</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#f3eee6;--paper:#fffdf9;--ink:#2b2722;--muted:#746d64;--line:#ddd2c5;--nav:68px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+body{min-height:100dvh;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))}
+button,input,textarea{font:inherit}.top{height:58px;position:sticky;top:0;z-index:20;background:#fffdf9f2;backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+.brand{font:700 21px Georgia,serif}.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:#fff}
+main{max-width:760px;margin:auto}.view{display:none}.view.active{display:block}.pad{padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
+h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10px 0}.hero p{font-size:17px;line-height:1.45;color:#4f4942}.notice{padding:12px;border-radius:12px;background:#eee4d7;font-size:14px;line-height:1.45}
+.bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#fffdf9f5;border-top:1px solid var(--line);z-index:30}
+.bottomIn{max-width:760px;margin:auto;height:var(--nav);display:grid;grid-template-columns:repeat(3,1fr)}
+.nav{border:0;background:transparent;color:var(--muted);font-size:11px}.nav b{display:block;font-size:22px;margin-bottom:3px}.nav.active{color:var(--ink);font-weight:700}
+.rooms{display:flex;gap:7px;overflow:auto;padding:9px 10px;background:var(--paper);border-bottom:1px solid var(--line)}
+.room{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 12px}.room.active{background:var(--ink);color:#fff}
+.chat{height:calc(100dvh - 58px - var(--nav) - env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:0}
+.messages{flex:1;overflow:auto;padding:12px 10px 100px}.msg{margin:9px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{max-width:84%;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:9px 10px}.mine .bubble{background:#e9dfd2}.who{font-size:11px;font-weight:700;margin-bottom:4px}.time{font-size:10px;color:var(--muted);margin-top:5px;text-align:right}
+.composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);display:flex;gap:7px;padding:8px 9px;background:linear-gradient(transparent,var(--bg) 18%);z-index:25}
+.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff;max-height:100px}
+.send{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:0 14px;font-weight:700;white-space:nowrap}
+.form label{display:block;font-size:13px;margin:10px 0 5px}.form input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}.primary{width:100%;border:0;border-radius:11px;padding:12px;background:var(--ink);color:#fff;font-weight:700;margin-top:14px}.secondary{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;margin-top:9px}
+.small{font-size:12px;color:var(--muted)}#loginError{color:#8b3b32;margin-top:10px;font-size:13px}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">Хроники-78</div><div class="status" id="status">Подключение…</div></header>
+<main>
+<section id="home" class="view active"><div class="pad hero"><div class="small">ПРОБНАЯ ОНЛАЙН-ВЕРСИЯ</div><h1>Хроники 78-й</h1><p>Книга, которую можно читать. Память, по которой можно ходить.</p><div class="card" style="margin-top:18px"><h2>Редколлегия</h2><div id="homeState" class="notice">Проверяю общую базу…</div></div><div class="card"><b>Цель этого запуска</b><p>Проверить на смартфоне настоящий вход, общий чат и синхронизацию сообщений через Supabase.</p></div></div></section>
+<section id="chat" class="view"><div class="chat"><div class="rooms" id="rooms"></div><div class="messages" id="messages"></div><div class="composer" id="composerWrap" style="display:none"><textarea id="composer" rows="1" placeholder="Напишите сообщение…"></textarea><button class="send" id="sendBtn">Отправить ↑</button></div></div></section>
+<section id="profile" class="view"><div class="pad"><div class="card"><h2>Профиль</h2><div id="profileBox"></div></div><div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><div id="loginError"></div></div></div></section>
+</main>
+<nav class="bottom"><div class="bottomIn"><button class="nav active" data-view="home"><b>⌂</b>Главная</button><button class="nav" data-view="chat"><b>◌</b>Чат</button><button class="nav" data-view="profile"><b>○</b>Профиль</button></div></nav>
+<script>
+const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
+const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let user=null,profile=null,currentRoom="general",unsub=null;
+let rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function setStatus(t){$("status").textContent=t}
+function showView(v){document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));if(v==="chat"&&user&&profile?.is_active) loadRoom();}
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+function renderRooms(){$("rooms").innerHTML=rooms.map(r=>`<button class="room ${r.id===currentRoom?"active":""}" data-id="${r.id}">${esc(r.name)}</button>`).join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;renderRooms();loadRoom()});}
+function renderProfile(){if(user&&profile){$("profileBox").innerHTML=`<b>${esc(profile.display_name)}</b><br><span class="small">Роль: ${esc(profile.role)} · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>`;$("loginBox").style.display="none";$("logoutBtn").onclick=logout;$("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="flex";setStatus("Онлайн · "+profile.role);}else{$("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("composerWrap").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");}}
+async function init(){const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(user){const {data,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(!error&&data?.is_active) profile=data;}renderRooms();renderProfile();if(profile) subscribe();}
+async function login(){$("loginError").textContent="";try{const email=$("email").value.trim(),password=$("password").value;const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;user=data.user;const {data:p,error:pe}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(pe)throw pe;if(!p?.is_active)throw new Error("Учётная запись ещё не активирована редакцией.");profile=p;renderProfile();subscribe();showView("chat");await loadRoom();}catch(e){$("loginError").textContent=e.message||String(e)}}
+async function logout(){if(unsub){unsub();unsub=null}await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home");}
+$("loginBtn").onclick=login;
+async function loadRoom(){if(!user||!profile?.is_active)return;const {data,error}=await sb.from("messages").select("id,body,created_at,author_id,author:profiles!messages_author_id_fkey(display_name,role)").eq("room_id",currentRoom).order("created_at",{ascending:true}).limit(300);if(error){$("messages").innerHTML=`<div class="notice">${esc(error.message)}</div>`;return}$("messages").innerHTML=(data||[]).map(m=>{const mine=m.author_id===user.id;return `<div class="msg ${mine?"mine":""}"><div class="bubble"><div class="who">${esc(m.author?.display_name||"Участник")}</div><div>${esc(m.body)}</div><div class="time">${new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</div></div></div>`}).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);subscribe();}
+async function send(){const t=$("composer").value.trim();if(!t||!user)return;$("sendBtn").disabled=true;try{const {error}=await sb.from("messages").insert({room_id:currentRoom,author_id:user.id,body:t});if(error)throw error;$("composer").value="";await loadRoom();}catch(e){alert("Не отправлено: "+(e.message||e))}finally{$("sendBtn").disabled=false}}
+$("sendBtn").onclick=send;$("composer").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});
+function subscribe(){if(!user||!profile?.is_active)return;if(unsub){unsub();unsub=null}const ch=sb.channel("chronicles78-"+currentRoom+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"room_id=eq."+currentRoom},()=>loadRoom()).subscribe();unsub=()=>sb.removeChannel(ch);}
+init();
+</script>
+</body>
+</html>

@@ -22,10 +22,10 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .rooms{display:flex;gap:7px;overflow:auto;padding:9px 10px;background:var(--paper);border-bottom:1px solid var(--line)}
 .room{white-space:nowrap;border:1px solid var(--line);background:var(--input);border-radius:99px;padding:8px 12px}.room.active{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg);font-weight:700}
 .chat{height:calc(100dvh - 58px - var(--nav) - env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:0}
-.messages{flex:1;overflow:auto;padding:12px 10px 150px}.msg{margin:9px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{max-width:86%;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:9px 10px}
-.mine .bubble{background:var(--mine)}.who{font-size:11px;font-weight:700;margin-bottom:4px}.time{font-size:10px;color:var(--muted);margin-top:5px;text-align:right}
-.replyQuote{border-left:3px solid #9e9182;background:var(--soft-2);border-radius:7px;padding:6px 8px;margin-bottom:7px;font-size:12px;color:var(--muted)}
-.attachment{display:block;max-width:100%;max-height:340px;border-radius:10px;margin-top:7px;object-fit:contain;background:var(--image-bg)}.attachmentWrap{margin-top:7px}.attachmentTools{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.caption{font-size:12px;margin-top:4px;color:var(--muted)}.archivePhoto{display:block;width:100%;max-height:520px;object-fit:contain;background:var(--image-bg);border-radius:12px;margin:10px 0}.uploadBox{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:12px;background:var(--paper-2)}
+.messages{flex:1;overflow:auto;padding:8px 8px 150px;background:var(--bg)}.msg{margin:4px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{position:relative;max-width:min(78%,620px);background:var(--paper);border:1px solid var(--line);border-radius:14px 14px 14px 5px;padding:6px 8px 5px;box-shadow:0 1px 1px var(--shadow)}
+.mine .bubble{background:var(--mine);border-radius:14px 14px 5px 14px}.who{font-size:11px;font-weight:700;margin:0 26px 2px 0;color:var(--focus)}.messageBody{font-size:14px;line-height:1.38;white-space:pre-wrap;overflow-wrap:anywhere}.msgFoot{display:flex;align-items:flex-end;justify-content:flex-end;gap:5px;margin-top:2px;min-height:15px}.time{font-size:9px;color:var(--muted);white-space:nowrap}.linked{font-size:9px;color:var(--muted);margin-right:auto;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.replyQuote{border-left:2px solid var(--focus);background:var(--soft-2);border-radius:5px;padding:4px 6px;margin:2px 0 5px;font-size:11px;color:var(--muted);max-height:56px;overflow:hidden}
+.attachment{display:block;max-width:100%;max-height:360px;border-radius:9px;margin-top:5px;object-fit:contain;background:var(--image-bg)}.attachmentWrap{position:relative;margin-top:4px}.caption{font-size:11px;margin-top:3px;color:var(--muted)}.attachmentMenu{position:absolute;right:5px;top:9px;z-index:3}.attachmentMenu summary,.msgMenu summary{list-style:none;cursor:pointer;user-select:none}.attachmentMenu summary::-webkit-details-marker,.msgMenu summary::-webkit-details-marker{display:none}.attachmentMenu summary{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#0008;color:#fff;font-size:18px}.msgMenu{position:absolute;right:5px;top:4px;z-index:6}.msgMenu summary{width:26px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:19px;line-height:1}.msgMenu[open] summary{background:var(--soft)}.msgMenuPanel{position:absolute;right:0;top:28px;width:210px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:5px;box-shadow:0 8px 24px var(--shadow);z-index:20}.mine .msgMenuPanel{right:0}.menuBtn{display:block;width:100%;border:0;background:transparent;color:var(--ink);text-align:left;padding:7px 9px;border-radius:7px;font-size:12px}.menuBtn:hover{background:var(--soft)}.menuSep{height:1px;background:var(--line);margin:4px}.reactionStrip{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}.reactionChip{border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:2px 6px;font-size:11px}.reactionChip.on{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg)}@media(max-width:600px){.bubble{max-width:88%;}.messages{padding-left:5px;padding-right:5px}.msgMenuPanel{width:195px}}.archivePhoto{display:block;width:100%;max-height:520px;object-fit:contain;background:var(--image-bg);border-radius:12px;margin:10px 0}.uploadBox{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:12px;background:var(--paper-2)}
 .actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.mini{border:1px solid var(--line);background:var(--input);border-radius:99px;padding:4px 8px;font-size:12px}.mini.on{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg);font-weight:700}
 .composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);padding:7px 9px;background:var(--bg);z-index:25;border-top:1px solid var(--line)}
 .composeRow{display:flex;gap:7px}.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:11px;background:var(--input);max-height:100px}
@@ -279,29 +279,44 @@ async function loadRoom(){
    const replied=m.reply_to?lastMessages.find(x=>x.id===m.reply_to):null;
    const reactions=["👍","❤️","😂"].map(e=>{
       const rows=reactionRows.filter(r=>r.message_id===m.id&&r.emoji===e), on=rows.some(r=>r.user_id===user.id);
-      return '<button class="mini '+(on?"on":"")+'" data-react="'+e+'" data-mid="'+m.id+'">'+e+(rows.length?" "+rows.length:"")+'</button>';
+      return rows.length?'<button class="reactionChip '+(on?"on":"")+'" data-react="'+e+'" data-mid="'+m.id+'">'+e+' '+rows.length+'</button>':"";
    }).join("");
+   const photoMenu=(a)=>
+     '<details class="attachmentMenu"><summary>⋮</summary><div class="msgMenuPanel">'+
+       (canEditPhoto?'<button class="menuBtn" data-photo-replace="'+a.id+'">Заменить фото</button><button class="menuBtn" data-photo-caption="'+a.id+'">Изменить подпись</button><button class="menuBtn" data-photo-remove="'+a.id+'">Убрать из сообщения</button>':'')+
+       '<button class="menuBtn" data-photo-history="'+a.id+'">История версий</button>'+
+       (editor?'<div class="menuSep"></div><button class="menuBtn" data-photo-archive="'+a.id+'" data-mid="'+m.id+'">В фотоархив</button>':'')+
+     '</div></details>';
    const photos=(m.attachments||[]).filter(a=>!a.is_removed).map(a=>
      '<div class="attachmentWrap">'+
        (signed[a.id]?'<img class="attachment" src="'+signed[a.id]+'" alt="'+esc(a.current_file_name||"Фото")+'">':'<div class="notice">Фото недоступно.</div>')+
+       photoMenu(a)+
        (a.caption?'<div class="caption">'+esc(a.caption)+'</div>':'')+
-       '<div class="attachmentTools">'+
-         (canEditPhoto?'<button class="mini" data-photo-replace="'+a.id+'">Заменить</button><button class="mini" data-photo-caption="'+a.id+'">Подпись</button><button class="mini" data-photo-remove="'+a.id+'">Убрать</button>':'')+
-         '<button class="mini" data-photo-history="'+a.id+'">Версии</button>'+
-         (editor?'<button class="mini" data-photo-archive="'+a.id+'" data-mid="'+m.id+'">В архив</button>':'')+
-       '</div>'+
      '</div>'
    ).join("");
+   const menu=
+     '<details class="msgMenu"><summary aria-label="Действия">⋮</summary><div class="msgMenuPanel">'+
+       '<button class="menuBtn" data-reply="'+m.id+'">↩ Ответить</button>'+
+       '<button class="menuBtn" data-react="👍" data-mid="'+m.id+'">👍 Нравится</button>'+
+       '<button class="menuBtn" data-react="❤️" data-mid="'+m.id+'">❤️ Сердце</button>'+
+       '<button class="menuBtn" data-react="😂" data-mid="'+m.id+'">😂 Смешно</button>'+
+       (canEditPhoto?'<div class="menuSep"></div><button class="menuBtn" data-edit-message="'+m.id+'">✎ Редактировать</button><button class="menuBtn" data-photo-add="'+m.id+'">＋ Добавить фото</button>':'')+
+       (editor?'<div class="menuSep"></div><button class="menuBtn" data-evidence="'+m.id+'">'+(m.is_evidence?"★ Убрать из свидетельств":"☆ В свидетельство")+'</button><button class="menuBtn" data-link="'+m.id+'">🔗 Связать с историей</button><button class="menuBtn" data-question="'+m.id+'">? Создать вопрос</button><button class="menuBtn" data-hide="'+m.id+'">'+(m.is_hidden_from_publication?"Вернуть в публикацию":"Не публиковать")+'</button>':'')+
+     '</div></details>';
    return '<div class="msg '+(mine?"mine":"")+'"><div class="bubble" data-mid="'+m.id+'">'+
+     menu+
      '<div class="who">'+esc(m.author?.display_name||"Участник")+'</div>'+
-     (replied?'<div class="replyQuote"><b>'+esc(replied.author?.display_name||"Участник")+'</b><br>'+esc((replied.body||"Фото").slice(0,120))+'</div>':'')+
-     (m.body?'<div>'+esc(m.body)+'</div>':'')+
+     (replied?'<div class="replyQuote"><b>'+esc(replied.author?.display_name||"Участник")+'</b><br>'+esc((replied.body||"Фото").slice(0,100))+'</div>':'')+
+     (m.body?'<div class="messageBody">'+esc(m.body)+'</div>':'')+
      photos+
-     '<div class="actions"><button class="mini" data-reply="'+m.id+'">↩ Ответить</button>'+reactions+(canEditPhoto?'<button class="mini" data-edit-message="'+m.id+'">✎ Редактировать</button><button class="mini" data-photo-add="'+m.id+'">＋ Фото</button>':'')+'</div>'+
-     (m.linked_entity_id?'<div class="linked">Связано: '+esc(m.linked_entity_type||"архив")+' · '+esc(m.linked_entity_id)+'</div>':'')+
-     (editor?'<div class="editorTools"><button class="mini" data-evidence="'+m.id+'">'+(m.is_evidence?"★ Свидетельство":"☆ В свидетельство")+'</button><button class="mini" data-link="'+m.id+'">🔗 К истории</button><button class="mini" data-question="'+m.id+'">? Вопрос</button><button class="mini" data-hide="'+m.id+'">'+(m.is_hidden_from_publication?"Вернуть":"Не публиковать")+'</button></div>':'')+
-     '<div class="time">'+new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})+(m.edited_at?' · изменено':'')+'</div></div></div>';
+     (reactions?'<div class="reactionStrip">'+reactions+'</div>':'')+
+     '<div class="msgFoot">'+
+       (m.linked_entity_id?'<div class="linked">↗ '+esc(m.linked_entity_type||"архив")+' · '+esc(m.linked_entity_id)+'</div>':'')+
+       '<div class="time">'+new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})+(m.edited_at?' · изменено':'')+'</div>'+
+     '</div></div></div>';
  }).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';
+ $("messages").querySelectorAll("details.msgMenu,details.attachmentMenu").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)$("messages").querySelectorAll("details[open]").forEach(x=>{if(x!==d)x.removeAttribute("open")})}));
+ $("messages").querySelectorAll(".msgMenuPanel button").forEach(b=>b.addEventListener("click",()=>b.closest("details")?.removeAttribute("open")));
  $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
  $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));
  $("messages").querySelectorAll("[data-evidence]").forEach(b=>b.onclick=()=>toggleEditorialFlag(b.dataset.evidence,"is_evidence"));

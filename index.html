@@ -277,7 +277,15 @@ async function openStory(id){
  const ch=s.data?.chapter;
  let html='<div class="archiveCard"><div class="small">'+esc(s.id)+' · '+esc(s.kind||"")+'</div><h2 style="margin:6px 0">'+esc(s.title)+'</h2><div class="small">'+esc(s.period||"")+'</div>';
  if(!ch){
-   html+='<p>Для этой истории пока собрана карточка и связи с архивом. Развёрнутая редакционная реконструкция ещё не подготовлена.</p>';
+   if(s.data?.editorial_summary){
+     html+='<p>'+esc(s.data.editorial_summary)+'</p>';
+     if(s.data?.highlights?.length){
+       html+='<div class="sectionTitle">Главное</div>'+s.data.highlights.map(x=>'<div class="claim">'+esc(x)+'</div>').join("");
+     }
+     if(s.data?.source_basis)html+='<div class="notice"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>';
+   } else {
+     html+='<p>Для этой истории пока собрана карточка и связи с архивом. Развёрнутая редакционная реконструкция ещё не подготовлена.</p>';
+   }
    const kws=s.data?.keywords||[]; if(kws.length)html+='<div class="sectionTitle">Ключевые темы</div>'+kws.map(x=>'<span class="badge">'+esc(x)+'</span>').join("");
    html+='</div>';
  } else {

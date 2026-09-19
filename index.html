@@ -31,7 +31,7 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 .send{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:0 14px;font-weight:700;white-space:nowrap}
 .composeTools{display:flex;align-items:center;gap:8px;margin-bottom:6px}.attachBtn{border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 9px;font-size:12px}.replying{flex:1;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .form label{display:block;font-size:13px;margin:10px 0 5px}.form input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}.primary{width:100%;border:0;border-radius:11px;padding:12px;background:var(--ink);color:#fff;font-weight:700;margin-top:14px}.secondary{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;margin-top:9px}
-.archiveList{padding:12px}.archiveCard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px}.archiveCard h3{font:700 18px Georgia,serif;margin:0 0 5px}.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:3px 7px;font-size:10px;color:var(--muted);margin:2px 3px 2px 0}.editorTools{border-top:1px dashed var(--line);margin-top:7px;padding-top:6px}.linked{font-size:10px;font-weight:700;color:#5f554a;margin-top:5px}.small{font-size:12px;color:var(--muted)}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
+.archiveList{padding:12px}.storyDetail{position:fixed;inset:58px 0 calc(var(--nav) + env(safe-area-inset-bottom)) 0;background:var(--bg);z-index:24;overflow:auto;display:none}.storyDetail.open{display:block}.storyDetailIn{max-width:760px;margin:auto;padding:12px}.storyHead{display:flex;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);padding:6px 0 10px;z-index:2}.storyHead button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 11px}.claim{border-left:3px solid #9e9182;padding:8px 10px;margin:9px 0;background:#f8f3ec;border-radius:7px}.evidence{padding:8px 0;border-bottom:1px solid var(--line)}.sectionTitle{font:700 19px Georgia,serif;margin:18px 0 8px}.archiveCard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px}.archiveCard h3{font:700 18px Georgia,serif;margin:0 0 5px}.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:3px 7px;font-size:10px;color:var(--muted);margin:2px 3px 2px 0}.editorTools{border-top:1px dashed var(--line);margin-top:7px;padding-top:6px}.linked{font-size:10px;font-weight:700;color:#5f554a;margin-top:5px}.small{font-size:12px;color:var(--muted)}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
 </style>
 </head>
 <body>
@@ -56,6 +56,7 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 </section>
 
 <section id="stories" class="view"><div class="archiveList"><h2>Истории</h2><div id="storiesList" class="notice">Войдите, чтобы открыть архив.</div></div></section>
+<div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
 <section id="photos" class="view"><div class="archiveList"><h2>Фотоархив</h2><div class="notice" style="margin-bottom:10px">Сейчас подключены карточки фотодосье. Сами архивные файлы перенесём в закрытое хранилище отдельным шагом.</div><div id="photosList"></div></div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2><div id="questionsList" class="notice">Войдите, чтобы открыть реестр вопросов.</div></div></section>
 <section id="profile" class="view"><div class="pad">
@@ -216,11 +217,55 @@ function subscribe(){
 }
 async function loadStories(){
  if(!user||!profile?.is_active){$("storiesList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
- const {data,error}=await sb.from("archive_stories").select("id,title,period,kind,full_chapter").order("id");
+ const {data,error}=await sb.from("archive_stories").select("id,title,period,kind,full_chapter,data").order("id");
  if(error){$("storiesList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- $("storiesList").innerHTML=(data||[]).map(s=>'<div class="archiveCard"><h3>'+esc(s.title)+'</h3><span class="badge">'+esc(s.id)+'</span><span class="badge">'+esc(s.kind||"")+'</span>'+(s.full_chapter?'<span class="badge">полная глава</span>':'')+'<div class="small" style="margin-top:6px">'+esc(s.period||"")+'</div><button class="secondary" data-openroom="'+(s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general")+'">Обсудить в чате</button></div>').join("");
+ $("storiesList").innerHTML=(data||[]).map(s=>{
+   const kws=(s.data?.keywords||[]).slice(0,4).map(x=>'<span class="badge">'+esc(x)+'</span>').join("");
+   return '<div class="archiveCard"><h3>'+esc(s.title)+'</h3><span class="badge">'+esc(s.id)+'</span><span class="badge">'+esc(s.kind||"")+'</span>'+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':'')+'<div class="small" style="margin-top:6px">'+esc(s.period||"")+'</div><div style="margin-top:7px">'+kws+'</div><button class="secondary" data-story="'+s.id+'">Открыть историю</button><button class="secondary" data-openroom="'+(s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general")+'">Обсудить в чате</button></div>';
+ }).join("");
+ $("storiesList").querySelectorAll("[data-story]").forEach(b=>b.onclick=()=>openStory(b.dataset.story));
  $("storiesList").querySelectorAll("[data-openroom]").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.openroom;renderRooms();showView("chat");subscribe()});
 }
+
+function personGroupHtml(title,arr){
+ if(!arr?.length)return "";
+ return '<div class="sectionTitle">'+esc(title)+'</div>'+arr.map(p=>'<div class="claim"><b>'+esc(p.name||p.id)+'</b><div class="small">'+esc(p.basis||"")+'</div></div>').join("");
+}
+async function openStory(id){
+ const {data:s,error}=await sb.from("archive_stories").select("*").eq("id",id).maybeSingle();
+ if(error||!s){alert(error?.message||"История не найдена");return}
+ const ch=s.data?.chapter;
+ let html='<div class="archiveCard"><div class="small">'+esc(s.id)+' · '+esc(s.kind||"")+'</div><h2 style="margin:6px 0">'+esc(s.title)+'</h2><div class="small">'+esc(s.period||"")+'</div>';
+ if(!ch){
+   html+='<p>Для этой истории пока собрана карточка и связи с архивом. Развёрнутая редакционная реконструкция ещё не подготовлена.</p>';
+   const kws=s.data?.keywords||[]; if(kws.length)html+='<div class="sectionTitle">Ключевые темы</div>'+kws.map(x=>'<span class="badge">'+esc(x)+'</span>').join("");
+   html+='</div>';
+ } else {
+   html+=(ch.subtitle?'<p><b>'+esc(ch.subtitle)+'</b></p>':'')+
+     (ch.place?'<p class="small"><b>Место:</b> '+esc(ch.place)+'</p>':'')+
+     (ch.event_status?'<p class="small"><b>Статус:</b> '+esc(ch.event_status)+'</p>':'')+
+     (ch.editorial_note?'<div class="notice">'+esc(ch.editorial_note)+'</div>':'')+
+     personGroupHtml("Подтверждённые участники",ch.participants?.confirmed)+
+     personGroupHtml("Возможные участники",ch.participants?.possible)+
+     personGroupHtml("Отсутствовали / не подтверждены",ch.participants?.absent||ch.participants?.absent_or_not_on_photo);
+   if(ch.claims?.length){
+     html+='<div class="sectionTitle">Что удалось восстановить</div>'+
+       ch.claims.map(c=>'<div class="claim"><b>'+esc(c.title)+'</b><div><span class="badge">'+esc(c.status||"")+'</span><span class="badge">'+esc(c.certainty||"")+'</span></div><div class="small" style="margin-top:5px">'+esc(c.summary||"")+'</div></div>').join("");
+   }
+   if(ch.evidence?.length){
+     html+='<div class="sectionTitle">Свидетельства</div>'+
+       ch.evidence.map(e=>'<div class="evidence"><b>'+esc(e.author||"")+'</b> <span class="badge">'+esc(e.kind||"")+'</span><div class="small">'+esc(e.date||"")+'</div>'+(e.quote?'<div style="margin-top:5px">«'+esc(e.quote)+'»</div>':'')+(e.editorial_summary&&e.editorial_summary!==e.quote?'<div class="small" style="margin-top:5px">'+esc(e.editorial_summary)+'</div>':'')+'</div>').join("");
+   }
+   if(ch.open_questions?.length){
+     html+='<div class="sectionTitle">Что ещё не установлено</div>'+ch.open_questions.map(q=>'<div class="claim">'+esc(q)+'</div>').join("");
+   }
+   html+='</div>';
+ }
+ $("storyDetailBody").innerHTML=html;
+ $("storyDetail").classList.add("open");
+ $("storyDetail").scrollTop=0;
+}
+$("closeStory").onclick=()=>$("storyDetail").classList.remove("open");
 
 async function loadPhotos(){
  if(!user||!profile?.is_active){$("photosList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}

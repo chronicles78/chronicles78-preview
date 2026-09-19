@@ -105,6 +105,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div class="card"><h2>Профиль</h2><div id="profileBox"></div></div>
 <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
 <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
+<div class="card" id="adminUsersBox" style="display:none"><h2>Заявки на доступ</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
 <div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><p class="small" style="margin-top:12px">Впервые на сайте? Сначала зарегистрируйтесь.</p><p><a href="register.html">Зарегистрироваться</a></p><div id="loginError"></div></div>
 </div></section>
 </main>
@@ -217,9 +218,9 @@ function renderProfile(){
  if(user&&profile){
    $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
    $("loginBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
-   $("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="block";if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";setStatus("Онлайн · "+profile.role);
+   $("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="block";if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";if(profile.role==="admin")loadAdminUsers();setStatus("Онлайн · "+profile.role);
  } else {
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";if($("adminUsersBox"))$("adminUsersBox").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");
  }
 }
 async function init(){
@@ -893,6 +894,31 @@ async function createQuestionFromMessage(mid){
      if(error)throw error;
    }
  );
+}
+async function loadAdminUsers(){
+ if(profile?.role!=="admin"||!$("adminUsersList"))return;
+ const {data,error}=await sb.rpc("admin_pending_users");
+ if(error){$("adminUsersList").innerHTML='<div class="err">'+esc(error.message)+'</div>';return}
+ const rows=data||[];
+ $("adminUsersList").className="";
+ $("adminUsersList").innerHTML=rows.map(u=>{
+   const confirmed=!!u.email_confirmed_at;
+   return '<div class="archiveCard"><h3>'+esc(u.display_name||"Без имени")+'</h3>'+
+    '<div class="small">'+esc(u.email||"")+'</div>'+
+    '<div style="margin-top:6px"><span class="badge">'+(confirmed?"e-mail подтверждён":"e-mail НЕ подтверждён")+'</span><span class="badge">'+(u.is_active?"доступ активен":"ожидает активации")+'</span></div>'+
+    '<div class="small" style="margin-top:6px">Регистрация: '+new Date(u.created_at).toLocaleString("ru-RU")+'</div>'+
+    (!u.is_active&&confirmed?'<button class="secondary" data-admin-activate="'+u.user_id+'">Активировать доступ</button>':'')+
+    (u.is_active?'<button class="secondary" data-admin-disable="'+u.user_id+'">Отключить доступ</button>':'')+
+    (!confirmed?'<div class="notice" style="margin-top:8px">Пользователь должен подтвердить e-mail. На странице регистрации есть кнопка повторной отправки письма.</div>':'')+
+    '</div>';
+ }).join("")||'<div class="notice">Заявок нет.</div>';
+ $("adminUsersList").querySelectorAll("[data-admin-activate]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminActivate,true));
+ $("adminUsersList").querySelectorAll("[data-admin-disable]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminDisable,false));
+}
+async function adminSetAccess(uid,on){
+ const {error}=await sb.rpc("admin_set_profile_access",{p_user_id:uid,p_is_active:on,p_person_id:null,p_class_group:null});
+ if(error){alert("Не изменено: "+error.message);return}
+ await loadAdminUsers();
 }
 init();
 </script>

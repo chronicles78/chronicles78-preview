@@ -336,9 +336,22 @@ $("fileInput").onchange=()=>{
 };
 
 function safeName(name){return String(name||"photo.jpg").replace(/[^a-zA-Z0-9._-]/g,"_")}
+function imageMimeFromFile(file){
+ const name=String(file?.name||"").toLowerCase();
+ if(name.endsWith(".jpg")||name.endsWith(".jpeg"))return "image/jpeg";
+ if(name.endsWith(".png"))return "image/png";
+ if(name.endsWith(".webp"))return "image/webp";
+ return null;
+}
+function ensureImageFile(file){
+ const mime=imageMimeFromFile(file);
+ if(!mime)throw new Error("Выбран не файл изображения. Нужен JPG, JPEG, PNG или WEBP.");
+ return mime;
+}
 async function uploadChatFile(file){
+ const mime=ensureImageFile(file);
  const path=user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
- const {error}=await sb.storage.from("chat-media").upload(path,file,{contentType:file.type||"image/jpeg",upsert:false});
+ const {error}=await sb.storage.from("chat-media").upload(path,file,{contentType:mime,upsert:false});
  if(error)throw error;
  return {path,name:file.name};
 }
@@ -468,7 +481,8 @@ async function archivePhotoFromChat(attachmentId,messageId){
      }else if(!mediaId)throw new Error("Выберите существующую карточку.");
      const {data:blob,error:de}=await sb.storage.from("chat-media").download(a.current_storage_path);if(de)throw de;
      const path=mediaId+"/v-"+Date.now()+"-"+safeName(a.current_file_name||"photo.jpg");
-     const {error:ue}=await sb.storage.from("archive-media").upload(path,blob,{contentType:blob.type||"image/jpeg",upsert:false});if(ue)throw ue;
+     const mime=imageMimeFromFile({name:a.current_file_name})||"image/jpeg";
+     const {error:ue}=await sb.storage.from("archive-media").upload(path,blob,{contentType:mime,upsert:false});if(ue)throw ue;
      const {error:re}=await sb.rpc("replace_archive_media_version",{
        p_media_id:mediaId,p_storage_path:path,p_file_name:a.current_file_name,p_version_type:$("pfQuality").value,
        p_reason:$("pfReason").value.trim()||"Перенесено из чата",p_source_note:$("pfSource").value.trim()||null,
@@ -594,11 +608,16 @@ $("classPhotoInput").onchange=async()=>{
  const file=$("classPhotoInput").files?.[0];if(!file)return;
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
  try{
+   const mime=ensureImageFile(file);
+   if(file.size>10*1024*1024)throw new Error("Файл больше 10 МБ.");
+   const ok=confirm("Загрузить общую фотографию 10Б?\n\n"+file.name+"\n"+Math.round(file.size/1024)+" КБ");
+   if(!ok){$("classPhotoInput").value="";return}
    const path="class-photos/10B-"+Date.now()+"-"+safeName(file.name);
-   const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:file.type||"image/jpeg",upsert:false});if(ue)throw ue;
+   const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:mime,upsert:false});if(ue)throw ue;
    const {error:de}=await sb.from("class_photos").update({storage_path:path,updated_at:new Date().toISOString()}).eq("id","CLASS-10B");if(de)throw de;
    await loadClassPhoto();renderPeople();
  }catch(e){alert("Фото класса не загружено: "+(e.message||e))}
+ finally{$("classPhotoInput").value=""}
 };document.querySelectorAll("[data-pgroup]").forEach(b=>b.onclick=async()=>{
  peopleGroup=b.dataset.pgroup;selectedPersonId=null;showClassNumbers=false;
  document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x===b));
@@ -699,9 +718,10 @@ async function loadPhotos(){
  $("photosList").querySelectorAll("[data-archive-edit]").forEach(b=>b.onclick=()=>editArchiveCard(b.dataset.archiveEdit));
 }
 async function uploadArchiveVersion(mediaId,file,type,reason,sourceNote){
+ const mime=ensureImageFile(file);
  const dims=await fileDimensions(file);
  const path=mediaId+"/v-"+Date.now()+"-"+safeName(file.name);
- const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:file.type||"image/jpeg",upsert:false});
+ const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:mime,upsert:false});
  if(ue)throw ue;
  const {error:re}=await sb.rpc("replace_archive_media_version",{
    p_media_id:mediaId,p_storage_path:path,p_file_name:file.name,p_version_type:type,p_reason:reason||null,

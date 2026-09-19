@@ -204,6 +204,7 @@ function qualitySelectHtml(value="копия"){
  return '<select id="pfQuality">'+opts.map(x=>'<option '+(x===value?"selected":"")+'>'+x+'</option>').join("")+'</select>';
 }
 function showView(v){
+ if($("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open");
  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));
  document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  if(v==="chat"&&user&&profile?.is_active)loadRoom();
@@ -699,6 +700,7 @@ async function openStory(id){
  $("storyDetail").scrollTop=0;
 }
 $("closeStory").onclick=()=>$("storyDetail").classList.remove("open");
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open")});
 
 async function archiveSignedImage(path){
  if(!path)return null;

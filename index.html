@@ -831,11 +831,66 @@ async function uploadArchiveMedia(){
 }
 $("archiveUploadBtn").onclick=uploadArchiveMedia;
 
+function questionIsOpen(q){
+ const s=String(q.status||"").toLowerCase();
+ return !["решён","решено","resolved","closed","закрыт"].includes(s);
+}
+function renderQuestions(){
+ const rows=questionCache.filter(q=>
+   (questionPriority==="all"||q.priority===questionPriority) &&
+   (questionStatus==="all"||questionIsOpen(q))
+ );
+ const total=questionCache.length;
+ const openCount=questionCache.filter(questionIsOpen).length;
+ const dynamicCount=questionCache.filter(q=>q.source==="chat").length;
+ $("questionStats").innerHTML='<b>'+openCount+' открытых</b> из '+total+' вопросов'+(dynamicCount?' · '+dynamicCount+' добавлено из чата':'')+'.';
+ $("questionsList").innerHTML=rows.map(q=>{
+   const editor=profile?.role==="editor"||profile?.role==="admin";
+   const sourceBadge=q.source==="chat"?'<span class="badge">из чата</span>':'<span class="badge">архив</span>';
+   return '<div class="archiveCard"><h3>'+esc(q.question)+'</h3>'+
+     '<span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span>'+sourceBadge+
+     (q.category?'<span class="badge">'+esc(q.category)+'</span>':'')+
+     (q.why_it_matters?'<p class="small"><b>Почему важно:</b> '+esc(q.why_it_matters)+'</p>':'')+
+     (q.ask?'<p class="small"><b>Кого/что спросить:</b> '+esc(q.ask)+'</p>':'')+
+     (q.notes?'<p class="small"><b>Комментарий редакции:</b> '+esc(q.notes)+'</p>':'')+
+     (q.linked_entity_id?'<p class="small"><b>Связано:</b> '+esc(q.linked_entity_type||"")+' '+esc(q.linked_entity_id)+'</p>':'')+
+     (editor&&q.source==="archive"?'<button class="secondary" data-q-toggle="'+esc(q.id)+'">'+(questionIsOpen(q)?"Отметить решённым":"Вернуть в работу")+'</button>':'')+
+     (q.source_message_id?'<button class="secondary" data-q-chat="'+esc(q.source_message_id)+'">Открыть сообщение в чате</button>':'')+
+   '</div>';
+ }).join("")||'<div class="notice">По выбранному фильтру вопросов нет.</div>';
+ $("questionsList").querySelectorAll("[data-q-toggle]").forEach(b=>b.onclick=()=>toggleArchiveQuestion(b.dataset.qToggle));
+ $("questionsList").querySelectorAll("[data-q-chat]").forEach(b=>b.onclick=()=>openQuestionMessage(b.dataset.qChat));
+}
 async function loadQuestions(){
- if(!user||!profile?.is_active){$("questionsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
- const {data,error}=await sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links").order("priority").order("id");
- if(error){$("questionsList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- questionCache=data||[];renderQuestions();
+ if(!user||!profile?.is_active){
+   $("questionStats").textContent="Войдите, чтобы открыть реестр вопросов.";
+   $("questionsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';
+   return;
+ }
+ $("questionStats").textContent="Загружаю вопросы…";
+ const [a,e]=await Promise.all([
+   sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links").order("priority").order("id"),
+   sb.from("editorial_questions").select("id,source_message_id,question,status,priority,linked_entity_type,linked_entity_id,notes,created_at").order("created_at",{ascending:false})
+ ]);
+ if(a.error||e.error){
+   $("questionStats").textContent="Не удалось загрузить реестр.";
+   $("questionsList").innerHTML='<div class="notice">'+esc(a.error?.message||e.error?.message)+'</div>';
+   return;
+ }
+ questionCache=[
+   ...(a.data||[]).map(q=>({...q,source:"archive"})),
+   ...(e.data||[]).map(q=>({...q,source:"chat",category:"Редакционный вопрос"}))
+ ];
+ renderQuestions();
+}
+async function openQuestionMessage(mid){
+ const {data:m,error}=await sb.from("messages").select("id,room_id").eq("id",mid).maybeSingle();
+ if(error||!m){alert(error?.message||"Исходное сообщение не найдено.");return}
+ currentRoom=m.room_id;renderRooms();showView("chat");subscribe();
+ setTimeout(()=>{
+   const el=document.querySelector('[data-mid="'+CSS.escape(mid)+'"]');
+   el?.scrollIntoView({behavior:"smooth",block:"center"});
+ },500);
 }
 async function toggleArchiveQuestion(id){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;

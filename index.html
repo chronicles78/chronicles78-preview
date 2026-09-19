@@ -24,7 +24,7 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 .messages{flex:1;overflow:auto;padding:12px 10px 150px}.msg{margin:9px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{max-width:86%;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:9px 10px}
 .mine .bubble{background:#e9dfd2}.who{font-size:11px;font-weight:700;margin-bottom:4px}.time{font-size:10px;color:var(--muted);margin-top:5px;text-align:right}
 .replyQuote{border-left:3px solid #9e9182;background:#f5efe7;border-radius:7px;padding:6px 8px;margin-bottom:7px;font-size:12px;color:#5e564e}
-.attachment{display:block;max-width:100%;max-height:340px;border-radius:10px;margin-top:7px;object-fit:contain;background:#eee}
+.attachment{display:block;max-width:100%;max-height:340px;border-radius:10px;margin-top:7px;object-fit:contain;background:#eee}.archivePhoto{display:block;width:100%;max-height:520px;object-fit:contain;background:#eee7dd;border-radius:12px;margin:10px 0}.uploadBox{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:12px;background:#fffaf3}
 .actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.mini{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 8px;font-size:12px}.mini.on{background:#ded2c4}
 .composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);padding:7px 9px;background:var(--bg);z-index:25;border-top:1px solid var(--line)}
 .composeRow{display:flex;gap:7px}.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff;max-height:100px}
@@ -58,7 +58,15 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 <section id="people" class="view"><div class="archiveList"><h2>Люди</h2><div class="peopleToolbar"><button class="mini on" data-pgroup="all">Все</button><button class="mini" data-pgroup="10Б">10Б</button><button class="mini" data-pgroup="10А">10А</button><input id="peopleSearch" placeholder="Поиск по имени…"></div><div id="peopleList" class="notice">Войдите, чтобы открыть список.</div></div></section>
 <section id="stories" class="view"><div class="archiveList"><h2>Истории</h2><div id="storiesList" class="notice">Войдите, чтобы открыть архив.</div></div></section>
 <div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
-<section id="photos" class="view"><div class="archiveList"><h2>Фотоархив</h2><div class="notice" style="margin-bottom:10px">Сейчас подключены карточки фотодосье. Сами архивные файлы перенесём в закрытое хранилище отдельным шагом.</div><div id="photosList"></div></div></section>
+<section id="photos" class="view"><div class="archiveList"><h2>Фотоархив</h2>
+<div id="archiveUploadBox" class="uploadBox" style="display:none">
+<b>Загрузка архивных фото</b>
+<div class="small" style="margin:6px 0">Можно выбрать сразу несколько файлов. Имя файла должно содержать ID, например MEDIA-012.jpeg.</div>
+<input id="archiveFileInput" type="file" accept="image/*" multiple>
+<button class="secondary" id="archiveUploadBtn">Загрузить в закрытый архив</button>
+<div id="archiveUploadMsg" class="small"></div>
+</div>
+<div id="photosList"></div></div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
 <div id="questionStats" class="notice" style="margin-bottom:10px">Войдите, чтобы открыть реестр вопросов.</div>
 <div class="questionToolbar">
@@ -111,9 +119,9 @@ function renderProfile(){
  if(user&&profile){
    $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
    $("loginBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
-   $("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="block";setStatus("Онлайн · "+profile.role);
+   $("homeState").innerHTML="<b>Общая база подключена.</b><br>Можно переходить в чат.";$("composerWrap").style.display="block";if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";setStatus("Онлайн · "+profile.role);
  } else {
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";$("homeState").innerHTML="Откройте <b>Профиль</b> и войдите в общую базу.";setStatus("Нужен вход");
  }
 }
 async function init(){
@@ -327,26 +335,59 @@ async function openStory(id){
 }
 $("closeStory").onclick=()=>$("storyDetail").classList.remove("open");
 
+async function archiveSignedImage(path){
+ if(!path)return null;
+ const {data,error}=await sb.storage.from("archive-media").createSignedUrl(path,3600);
+ if(error)return null;
+ return data?.signedUrl||null;
+}
 async function loadPhotos(){
  if(!user||!profile?.is_active){$("photosList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
- const {data,error}=await sb.from("archive_media").select("id,title,category,linked_story,data").order("id");
+ const {data,error}=await sb.from("archive_media").select("id,title,category,linked_story,archive_file,data").order("id");
  if(error){$("photosList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  const arr=mediaFocus?(data||[]).filter(m=>m.id===mediaFocus):(data||[]);
+ const signed={};
+ for(const m of arr){
+   const p=m.data?.storage_path;
+   if(p)signed[m.id]=await archiveSignedImage(p);
+ }
  $("photosList").innerHTML=(mediaFocus?'<button class="secondary" id="showAllMedia">← Показать весь фотоархив</button>':'')+
- arr.map(m=>'<div class="archiveCard"><h3>'+esc(m.title)+'</h3><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span>'+(m.linked_story?'<span class="badge">'+esc(m.linked_story)+'</span>':'')+'<p class="small">'+esc(m.data?.visual_description||m.data?.identification_status||"")+'</p><p class="small"><b>Статус:</b> '+esc(m.data?.identification_status||"описание внесено")+'</p>'+(m.linked_story?'<button class="secondary" data-media-story="'+esc(m.linked_story)+'">Открыть связанную историю</button>':'')+'</div>').join("");
+ arr.map(m=>'<div class="archiveCard"><h3>'+esc(m.title)+'</h3><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span>'+(m.linked_story?'<span class="badge">'+esc(m.linked_story)+'</span>':'')+
+ (signed[m.id]?'<img class="archivePhoto" src="'+signed[m.id]+'" alt="'+esc(m.title)+'">':'<div class="notice" style="margin-top:10px">Файл изображения ещё не загружен в закрытый архив.</div>')+
+ '<p class="small">'+esc(m.data?.visual_description||m.data?.identification_status||"")+'</p><p class="small"><b>Статус:</b> '+esc(m.data?.identification_status||"описание внесено")+'</p>'+
+ (m.linked_story?'<button class="secondary" data-media-story="'+esc(m.linked_story)+'">Открыть связанную историю</button>':'')+'</div>').join("");
  if($("showAllMedia"))$("showAllMedia").onclick=()=>{mediaFocus=null;loadPhotos()};
  $("photosList").querySelectorAll("[data-media-story]").forEach(b=>b.onclick=()=>{showView("stories");openStory(b.dataset.mediaStory)});
 }
-
-function renderQuestions(){
- const isOpen=s=>["открыт","open"].includes(String(s||"").toLowerCase());
- const arr=questionCache.filter(q=>(questionPriority==="all"||q.priority===questionPriority)&&(questionStatus==="all"||isOpen(q.status)));
- const counts={P1:questionCache.filter(q=>q.priority==="P1"&&isOpen(q.status)).length,P2:questionCache.filter(q=>q.priority==="P2"&&isOpen(q.status)).length,P3:questionCache.filter(q=>q.priority==="P3"&&isOpen(q.status)).length};
- $("questionStats").innerHTML='<b>Открыто: '+(counts.P1+counts.P2+counts.P3)+'</b> · P1: '+counts.P1+' · P2: '+counts.P2+' · P3: '+counts.P3;
- $("questionsList").innerHTML=arr.map(q=>'<div class="archiveCard"><h3>'+esc(q.question)+'</h3><span class="badge">'+esc(q.id)+'</span><span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span><span class="badge">'+esc(q.category||"")+'</span><p class="small">'+esc(q.why_it_matters||"")+'</p>'+(q.ask?'<p class="small"><b>Кого спросить:</b> '+esc(q.ask)+'</p>':'')+'<button class="secondary" data-qchat="'+q.id+'">Обсудить в чате</button>'+((profile?.role==="editor"||profile?.role==="admin")?'<button class="secondary" data-qresolve="'+q.id+'">'+(isOpen(q.status)?"Отметить решённым":"Вернуть в открытые")+'</button>':'')+'</div>').join("")||'<div class="notice">В этой выборке вопросов нет.</div>';
- $("questionsList").querySelectorAll("[data-qchat]").forEach(b=>b.onclick=()=>{const q=questionCache.find(x=>x.id===b.dataset.qchat);currentRoom="general";renderRooms();showView("chat");subscribe();$("composer").value="Вопрос "+q.id+": "+q.question;$("composer").focus()});
- $("questionsList").querySelectorAll("[data-qresolve]").forEach(b=>b.onclick=()=>toggleArchiveQuestion(b.dataset.qresolve));
+async function uploadArchiveMedia(){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))return;
+ const files=[...($("archiveFileInput").files||[])];
+ if(!files.length){$("archiveUploadMsg").textContent="Выберите файлы.";return}
+ $("archiveUploadBtn").disabled=true;$("archiveUploadMsg").textContent="Загрузка…";
+ let ok=0,fail=[];
+ for(const file of files){
+   const m=file.name.match(/(MEDIA-\d{3})/i);
+   if(!m){fail.push(file.name+" — нет ID MEDIA-XXX");continue}
+   const id=m[1].toUpperCase();
+   const {data:rec}=await sb.from("archive_media").select("id").eq("id",id).maybeSingle();
+   if(!rec){fail.push(file.name+" — ID не найден в реестре");continue}
+   const ext=(file.name.split(".").pop()||"jpeg").toLowerCase();
+   const path=id+"."+ext;
+   const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:file.type||"image/jpeg",upsert:true});
+   if(ue){fail.push(file.name+" — "+ue.message);continue}
+   const {data:row}=await sb.from("archive_media").select("data").eq("id",id).maybeSingle();
+   const next={...(row?.data||{}),storage_path:path,storage_uploaded_at:new Date().toISOString()};
+   const {error:de}=await sb.from("archive_media").update({data:next,updated_at:new Date().toISOString()}).eq("id",id);
+   if(de){fail.push(file.name+" — запись не обновлена: "+de.message);continue}
+   ok++;
+ }
+ $("archiveUploadBtn").disabled=false;
+ $("archiveUploadMsg").textContent="Загружено: "+ok+(fail.length?". Ошибки: "+fail.join("; "):".");
+ $("archiveFileInput").value="";
+ await loadPhotos();
 }
+$("archiveUploadBtn").onclick=uploadArchiveMedia;
+
 async function loadQuestions(){
  if(!user||!profile?.is_active){$("questionsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
  const {data,error}=await sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links").order("priority").order("id");

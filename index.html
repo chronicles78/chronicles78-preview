@@ -22,12 +22,11 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .rooms{display:flex;gap:7px;overflow:auto;padding:9px 10px;background:var(--paper);border-bottom:1px solid var(--line)}
 .room{white-space:nowrap;border:1px solid var(--line);background:var(--input);border-radius:99px;padding:8px 12px}.room.active{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg);font-weight:700}
 .chat{height:calc(100dvh - 58px - var(--nav) - env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:0}
-.messages{flex:1;overflow:auto;padding:8px 8px 150px;background:var(--bg)}.msg{margin:4px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{position:relative;max-width:min(78%,620px);background:var(--paper);border:1px solid var(--line);border-radius:14px 14px 14px 5px;padding:6px 8px 5px;box-shadow:0 1px 1px var(--shadow)}
-.mine .bubble{background:var(--mine);border-radius:14px 14px 5px 14px}.who{font-size:11px;font-weight:700;margin:0 26px 2px 0;color:var(--focus)}.messageBody{font-size:14px;line-height:1.38;white-space:pre-wrap;overflow-wrap:anywhere}.msgFoot{display:flex;align-items:flex-end;justify-content:flex-end;gap:5px;margin-top:2px;min-height:15px}.time{font-size:9px;color:var(--muted);white-space:nowrap}.linked{font-size:9px;color:var(--muted);margin-right:auto;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.replyQuote{border-left:2px solid var(--focus);background:var(--soft-2);border-radius:5px;padding:4px 6px;margin:2px 0 5px;font-size:11px;color:var(--muted);max-height:56px;overflow:hidden}
-.attachment{display:block;max-width:100%;max-height:360px;border-radius:9px;margin-top:5px;object-fit:contain;background:var(--image-bg)}.attachmentWrap{position:relative;margin-top:4px}.caption{font-size:11px;margin-top:3px;color:var(--muted)}.attachmentMenu{position:absolute;right:5px;top:9px;z-index:3}.attachmentMenu summary,.msgMenu summary{list-style:none;cursor:pointer;user-select:none}.attachmentMenu summary::-webkit-details-marker,.msgMenu summary::-webkit-details-marker{display:none}.attachmentMenu summary{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#0008;color:#fff;font-size:18px}.msgMenu{position:absolute;right:5px;top:4px;z-index:6}.msgMenu summary{width:26px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--muted);font-size:19px;line-height:1}.msgMenu[open] summary{background:var(--soft)}.msgMenuPanel{position:absolute;right:0;top:28px;width:210px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:5px;box-shadow:0 8px 24px var(--shadow);z-index:20}.mine .msgMenuPanel{right:0}.menuBtn{display:block;width:100%;border:0;background:transparent;color:var(--ink);text-align:left;padding:7px 9px;border-radius:7px;font-size:12px}.menuBtn:hover{background:var(--soft)}.menuSep{height:1px;background:var(--line);margin:4px}.reactionStrip{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}.reactionChip{border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:2px 6px;font-size:11px}.reactionChip.on{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg)}@media(max-width:600px){.bubble{max-width:88%;}.messages{padding-left:5px;padding-right:5px}.msgMenuPanel{width:195px}}.archivePhoto{display:block;width:100%;max-height:520px;object-fit:contain;background:var(--image-bg);border-radius:12px;margin:10px 0}.uploadBox{border:1px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:12px;background:var(--paper-2)}
-.actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.mini{border:1px solid var(--line);background:var(--input);border-radius:99px;padding:4px 8px;font-size:12px}.mini.on{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg);font-weight:700}
-.composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);padding:7px 9px;background:var(--bg);z-index:25;border-top:1px solid var(--line)}
+.messages{flex:1;overflow:auto;padding:8px 8px 150px;background:var(--bg)}.msg{margin:3px 0;display:flex}.msg.mine{justify-content:flex-end}.bubble{position:relative;max-width:min(76%,620px);background:var(--paper);border:1px solid var(--line);border-radius:14px 14px 14px 5px;padding:6px 8px 4px;box-shadow:0 1px 1px var(--shadow)}
+.mine .bubble{background:var(--mine);border-radius:14px 14px 5px 14px}.who{font-size:11px;font-weight:700;margin:0 0 2px;color:var(--focus)}.messageBody{font-size:14px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}.replyQuote{border-left:2px solid var(--focus);background:var(--soft-2);border-radius:5px;padding:4px 6px;margin:2px 0 5px;font-size:11px;color:var(--muted);max-height:54px;overflow:hidden}
+.attachment{display:block;max-width:100%;max-height:360px;border-radius:9px;margin-top:5px;object-fit:contain;background:var(--image-bg)}.attachmentWrap{margin-top:4px}.caption{font-size:11px;margin-top:3px;color:var(--muted)}
+.reactionStrip{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}.reactionChip{border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:2px 6px;font-size:11px}.reactionChip.on{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg)}
+.msgFoot{display:flex;align-items:flex-end;justify-content:flex-end;gap:5px;margin-top:1px;min-height:14px}.linked{font-size:9px;color:var(--muted);margin-right:auto;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.footMenu{position:relative;margin-left:auto}.footMenu>summary{list-style:none;cursor:default;user-select:none;display:inline-flex;align-items:center;gap:3px;color:var(--muted);font-size:9px;white-space:nowrap;touch-action:manipulation}.footMenu>summary::-webkit-details-marker{display:none}.receiptChecks{letter-spacing:-2px;font-size:11px;line-height:1}.receiptChecks.read{color:var(--focus)}.msgMenuPanel{position:absolute;right:0;bottom:18px;width:220px;background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:5px;box-shadow:0 8px 26px var(--shadow);z-index:40}.menuBtn{display:block;width:100%;border:0;background:transparent;color:var(--ink);text-align:left;padding:7px 9px;border-radius:7px;font-size:12px}.menuBtn:hover{background:var(--soft)}.menuSep{height:1px;background:var(--line);margin:4px}.menuLabel{padding:5px 9px 2px;font-size:10px;color:var(--muted);font-weight:700}.archivePhoto.composer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + env(safe-area-inset-bottom));width:min(760px,100%);padding:7px 9px;background:var(--bg);z-index:25;border-top:1px solid var(--line)}
 .composeRow{display:flex;gap:7px}.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);border-radius:14px;padding:11px;background:var(--input);max-height:100px}
 .send{border:0;border-radius:14px;background:var(--primary-bg);color:var(--primary-ink);padding:0 14px;font-weight:700;white-space:nowrap}
 .composeTools{display:flex;align-items:center;gap:8px;margin-bottom:6px}.attachBtn{border:1px solid var(--line);border-radius:10px;background:var(--input);padding:6px 9px;font-size:12px}.replying{flex:1;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -146,7 +145,7 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,mediaFocus=null;
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,mediaFocus=null;
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -214,6 +213,10 @@ function showView(v){
  if(v==="questions")loadQuestions();
 }
 document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+function closeChatMenus(){
+ document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
+}
+document.addEventListener("click",e=>{if(!e.target.closest("details.footMenu"))closeChatMenus()});
 async function activateTag(tag){
  tag=String(tag||"").trim();
  if(!tag)return;
@@ -306,7 +309,7 @@ async function login(){
   profile=p;renderProfile();subscribe();showView("chat");await loadRoom();
  }catch(e){$("loginError").textContent=e.message||String(e)}
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
 
 async function saveName(){
@@ -331,65 +334,104 @@ async function loadRoom(){
  if(error){$("messages").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  lastMessages=data||[];
  const ids=lastMessages.map(x=>x.id);
+
  reactionRows=[];
- if(ids.length){const {data:r}=await sb.from("reactions").select("message_id,user_id,emoji").in("message_id",ids);reactionRows=r||[]}
+ let readRows=[];
+ if(ids.length){
+   const [{data:r},{data:rr}]=await Promise.all([
+     sb.from("reactions").select("message_id,user_id,emoji").in("message_id",ids),
+     sb.from("message_reads").select("message_id,user_id,read_at").in("message_id",ids)
+   ]);
+   reactionRows=r||[];readRows=rr||[];
+
+   const already=new Set(readRows.filter(x=>x.user_id===user.id).map(x=>x.message_id));
+   const unread=lastMessages.filter(m=>m.author_id!==user.id&&!already.has(m.id)).map(m=>({message_id:m.id,user_id:user.id}));
+   if(unread.length){
+     const {error:re}=await sb.from("message_reads").insert(unread);
+     if(!re){
+       const now=new Date().toISOString();
+       readRows.push(...unread.map(x=>({...x,read_at:now})));
+     }
+   }
+ }
+
  const signed={};
  for(const m of lastMessages){
    for(const a of (m.attachments||[]).filter(x=>!x.is_removed)){
      signed[a.id]=await signedImage(a.current_storage_path);
    }
  }
+
  $("messages").innerHTML=lastMessages.map(m=>{
    const mine=m.author_id===user.id;
    const editor=profile?.role==="editor"||profile?.role==="admin";
-   const canEditPhoto=mine||editor;
+   const canEdit=mine||editor;
    const replied=m.reply_to?lastMessages.find(x=>x.id===m.reply_to):null;
+   const otherReads=readRows.filter(r=>r.message_id===m.id&&r.user_id!==m.author_id);
+   const isRead=otherReads.length>0;
+
    const reactions=["👍","❤️","😂"].map(e=>{
       const rows=reactionRows.filter(r=>r.message_id===m.id&&r.emoji===e), on=rows.some(r=>r.user_id===user.id);
       return rows.length?'<button class="reactionChip '+(on?"on":"")+'" data-react="'+e+'" data-mid="'+m.id+'">'+e+' '+rows.length+'</button>':"";
    }).join("");
-   const photoMenu=(a)=>
-     '<details class="attachmentMenu"><summary>⋮</summary><div class="msgMenuPanel">'+
-       (canEditPhoto?'<button class="menuBtn" data-photo-replace="'+a.id+'">Заменить фото</button><button class="menuBtn" data-photo-caption="'+a.id+'">Изменить подпись</button><button class="menuBtn" data-photo-remove="'+a.id+'">Убрать из сообщения</button>':'')+
-       '<button class="menuBtn" data-photo-history="'+a.id+'">История версий</button>'+
-       (editor?'<div class="menuSep"></div><button class="menuBtn" data-photo-archive="'+a.id+'" data-mid="'+m.id+'">В фотоархив</button>':'')+
-     '</div></details>';
-   const photos=(m.attachments||[]).filter(a=>!a.is_removed).map(a=>
+
+   const liveAttachments=(m.attachments||[]).filter(a=>!a.is_removed);
+   const photos=liveAttachments.map(a=>
      '<div class="attachmentWrap">'+
        (signed[a.id]?'<img class="attachment" src="'+signed[a.id]+'" alt="'+esc(a.current_file_name||"Фото")+'">':'<div class="notice">Фото недоступно.</div>')+
-       photoMenu(a)+
        (a.caption?'<div class="caption">'+esc(a.caption)+'</div>':'')+
      '</div>'
    ).join("");
-   const menu=
-     '<details class="msgMenu"><summary aria-label="Действия">⋮</summary><div class="msgMenuPanel">'+
+
+   const photoActions=liveAttachments.map((a,idx)=>
+     '<div class="menuLabel">Фото '+(idx+1)+'</div>'+
+     (canEdit?'<button class="menuBtn" data-photo-replace="'+a.id+'">Заменить</button><button class="menuBtn" data-photo-caption="'+a.id+'">Изменить подпись</button><button class="menuBtn" data-photo-remove="'+a.id+'">Убрать</button>':'')+
+     '<button class="menuBtn" data-photo-history="'+a.id+'">История версий</button>'+
+     (editor?'<button class="menuBtn" data-photo-archive="'+a.id+'" data-mid="'+m.id+'">В фотоархив</button>':'')
+   ).join("");
+
+   const menuPanel=
+     '<div class="msgMenuPanel">'+
        '<button class="menuBtn" data-reply="'+m.id+'">↩ Ответить</button>'+
+       (m.body?'<button class="menuBtn" data-copy-message="'+m.id+'">⧉ Копировать текст</button>':'')+
+       '<div class="menuSep"></div>'+
        '<button class="menuBtn" data-react="👍" data-mid="'+m.id+'">👍 Нравится</button>'+
        '<button class="menuBtn" data-react="❤️" data-mid="'+m.id+'">❤️ Сердце</button>'+
        '<button class="menuBtn" data-react="😂" data-mid="'+m.id+'">😂 Смешно</button>'+
-       (canEditPhoto?'<div class="menuSep"></div><button class="menuBtn" data-edit-message="'+m.id+'">✎ Редактировать</button><button class="menuBtn" data-photo-add="'+m.id+'">＋ Добавить фото</button>':'')+
+       (canEdit?'<div class="menuSep"></div><button class="menuBtn" data-edit-message="'+m.id+'">✎ Редактировать</button><button class="menuBtn" data-photo-add="'+m.id+'">＋ Добавить фото</button>':'')+
+       (photoActions?'<div class="menuSep"></div>'+photoActions:'')+
        (editor?'<div class="menuSep"></div><button class="menuBtn" data-evidence="'+m.id+'">'+(m.is_evidence?"★ Убрать из свидетельств":"☆ В свидетельство")+'</button><button class="menuBtn" data-link="'+m.id+'">🔗 Связать с историей</button><button class="menuBtn" data-question="'+m.id+'">? Создать вопрос</button><button class="menuBtn" data-hide="'+m.id+'">'+(m.is_hidden_from_publication?"Вернуть в публикацию":"Не публиковать")+'</button>':'')+
-     '</div></details>';
+     '</div>';
+
+   const time=new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
+   const receipt=mine?'<span class="receiptChecks '+(isRead?"read":"")+'">'+(isRead?"✓✓":"✓")+'</span>':"";
+   const editTitle=m.edited_at?' title="Сообщение изменено"':"";
+
    return '<div class="msg '+(mine?"mine":"")+'"><div class="bubble" data-mid="'+m.id+'">'+
-     menu+
-     '<div class="who">'+esc(m.author?.display_name||"Участник")+'</div>'+
+     (!mine?'<div class="who">'+esc(m.author?.display_name||"Участник")+'</div>':'')+
      (replied?'<div class="replyQuote"><b>'+esc(replied.author?.display_name||"Участник")+'</b><br>'+esc((replied.body||"Фото").slice(0,100))+'</div>':'')+
      (m.body?'<div class="messageBody">'+esc(m.body)+'</div>':'')+
      photos+
      (reactions?'<div class="reactionStrip">'+reactions+'</div>':'')+
      '<div class="msgFoot">'+
        (m.linked_entity_id?'<div class="linked">↗ <button class="tagLink" data-tag="'+esc(m.linked_entity_id)+'">'+esc(m.linked_entity_type||"архив")+' · '+esc(m.linked_entity_id)+'</button></div>':'')+
-       '<div class="time">'+new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})+(m.edited_at?' · изменено':'')+'</div>'+
+       '<details class="footMenu"><summary data-menu-trigger="'+m.id+'"'+editTitle+'><span>'+time+'</span>'+receipt+'</summary>'+menuPanel+'</details>'+
      '</div></div></div>';
  }).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';
- $("messages").querySelectorAll("details.msgMenu,details.attachmentMenu").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)$("messages").querySelectorAll("details[open]").forEach(x=>{if(x!==d)x.removeAttribute("open")})}));
- document.addEventListener("click",e=>{
-   if(!e.target.closest("details.msgMenu,details.attachmentMenu")){
-     document.querySelectorAll("details.msgMenu[open],details.attachmentMenu[open]").forEach(d=>d.removeAttribute("open"));
-   }
- },{capture:true});
+
+ $("messages").querySelectorAll("[data-menu-trigger]").forEach(s=>{
+   s.onclick=e=>e.preventDefault();
+   s.ondblclick=e=>{
+     e.preventDefault();e.stopPropagation();
+     const d=s.closest("details");
+     $("messages").querySelectorAll("details.footMenu[open]").forEach(x=>{if(x!==d)x.removeAttribute("open")});
+     d.toggleAttribute("open");
+   };
+ });
+
  $("messages").querySelectorAll(".msgMenuPanel button").forEach(b=>b.addEventListener("click",()=>b.closest("details")?.removeAttribute("open")));
  $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
+ $("messages").querySelectorAll("[data-copy-message]").forEach(b=>b.onclick=async()=>{const m=lastMessages.find(x=>x.id===b.dataset.copyMessage);if(m?.body)await navigator.clipboard.writeText(m.body)});
  $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));
  $("messages").querySelectorAll("[data-evidence]").forEach(b=>b.onclick=()=>toggleEditorialFlag(b.dataset.evidence,"is_evidence"));
  $("messages").querySelectorAll("[data-hide]").forEach(b=>b.onclick=()=>toggleEditorialFlag(b.dataset.hide,"is_hidden_from_publication"));
@@ -402,6 +444,7 @@ async function loadRoom(){
  $("messages").querySelectorAll("[data-photo-remove]").forEach(b=>b.onclick=()=>removePhotoAttachment(b.dataset.photoRemove));
  $("messages").querySelectorAll("[data-photo-history]").forEach(b=>b.onclick=()=>showPhotoVersions(b.dataset.photoHistory));
  $("messages").querySelectorAll("[data-photo-archive]").forEach(b=>b.onclick=()=>archivePhotoFromChat(b.dataset.photoArchive,b.dataset.mid));
+
  requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);
 }
 function renderReply(){
@@ -628,11 +671,12 @@ async function archivePhotoFromChat(attachmentId,messageId){
 }
 function subscribe(){
  if(!user||!profile?.is_active)return;
- if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();
+ if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();
  const room=currentRoom;
  const ch1=sb.channel("msg-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"room_id=eq."+room},()=>{if(currentRoom===room)loadRoom()}).subscribe(s=>{if(s==="SUBSCRIBED")setStatus("Онлайн · realtime");if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")setStatus("Онлайн · без realtime")});
  const ch2=sb.channel("react-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"reactions"},()=>{if(currentRoom===room)loadRoom()}).subscribe();
- unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);
+ const ch3=sb.channel("reads-"+room+"-"+Date.now()).on("postgres_changes",{event:"INSERT",schema:"public",table:"message_reads"},()=>{if(currentRoom===room)loadRoom()}).subscribe();
+ unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);unsubRead=()=>sb.removeChannel(ch3);
 }
 function personThumbStyle(p){
  const r=classPhotoState?.regions?.[p.id], cp=classPhotoState?.photo, url=classPhotoState?.url;
@@ -856,7 +900,7 @@ async function openStory(id){
 $("closeStory").onclick=()=>$("storyDetail").classList.remove("open");
 document.addEventListener("keydown",e=>{
  if(e.key==="Escape"){
-   document.querySelectorAll("details.msgMenu[open],details.attachmentMenu[open]").forEach(d=>d.removeAttribute("open"));
+   document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
    if($("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open");
  }
 });

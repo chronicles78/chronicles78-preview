@@ -64,8 +64,8 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
   <div class="composer" id="composerWrap" style="display:none">
     <div class="composeTools">
       <button class="attachBtn" id="attachBtn">＋ Фото</button>
-      <input type="file" id="fileInput" accept="image/*" multiple hidden>
-      <input type="file" id="photoActionInput" accept="image/*" hidden>
+      <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple hidden>
+      <input type="file" id="photoActionInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
       <div class="replying" id="replying"></div>
       <button class="mini" id="cancelReply" style="display:none">×</button>
     </div>
@@ -74,18 +74,18 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 </div>
 </section>
 
-<section id="people" class="view"><div class="archiveList"><h2>Люди</h2><div class="peopleToolbar"><button class="mini" data-pgroup="all">Все</button><button class="mini on" data-pgroup="10Б">10Б</button><button class="mini" data-pgroup="10А">10А</button><input id="peopleSearch" placeholder="Поиск по имени…"></div><div id="peopleList" class="notice">Войдите, чтобы открыть список.</div><input id="classPhotoInput" type="file" accept="image/*" hidden></div></section>
+<section id="people" class="view"><div class="archiveList"><h2>Люди</h2><div class="peopleToolbar"><button class="mini" data-pgroup="all">Все</button><button class="mini on" data-pgroup="10Б">10Б</button><button class="mini" data-pgroup="10А">10А</button><input id="peopleSearch" placeholder="Поиск по имени…"></div><div id="peopleList" class="notice">Войдите, чтобы открыть список.</div><input id="classPhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden></div></section>
 <section id="stories" class="view"><div class="archiveList"><h2>Истории</h2><div id="storiesList" class="notice">Войдите, чтобы открыть архив.</div></div></section>
 <div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
 <section id="photos" class="view"><div class="archiveList"><h2>Фотоархив</h2>
 <div id="archiveUploadBox" class="uploadBox" style="display:none">
 <b>Работа с фотоархивом</b>
 <button class="secondary" id="newArchivePhotoBtn">＋ Новое фото в архив</button>
-<input id="newArchivePhotoInput" type="file" accept="image/*" hidden>
-<input id="replaceArchivePhotoInput" type="file" accept="image/*" hidden>
+<input id="newArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+<input id="replaceArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
 <div class="small" style="margin:10px 0 4px"><b>Массовая загрузка по MEDIA-ID</b></div>
 <div class="small" style="margin:6px 0">Можно выбрать сразу несколько файлов. Имя файла должно содержать ID, например MEDIA-012.jpeg.</div>
-<input id="archiveFileInput" type="file" accept="image/*" multiple>
+<input id="archiveFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
 <button class="secondary" id="archiveUploadBtn">Загрузить в закрытый архив</button>
 <div id="archiveUploadMsg" class="small"></div>
 </div>

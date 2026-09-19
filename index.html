@@ -31,7 +31,7 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 .send{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:0 14px;font-weight:700;white-space:nowrap}
 .composeTools{display:flex;align-items:center;gap:8px;margin-bottom:6px}.attachBtn{border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px 9px;font-size:12px}.replying{flex:1;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .form label{display:block;font-size:13px;margin:10px 0 5px}.form input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff}.primary{width:100%;border:0;border-radius:11px;padding:12px;background:var(--ink);color:#fff;font-weight:700;margin-top:14px}.secondary{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff;margin-top:9px}
-.archiveList{padding:12px}.peopleToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.peopleToolbar input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}.personCard{display:flex;gap:10px;align-items:flex-start}.personNo{min-width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#eee4d7;font-weight:700}.personMeta{flex:1}.personLinks{margin-top:6px}.storyDetail{position:fixed;inset:58px 0 calc(var(--nav) + env(safe-area-inset-bottom)) 0;background:var(--bg);z-index:24;overflow:auto;display:none}.storyDetail.open{display:block}.storyDetailIn{max-width:760px;margin:auto;padding:12px}.storyHead{display:flex;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);padding:6px 0 10px;z-index:2}.storyHead button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 11px}.claim{border-left:3px solid #9e9182;padding:8px 10px;margin:9px 0;background:#f8f3ec;border-radius:7px}.evidence{padding:8px 0;border-bottom:1px solid var(--line)}.sectionTitle{font:700 19px Georgia,serif;margin:18px 0 8px}.archiveCard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px}.archiveCard h3{font:700 18px Georgia,serif;margin:0 0 5px}.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:3px 7px;font-size:10px;color:var(--muted);margin:2px 3px 2px 0}.editorTools{border-top:1px dashed var(--line);margin-top:7px;padding-top:6px}.linked{font-size:10px;font-weight:700;color:#5f554a;margin-top:5px}.small{font-size:12px;color:var(--muted)}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
+.archiveList{padding:12px}.peopleToolbar,.questionToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.peopleToolbar input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}.personCard{display:flex;gap:10px;align-items:flex-start}.personNo{min-width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#eee4d7;font-weight:700}.personMeta{flex:1}.personLinks{margin-top:6px}.storyDetail{position:fixed;inset:58px 0 calc(var(--nav) + env(safe-area-inset-bottom)) 0;background:var(--bg);z-index:24;overflow:auto;display:none}.storyDetail.open{display:block}.storyDetailIn{max-width:760px;margin:auto;padding:12px}.storyHead{display:flex;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);padding:6px 0 10px;z-index:2}.storyHead button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 11px}.claim{border-left:3px solid #9e9182;padding:8px 10px;margin:9px 0;background:#f8f3ec;border-radius:7px}.evidence{padding:8px 0;border-bottom:1px solid var(--line)}.sectionTitle{font:700 19px Georgia,serif;margin:18px 0 8px}.archiveCard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px}.archiveCard h3{font:700 18px Georgia,serif;margin:0 0 5px}.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:3px 7px;font-size:10px;color:var(--muted);margin:2px 3px 2px 0}.editorTools{border-top:1px dashed var(--line);margin-top:7px;padding-top:6px}.linked{font-size:10px;font-weight:700;color:#5f554a;margin-top:5px}.small{font-size:12px;color:var(--muted)}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
 </style>
 </head>
 <body>
@@ -59,7 +59,17 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 <section id="stories" class="view"><div class="archiveList"><h2>Истории</h2><div id="storiesList" class="notice">Войдите, чтобы открыть архив.</div></div></section>
 <div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
 <section id="photos" class="view"><div class="archiveList"><h2>Фотоархив</h2><div class="notice" style="margin-bottom:10px">Сейчас подключены карточки фотодосье. Сами архивные файлы перенесём в закрытое хранилище отдельным шагом.</div><div id="photosList"></div></div></section>
-<section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2><div id="questionsList" class="notice">Войдите, чтобы открыть реестр вопросов.</div></div></section>
+<section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
+<div id="questionStats" class="notice" style="margin-bottom:10px">Войдите, чтобы открыть реестр вопросов.</div>
+<div class="questionToolbar">
+<button class="mini on" data-qpriority="all">Все</button>
+<button class="mini" data-qpriority="P1">P1</button>
+<button class="mini" data-qpriority="P2">P2</button>
+<button class="mini" data-qpriority="P3">P3</button>
+<button class="mini on" data-qstatus="open">Открытые</button>
+<button class="mini" data-qstatus="all">Все статусы</button>
+</div>
+<div id="questionsList"></div></div></section>
 <section id="profile" class="view"><div class="pad">
 <div class="card"><h2>Профиль</h2><div id="profileBox"></div></div>
 <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
@@ -80,7 +90,7 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,replyTo=null,pendingFile=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,replyTo=null,pendingFile=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="all",questionCache=[],questionPriority="all",questionStatus="open",mediaFocus=null;
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -223,9 +233,11 @@ function renderPeople(){
  const arr=peopleCache.filter(p=>(peopleGroup==="all"||p.group_name===peopleGroup)&&(!q||(p.canonical_name||"").toLowerCase().includes(q)||(p.aliases||[]).join(" ").toLowerCase().includes(q)));
  $("peopleList").innerHTML=arr.map(p=>{
    const stories=(p.data?.full_chapters||[]).map(x=>'<button class="mini" data-pstory="'+esc(x)+'">'+esc(x)+'</button>').join("");
-   return '<div class="archiveCard personCard"><div class="personNo">'+esc(p.number??"")+'</div><div class="personMeta"><h3>'+esc(p.canonical_name)+'</h3><span class="badge">'+esc(p.group_name||"")+'</span><span class="badge">'+esc(p.person_role||"")+'</span>'+(p.aliases?.length?'<div class="small" style="margin-top:5px">В чате: '+esc(p.aliases.join(", "))+'</div>':'')+(stories?'<div class="personLinks">'+stories+'</div>':'')+'</div></div>';
+   const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
+   return '<div class="archiveCard personCard"><div class="personNo">'+esc(p.number??"")+'</div><div class="personMeta"><h3>'+esc(p.canonical_name)+'</h3><span class="badge">'+esc(p.group_name||"")+'</span><span class="badge">'+esc(p.person_role||"")+'</span>'+(p.aliases?.length?'<div class="small" style="margin-top:5px">В чате: '+esc(p.aliases.join(", "))+'</div>':'')+((stories||media)?'<div class="personLinks">'+stories+media+'</div>':'')+'</div></div>';
  }).join("")||'<div class="notice">Ничего не найдено.</div>';
  $("peopleList").querySelectorAll("[data-pstory]").forEach(b=>b.onclick=()=>{showView("stories");openStory(b.dataset.pstory)});
+ $("peopleList").querySelectorAll("[data-pmedia]").forEach(b=>b.onclick=()=>{mediaFocus=b.dataset.pmedia;showView("photos")});
 }
 async function loadPeople(){
  if(!user||!profile?.is_active){$("peopleList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
@@ -299,15 +311,46 @@ async function loadPhotos(){
  if(!user||!profile?.is_active){$("photosList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
  const {data,error}=await sb.from("archive_media").select("id,title,category,linked_story,data").order("id");
  if(error){$("photosList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- $("photosList").innerHTML=(data||[]).map(m=>'<div class="archiveCard"><h3>'+esc(m.title)+'</h3><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span>'+(m.linked_story?'<span class="badge">'+esc(m.linked_story)+'</span>':'')+'<p class="small">'+esc(m.data?.visual_description||m.data?.identification_status||"")+'</p><p class="small"><b>Статус:</b> '+esc(m.data?.identification_status||"описание внесено")+'</p></div>').join("");
+ const arr=mediaFocus?(data||[]).filter(m=>m.id===mediaFocus):(data||[]);
+ $("photosList").innerHTML=(mediaFocus?'<button class="secondary" id="showAllMedia">← Показать весь фотоархив</button>':'')+
+ arr.map(m=>'<div class="archiveCard"><h3>'+esc(m.title)+'</h3><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span>'+(m.linked_story?'<span class="badge">'+esc(m.linked_story)+'</span>':'')+'<p class="small">'+esc(m.data?.visual_description||m.data?.identification_status||"")+'</p><p class="small"><b>Статус:</b> '+esc(m.data?.identification_status||"описание внесено")+'</p>'+(m.linked_story?'<button class="secondary" data-media-story="'+esc(m.linked_story)+'">Открыть связанную историю</button>':'')+'</div>').join("");
+ if($("showAllMedia"))$("showAllMedia").onclick=()=>{mediaFocus=null;loadPhotos()};
+ $("photosList").querySelectorAll("[data-media-story]").forEach(b=>b.onclick=()=>{showView("stories");openStory(b.dataset.mediaStory)});
 }
 
+function renderQuestions(){
+ const isOpen=s=>["открыт","open"].includes(String(s||"").toLowerCase());
+ const arr=questionCache.filter(q=>(questionPriority==="all"||q.priority===questionPriority)&&(questionStatus==="all"||isOpen(q.status)));
+ const counts={P1:questionCache.filter(q=>q.priority==="P1"&&isOpen(q.status)).length,P2:questionCache.filter(q=>q.priority==="P2"&&isOpen(q.status)).length,P3:questionCache.filter(q=>q.priority==="P3"&&isOpen(q.status)).length};
+ $("questionStats").innerHTML='<b>Открыто: '+(counts.P1+counts.P2+counts.P3)+'</b> · P1: '+counts.P1+' · P2: '+counts.P2+' · P3: '+counts.P3;
+ $("questionsList").innerHTML=arr.map(q=>'<div class="archiveCard"><h3>'+esc(q.question)+'</h3><span class="badge">'+esc(q.id)+'</span><span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span><span class="badge">'+esc(q.category||"")+'</span><p class="small">'+esc(q.why_it_matters||"")+'</p>'+(q.ask?'<p class="small"><b>Кого спросить:</b> '+esc(q.ask)+'</p>':'')+'<button class="secondary" data-qchat="'+q.id+'">Обсудить в чате</button>'+((profile?.role==="editor"||profile?.role==="admin")?'<button class="secondary" data-qresolve="'+q.id+'">'+(isOpen(q.status)?"Отметить решённым":"Вернуть в открытые")+'</button>':'')+'</div>').join("")||'<div class="notice">В этой выборке вопросов нет.</div>';
+ $("questionsList").querySelectorAll("[data-qchat]").forEach(b=>b.onclick=()=>{const q=questionCache.find(x=>x.id===b.dataset.qchat);currentRoom="general";renderRooms();showView("chat");subscribe();$("composer").value="Вопрос "+q.id+": "+q.question;$("composer").focus()});
+ $("questionsList").querySelectorAll("[data-qresolve]").forEach(b=>b.onclick=()=>toggleArchiveQuestion(b.dataset.qresolve));
+}
 async function loadQuestions(){
  if(!user||!profile?.is_active){$("questionsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
- const {data,error}=await sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask").order("priority").order("id");
+ const {data,error}=await sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links").order("priority").order("id");
  if(error){$("questionsList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- $("questionsList").innerHTML=(data||[]).map(q=>'<div class="archiveCard"><h3>'+esc(q.question)+'</h3><span class="badge">'+esc(q.id)+'</span><span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span><p class="small">'+esc(q.why_it_matters||"")+'</p>'+(q.ask?'<p class="small"><b>Кого спросить:</b> '+esc(q.ask)+'</p>':'')+'</div>').join("");
+ questionCache=data||[];renderQuestions();
 }
+async function toggleArchiveQuestion(id){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))return;
+ const q=questionCache.find(x=>x.id===id);if(!q)return;
+ const open=["открыт","open"].includes(String(q.status||"").toLowerCase());
+ const {error}=await sb.from("archive_questions").update({status:open?"решён":"открыт"}).eq("id",id);
+ if(error){alert("Статус не изменён: "+error.message);return}
+ await loadQuestions();
+}
+document.querySelectorAll("[data-qpriority]").forEach(b=>b.onclick=()=>{
+ questionPriority=b.dataset.qpriority;
+ document.querySelectorAll("[data-qpriority]").forEach(x=>x.classList.toggle("on",x===b));
+ renderQuestions();
+});
+document.querySelectorAll("[data-qstatus]").forEach(b=>b.onclick=()=>{
+ questionStatus=b.dataset.qstatus;
+ document.querySelectorAll("[data-qstatus]").forEach(x=>x.classList.toggle("on",x===b));
+ renderQuestions();
+});
 
 async function toggleEditorialFlag(mid,field){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;

@@ -32,6 +32,7 @@ a{color:#2b2722}
     <label>Пароль</label>
     <input id="password" type="password" autocomplete="new-password" placeholder="Не менее 6 символов">
     <button id="btn">Зарегистрироваться</button>
+    <button id="resendBtn" style="display:none;background:#6b6258">Отправить письмо ещё раз</button>
     <div id="msg" class="msg"></div>
     <p class="note"><a href="./">Вернуться на сайт</a></p>
   </div>
@@ -42,9 +43,10 @@ const sb=window.supabase.createClient(
  "sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX"
 );
 const $=id=>document.getElementById(id);
+let lastEmail="";
 $("btn").onclick=async()=>{
  const display_name=$("name").value.trim();
- const email=$("email").value.trim();
+ const email=$("email").value.trim();lastEmail=email;
  const password=$("password").value;
  $("msg").className="msg";$("msg").textContent="";
  if(!display_name||!email||!password){$("msg").classList.add("err");$("msg").textContent="Заполните все поля.";return}
@@ -55,12 +57,24 @@ $("btn").onclick=async()=>{
    if(error) throw error;
    $("msg").classList.add("ok");
    $("msg").textContent=data.session
-    ?"Аккаунт создан. Сообщите администратору — он включит доступ."
-    :"Аккаунт создан. Проверьте почту и подтвердите e-mail. Затем сообщите администратору.";
+    ?"Аккаунт создан. Администратор должен включить доступ."
+    :"Заявка создана. Проверьте входящие и папку «Спам», подтвердите e-mail, затем администратор включит доступ.";
+   $("resendBtn").style.display=data.session?"none":"block";
  }catch(e){
    $("msg").classList.add("err");
    $("msg").textContent=e.message||String(e);
  }finally{$("btn").disabled=false}
+};
+$("resendBtn").onclick=async()=>{
+ const email=(lastEmail||$("email").value.trim());
+ if(!email){$("msg").className="msg err";$("msg").textContent="Введите e-mail.";return}
+ $("resendBtn").disabled=true;$("msg").className="msg";$("msg").textContent="Отправляю повторное письмо…";
+ try{
+  const {error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:"https://chronicles78.github.io/chronicles78-preview/"}});
+  if(error)throw error;
+  $("msg").className="msg ok";$("msg").textContent="Письмо отправлено повторно. Проверьте также папку «Спам».";
+ }catch(e){$("msg").className="msg err";$("msg").textContent=e.message||String(e)}
+ finally{$("resendBtn").disabled=false}
 };
 </script>
 </body>

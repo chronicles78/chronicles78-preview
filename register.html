@@ -51,7 +51,7 @@ $("btn").onclick=async()=>{
  if(password.length<6){$("msg").classList.add("err");$("msg").textContent="Пароль должен содержать не менее 6 символов.";return}
  $("btn").disabled=true;
  try{
-   const {data,error}=await sb.auth.signUp({email,password,options:{data:{display_name}}});
+   const {data,error}=await sb.auth.signUp({email,password,options:{data:{display_name},emailRedirectTo:"https://chronicles78.github.io/chronicles78-preview/"}});
    if(error) throw error;
    $("msg").classList.add("ok");
    $("msg").textContent=data.session

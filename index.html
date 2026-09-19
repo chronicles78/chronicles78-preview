@@ -316,6 +316,11 @@ async function loadRoom(){
      '</div></div></div>';
  }).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';
  $("messages").querySelectorAll("details.msgMenu,details.attachmentMenu").forEach(d=>d.addEventListener("toggle",()=>{if(d.open)$("messages").querySelectorAll("details[open]").forEach(x=>{if(x!==d)x.removeAttribute("open")})}));
+ document.addEventListener("click",e=>{
+   if(!e.target.closest("details.msgMenu,details.attachmentMenu")){
+     document.querySelectorAll("details.msgMenu[open],details.attachmentMenu[open]").forEach(d=>d.removeAttribute("open"));
+   }
+ },{capture:true});
  $("messages").querySelectorAll(".msgMenuPanel button").forEach(b=>b.addEventListener("click",()=>b.closest("details")?.removeAttribute("open")));
  $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
  $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));
@@ -743,7 +748,12 @@ async function openStory(id){
  $("storyDetail").scrollTop=0;
 }
 $("closeStory").onclick=()=>$("storyDetail").classList.remove("open");
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open")});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){
+   document.querySelectorAll("details.msgMenu[open],details.attachmentMenu[open]").forEach(d=>d.removeAttribute("open"));
+   if($("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open");
+ }
+});
 
 async function archiveSignedImage(path){
  if(!path)return null;

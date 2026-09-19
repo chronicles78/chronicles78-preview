@@ -730,19 +730,42 @@ async function toggleEditorialFlag(mid,field){
 }
 async function linkStory(mid){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
- const id=prompt("Введите ID истории, например S-006:");
- if(!id)return;
- const {data:s}=await sb.from("archive_stories").select("id").eq("id",id.trim().toUpperCase()).maybeSingle();
- if(!s){alert("Такой истории нет.");return}
- const {error}=await sb.from("messages").update({linked_entity_type:"story",linked_entity_id:s.id}).eq("id",mid);
- if(error)alert(error.message); else loadRoom();
+ const {data:stories,error}=await sb.from("archive_stories").select("id,title").order("id");
+ if(error){alert(error.message);return}
+ const m=lastMessages.find(x=>x.id===mid);
+ openPhotoModal("Связать сообщение с историей",
+   '<div class="notice">'+esc((m?.body||"Сообщение без текста").slice(0,180))+'</div>'+
+   '<label>История</label><select id="pfStoryLink"><option value="">— выберите историю —</option>'+
+   (stories||[]).map(s=>'<option value="'+esc(s.id)+'">'+esc(s.id+" — "+s.title)+'</option>').join("")+
+   '</select>',
+   async()=>{
+     const id=$("pfStoryLink").value;
+     if(!id)throw new Error("Выберите историю.");
+     const {error:ue}=await sb.from("messages").update({linked_entity_type:"story",linked_entity_id:id}).eq("id",mid);
+     if(ue)throw ue;
+     await loadRoom();
+   }
+ );
 }
 async function createQuestionFromMessage(mid){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
- const q=prompt("Сформулируйте редакционный вопрос:");
- if(!q?.trim())return;
- const {error}=await sb.from("editorial_questions").insert({source_message_id:mid,created_by:user.id,question:q.trim(),status:"open",priority:"P2"});
- if(error)alert("Вопрос не создан: "+error.message); else alert("Вопрос добавлен в редакционную работу.");
+ const m=lastMessages.find(x=>x.id===mid);
+ openPhotoModal("Редакционный вопрос",
+   '<div class="notice">'+esc((m?.body||"Сообщение без текста").slice(0,180))+'</div>'+
+   '<label>Вопрос</label><textarea id="pfQuestion" placeholder="Что нужно уточнить у участников?"></textarea>'+
+   '<label>Приоритет</label><select id="pfPriority"><option>P1</option><option selected>P2</option><option>P3</option></select>'+
+   '<label>Комментарий редакции</label><textarea id="pfQuestionNote" placeholder="Почему это важно, кого спросить, что проверить…"></textarea>',
+   async()=>{
+     const q=$("pfQuestion").value.trim();
+     if(!q)throw new Error("Сформулируйте вопрос.");
+     const note=$("pfQuestionNote").value.trim();
+     const {error}=await sb.from("editorial_questions").insert({
+       source_message_id:mid,created_by:user.id,question:q,status:"open",priority:$("pfPriority").value,
+       notes:note||null
+     });
+     if(error)throw error;
+   }
+ );
 }
 init();
 </script>

@@ -650,7 +650,7 @@ function selectPerson(id,scrollList=true){
  }
 }
 function renderClassPhotoPanel(arr){
- if(peopleGroup!=="10Б")return "";
+ if(!["10А","10Б"].includes(peopleGroup))return "";
  const cp=classPhotoState?.photo, url=classPhotoState?.url, regs=classPhotoState?.regions||{};
  const editor=profile?.role==="editor"||profile?.role==="admin";
  let stage="";
@@ -663,9 +663,9 @@ function renderClassPhotoPanel(arr){
    }).join("");
    stage='<div class="classPhotoStage"><img src="'+url+'" alt="'+esc(cp.title)+'">'+hotspots+'</div>';
  }else{
-   stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография 10Б</b><br>Файл ещё не загружен в закрытый архив.'+(editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
+   stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография '+esc(peopleGroup)+'</b><br>Файл ещё не загружен в закрытый архив.'+(editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
  }
- return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>10Б · 1982–1983</b><div class="small">Нажмите лицо или имя</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">№</button>':'')+'</div>'+stage+(selectedPersonId?'<div class="notice" style="margin-top:8px">'+esc((peopleCache.find(p=>p.id===selectedPersonId)?.canonical_name)||selectedPersonId)+'</div>':'')+'</div>';
+ return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Нажмите лицо или имя</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">№</button>':'')+'</div>'+stage+(selectedPersonId?'<div class="notice" style="margin-top:8px">'+esc((peopleCache.find(p=>p.id===selectedPersonId)?.canonical_name)||selectedPersonId)+'</div>':'')+'</div>';
 }
 function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
@@ -675,17 +675,17 @@ function renderPeople(){
    const linkedStories=(p.story_refs||[]);
    const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
    const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
-   const thumb=peopleGroup==="10Б"&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
+   const thumb=["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
      ?'<div class="personPortrait" style="'+personThumbStyle(p)+'" aria-label="Школьный портрет"></div>'
      :'<div class="personNo">'+esc(p.number??"")+'</div>';
    return '<div class="archiveCard personCard '+(p.id===selectedPersonId?"selected":"")+'" data-person-id="'+esc(p.id)+'">'+thumb+'<div class="personMeta"><h3>'+esc(p.canonical_name)+'</h3><span class="badge">'+esc(p.group_name||"")+'</span><span class="badge">№ '+esc(p.number??"")+'</span><span class="badge">'+esc(p.person_role||"")+'</span>'+(p.aliases?.length?'<div class="small" style="margin-top:5px">В чате: '+esc(p.aliases.join(", "))+'</div>':'')+((stories||media)?'<div class="personLinks">'+stories+media+'</div>':'')+'</div></div>';
  }).join("")||'<div class="notice">Ничего не найдено.</div>';
- if(peopleGroup==="10Б"){
+ if(["10А","10Б"].includes(peopleGroup)){
    $("peopleList").className="";
    $("peopleList").innerHTML='<div class="classPeopleLayout">'+renderClassPhotoPanel(arr)+'<div class="peopleSide">'+cards+'</div></div>';
  }else{
    $("peopleList").className="";
-   $("peopleList").innerHTML=(peopleGroup==="10А"?'<div class="notice" style="margin-bottom:10px">Интерактивная общая фотография для 10А будет подключена после разметки снимка.</div>':'')+cards;
+   $("peopleList").innerHTML=cards;
  }
  $("peopleList").querySelectorAll("[data-pstory]").forEach(b=>b.onclick=e=>{e.stopPropagation();showView("stories");openStory(b.dataset.pstory)});
  $("peopleList").querySelectorAll("[data-pmedia]").forEach(b=>b.onclick=e=>{e.stopPropagation();mediaFocus=b.dataset.pmedia;showView("photos")});
@@ -696,10 +696,11 @@ function renderPeople(){
 }
 async function loadClassPhoto(){
  classPhotoState=null;
- if(peopleGroup!=="10Б")return;
+ if(!["10А","10Б"].includes(peopleGroup))return;
+ const classId=peopleGroup==="10А"?"CLASS-10A":"CLASS-10B";
  const [{data:cp,error:ce},{data:regions,error:re}]=await Promise.all([
-   sb.from("class_photos").select("id,group_name,title,storage_path,source_width,source_height").eq("group_name","10Б").maybeSingle(),
-   sb.from("class_photo_regions").select("person_id,x,y,w,h").eq("class_photo_id","CLASS-10B")
+   sb.from("class_photos").select("id,group_name,title,storage_path,source_width,source_height").eq("group_name",peopleGroup).maybeSingle(),
+   sb.from("class_photo_regions").select("person_id,x,y,w,h").eq("class_photo_id",classId)
  ]);
  if(ce||re||!cp)return;
  let url=null;
@@ -734,11 +735,13 @@ $("classPhotoInput").onchange=async()=>{
  try{
    const mime=ensureImageFile(file);
    if(file.size>10*1024*1024)throw new Error("Файл больше 10 МБ.");
-   const ok=confirm("Загрузить общую фотографию 10Б?\n\n"+file.name+"\n"+Math.round(file.size/1024)+" КБ");
+   const ok=confirm("Загрузить общую фотографию "+peopleGroup+"?\n\n"+file.name+"\n"+Math.round(file.size/1024)+" КБ");
    if(!ok){$("classPhotoInput").value="";return}
-   const path="class-photos/10B-"+Date.now()+"-"+safeName(file.name);
+   const classId=peopleGroup==="10А"?"CLASS-10A":"CLASS-10B";
+   const slug=peopleGroup==="10А"?"10A":"10B";
+   const path="class-photos/"+slug+"-"+Date.now()+"-"+safeName(file.name);
    const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:mime,upsert:false});if(ue)throw ue;
-   const {error:de}=await sb.from("class_photos").update({storage_path:path,updated_at:new Date().toISOString()}).eq("id","CLASS-10B");if(de)throw de;
+   const {error:de}=await sb.from("class_photos").update({storage_path:path,updated_at:new Date().toISOString()}).eq("id",classId);if(de)throw de;
    await loadClassPhoto();renderPeople();
  }catch(e){alert("Фото класса не загружено: "+(e.message||e))}
  finally{$("classPhotoInput").value=""}
@@ -983,7 +986,9 @@ function renderQuestions(){
  $("questionsList").innerHTML=rows.map(q=>{
    const editor=profile?.role==="editor"||profile?.role==="admin";
    const sourceBadge=q.source==="chat"?'<span class="badge">из чата</span>':'<span class="badge">архив</span>';
-   const tags=questionTags(q).map(t=>'<button class="tagChip tagLink" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join("");
+   const qt=questionTags(q);
+   const tags=qt.map(t=>'<button class="tagChip tagLink" data-tag="'+esc(t)+'">'+esc(t)+'</button>').join("");
+   const about10A=(q.question||"").includes("10А")||qt.includes("10А")||String(q.category||"").includes("10А");
    return '<div class="archiveCard"><h3>'+esc(q.question)+'</h3>'+
      '<span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span>'+sourceBadge+
      (q.category?'<button class="badge tagLink" data-tag="'+esc(q.category)+'">'+esc(q.category)+'</button>':'')+
@@ -994,6 +999,7 @@ function renderQuestions(){
      '<div class="questionActions">'+
        '<button class="mini" data-q-discuss="'+esc(q.cache_id)+'">💬 Обсудить</button>'+
        '<button class="mini" data-q-details="'+esc(q.cache_id)+'">Связи и теги</button>'+
+       (about10A?'<button class="mini" data-q-photo10a="'+esc(q.cache_id)+'">Фото 10А</button>':'')+
        (q.source_message_id?'<button class="mini" data-q-chat="'+esc(q.source_message_id)+'">Исходное сообщение</button>':'')+
        (editor&&q.source==="archive"?'<button class="mini" data-q-toggle="'+esc(q.id)+'">'+(questionIsOpen(q)?"Отметить решённым":"Вернуть в работу")+'</button>':'')+
      '</div></div>';
@@ -1002,6 +1008,7 @@ function renderQuestions(){
  $("questionsList").querySelectorAll("[data-q-chat]").forEach(b=>b.onclick=()=>openQuestionMessage(b.dataset.qChat));
  $("questionsList").querySelectorAll("[data-q-discuss]").forEach(b=>b.onclick=()=>discussQuestion(b.dataset.qDiscuss));
  $("questionsList").querySelectorAll("[data-q-details]").forEach(b=>b.onclick=()=>showQuestionDetails(b.dataset.qDetails));
+ $("questionsList").querySelectorAll("[data-q-photo10a]").forEach(b=>b.onclick=()=>openClassPhotoFromQuestion("10А"));
 }
 async function loadQuestions(){
  if(!user||!profile?.is_active){
@@ -1024,6 +1031,12 @@ async function loadQuestions(){
    ...(e.data||[]).map(q=>({...q,source:"chat",category:"Редакционный вопрос",cache_id:"chat:"+q.id}))
  ];
  renderQuestions();
+}
+async function openClassPhotoFromQuestion(group){
+ peopleGroup=group;selectedPersonId=null;showClassNumbers=true;
+ showView("people");
+ document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===group));
+ await loadClassPhoto();renderPeople();
 }
 async function openQuestionMessage(mid){
  const {data:m,error}=await sb.from("messages").select("id,room_id").eq("id",mid).maybeSingle();

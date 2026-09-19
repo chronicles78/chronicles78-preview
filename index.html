@@ -259,7 +259,7 @@ async function signedImage(path){
 async function loadRoom(){
  if(!user||!profile?.is_active)return;
  const {data,error}=await sb.from("messages")
-  .select("id,body,created_at,author_id,reply_to,is_evidence,is_hidden_from_publication,linked_entity_type,linked_entity_id,author:profiles!messages_author_id_fkey(display_name,role),attachments:message_attachments(id,current_storage_path,current_file_name,caption,created_by,is_removed,created_at)")
+  .select("id,body,created_at,edited_at,author_id,reply_to,is_evidence,is_hidden_from_publication,linked_entity_type,linked_entity_id,author:profiles!messages_author_id_fkey(display_name,role),attachments:message_attachments(id,current_storage_path,current_file_name,caption,created_by,is_removed,created_at)")
   .eq("room_id",currentRoom).order("created_at",{ascending:true}).limit(300);
  if(error){$("messages").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  lastMessages=data||[];
@@ -297,10 +297,10 @@ async function loadRoom(){
      (replied?'<div class="replyQuote"><b>'+esc(replied.author?.display_name||"Участник")+'</b><br>'+esc((replied.body||"Фото").slice(0,120))+'</div>':'')+
      (m.body?'<div>'+esc(m.body)+'</div>':'')+
      photos+
-     '<div class="actions"><button class="mini" data-reply="'+m.id+'">↩ Ответить</button>'+reactions+(canEditPhoto?'<button class="mini" data-photo-add="'+m.id+'">＋ Фото</button>':'')+'</div>'+
+     '<div class="actions"><button class="mini" data-reply="'+m.id+'">↩ Ответить</button>'+reactions+(canEditPhoto?'<button class="mini" data-edit-message="'+m.id+'">✎ Редактировать</button><button class="mini" data-photo-add="'+m.id+'">＋ Фото</button>':'')+'</div>'+
      (m.linked_entity_id?'<div class="linked">Связано: '+esc(m.linked_entity_type||"архив")+' · '+esc(m.linked_entity_id)+'</div>':'')+
      (editor?'<div class="editorTools"><button class="mini" data-evidence="'+m.id+'">'+(m.is_evidence?"★ Свидетельство":"☆ В свидетельство")+'</button><button class="mini" data-link="'+m.id+'">🔗 К истории</button><button class="mini" data-question="'+m.id+'">? Вопрос</button><button class="mini" data-hide="'+m.id+'">'+(m.is_hidden_from_publication?"Вернуть":"Не публиковать")+'</button></div>':'')+
-     '<div class="time">'+new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})+'</div></div></div>';
+     '<div class="time">'+new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})+(m.edited_at?' · изменено':'')+'</div></div></div>';
  }).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';
  $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
  $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));
@@ -308,6 +308,7 @@ async function loadRoom(){
  $("messages").querySelectorAll("[data-hide]").forEach(b=>b.onclick=()=>toggleEditorialFlag(b.dataset.hide,"is_hidden_from_publication"));
  $("messages").querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>linkStory(b.dataset.link));
  $("messages").querySelectorAll("[data-question]").forEach(b=>b.onclick=()=>createQuestionFromMessage(b.dataset.question));
+ $("messages").querySelectorAll("[data-edit-message]").forEach(b=>b.onclick=()=>editMessageText(b.dataset.editMessage));
  $("messages").querySelectorAll("[data-photo-add]").forEach(b=>b.onclick=()=>startPhotoAction("add",null,b.dataset.photoAdd));
  $("messages").querySelectorAll("[data-photo-replace]").forEach(b=>b.onclick=()=>startPhotoAction("replace",b.dataset.photoReplace,null));
  $("messages").querySelectorAll("[data-photo-caption]").forEach(b=>b.onclick=()=>editPhotoCaption(b.dataset.photoCaption));
@@ -328,6 +329,33 @@ function renderReply(){
 }
 $("cancelReply").onclick=()=>{replyTo=null;questionDiscussion=null;renderReply()};
 
+async function editMessageText(mid){
+ const m=lastMessages.find(x=>x.id===mid);if(!m)return;
+ openPhotoModal("Редактировать сообщение",
+   '<label>Текст сообщения</label><textarea id="pfMessageEdit" style="min-height:180px">'+esc(m.body||"")+'</textarea>'+
+   '<div class="formHint">Предыдущие версии текста сохраняются. После изменения в чате появится отметка «изменено».</div>'+
+   '<button class="secondary" type="button" id="pfMessageVersions">История изменений</button>',
+   async()=>{
+     const body=$("pfMessageEdit").value.trim();
+     if(!body)throw new Error("Сообщение не может быть пустым.");
+     const {error}=await sb.rpc("edit_message_text",{p_message_id:mid,p_body:body});
+     if(error)throw error;
+     await loadRoom();
+   }
+ );
+ $("pfMessageVersions").onclick=()=>showMessageVersions(mid);
+}
+async function showMessageVersions(mid){
+ const {data,error}=await sb.from("message_versions").select("version_no,body,created_at,edited_by").eq("message_id",mid).order("version_no",{ascending:false});
+ if(error){alert(error.message);return}
+ if(!data?.length){alert("Изменений пока нет.");return}
+ openPhotoModal("История изменений",
+   data.map(v=>'<div class="storyEvidence"><b>Версия '+v.version_no+'</b><div class="small">'+new Date(v.created_at).toLocaleString("ru-RU")+'</div><div style="white-space:pre-wrap;margin-top:6px">'+esc(v.body)+'</div></div>').join(""),
+   async()=>{}
+ );
+ $("photoModalSave").textContent="Закрыть";
+ photoModalSubmit=async()=>{closePhotoModal()};
+}
 async function toggleReaction(mid,emoji){
  const exists=reactionRows.some(r=>r.message_id===mid&&r.user_id===user.id&&r.emoji===emoji);
  if(exists) await sb.from("reactions").delete().eq("message_id",mid).eq("user_id",user.id).eq("emoji",emoji);

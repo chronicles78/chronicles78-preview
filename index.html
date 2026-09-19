@@ -90,7 +90,7 @@ h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10p
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,replyTo=null,pendingFile=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="all",questionCache=[],questionPriority="all",questionStatus="open",mediaFocus=null;
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,replyTo=null,pendingFile=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="all",storyIndex=[],questionCache=[],questionPriority="all",questionStatus="open",mediaFocus=null;
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -232,7 +232,8 @@ function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
  const arr=peopleCache.filter(p=>(peopleGroup==="all"||p.group_name===peopleGroup)&&(!q||(p.canonical_name||"").toLowerCase().includes(q)||(p.aliases||[]).join(" ").toLowerCase().includes(q)));
  $("peopleList").innerHTML=arr.map(p=>{
-   const stories=(p.data?.full_chapters||[]).map(x=>'<button class="mini" data-pstory="'+esc(x)+'">'+esc(x)+'</button>').join("");
+   const linkedStories=(p.story_refs||[]);
+   const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
    const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
    return '<div class="archiveCard personCard"><div class="personNo">'+esc(p.number??"")+'</div><div class="personMeta"><h3>'+esc(p.canonical_name)+'</h3><span class="badge">'+esc(p.group_name||"")+'</span><span class="badge">'+esc(p.person_role||"")+'</span>'+(p.aliases?.length?'<div class="small" style="margin-top:5px">В чате: '+esc(p.aliases.join(", "))+'</div>':'')+((stories||media)?'<div class="personLinks">'+stories+media+'</div>':'')+'</div></div>';
  }).join("")||'<div class="notice">Ничего не найдено.</div>';
@@ -242,9 +243,20 @@ function renderPeople(){
 async function loadPeople(){
  if(!user||!profile?.is_active){$("peopleList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
  if(!peopleCache.length){
-   const {data,error}=await sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data").order("group_name").order("number");
-   if(error){$("peopleList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
-   peopleCache=data||[];
+   const [{data,error},{data:stories,error:se}]=await Promise.all([
+     sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data").order("group_name").order("number"),
+     sb.from("archive_stories").select("id,title,data").order("id")
+   ]);
+   if(error||se){$("peopleList").innerHTML='<div class="notice">'+esc(error?.message||se?.message)+'</div>';return}
+   storyIndex=stories||[];
+   peopleCache=(data||[]).map(p=>{
+     const refs=storyIndex.filter(s=>{
+       if((s.data?.people||[]).includes(p.id))return true;
+       const ps=s.data?.chapter?.participants||{};
+       return ["confirmed","possible","absent","absent_or_not_on_photo"].some(k=>(ps[k]||[]).some(x=>x.id===p.id));
+     }).map(s=>({id:s.id,title:s.title}));
+     return {...p,story_refs:refs};
+   });
  }
  renderPeople();
 }
@@ -261,7 +273,7 @@ async function loadStories(){
  if(error){$("storiesList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  $("storiesList").innerHTML=(data||[]).map(s=>{
    const kws=(s.data?.keywords||[]).slice(0,4).map(x=>'<span class="badge">'+esc(x)+'</span>').join("");
-   return '<div class="archiveCard"><h3>'+esc(s.title)+'</h3><span class="badge">'+esc(s.id)+'</span><span class="badge">'+esc(s.kind||"")+'</span>'+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':'')+'<div class="small" style="margin-top:6px">'+esc(s.period||"")+'</div><div style="margin-top:7px">'+kws+'</div><button class="secondary" data-story="'+s.id+'">Открыть историю</button><button class="secondary" data-openroom="'+(s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general")+'">Обсудить в чате</button></div>';
+   return '<div class="archiveCard"><h3>'+esc(s.title)+'</h3><span class="badge">'+esc(s.id)+'</span><span class="badge">'+esc(s.kind||"")+'</span>'+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':s.data?.editorial_summary?'<span class="badge">редакционная карточка</span>':'<span class="badge">заготовка</span>')+'<div class="small" style="margin-top:6px">'+esc(s.period||"")+'</div><div style="margin-top:7px">'+kws+'</div><button class="secondary" data-story="'+s.id+'">Открыть историю</button><button class="secondary" data-openroom="'+(s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general")+'">Обсудить в чате</button></div>';
  }).join("");
  $("storiesList").querySelectorAll("[data-story]").forEach(b=>b.onclick=()=>openStory(b.dataset.story));
  $("storiesList").querySelectorAll("[data-openroom]").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.openroom;renderRooms();showView("chat");subscribe()});

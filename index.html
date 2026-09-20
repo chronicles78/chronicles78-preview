@@ -99,7 +99,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="photosList" class="photoGrid"></div></div></section>
 <section id="city" class="view"><div class="archiveList">
 <div class="cityIntro"><div class="small">КУЙБЫШЕВ · 1970–1980-е</div><h2>Город и время</h2><p>Атмосферные этюды о повседневной жизни города: дворы, магазины, транспорт, кафе, одежда, музыка, улицы и привычки времени. Это не школьная хроника в узком смысле, а среда, в которой мы росли.</p></div>
-<div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><input id="citySearch" placeholder="Поиск по этюдам…"><button class="secondary" id="newCityEssayBtn" style="display:none">＋ Новый этюд</button></div>
+<div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><button class="mini" data-citytheme="restore">Восстановить</button><input id="citySearch" placeholder="Поиск по этюдам…"><button class="secondary" id="newCityEssayBtn" style="display:none">＋ Новый этюд</button></div>
 <div id="cityList" class="cityGrid"><div class="notice">Войдите, чтобы открыть раздел.</div></div>
 </div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
@@ -1343,7 +1343,7 @@ async function loadCityEssays(){
 }
 function renderCityEssays(){
  const q=($("citySearch")?.value||"").trim().toLowerCase();
- let arr=cityCache.filter(x=>cityTheme==="all"||String(x.theme||"").toLowerCase()===cityTheme);
+ let arr=cityCache.filter(x=>cityTheme==="all"||(cityTheme==="restore"?x.source_status==="требует восстановления":String(x.theme||"").toLowerCase()===cityTheme));
  if(q)arr=arr.filter(x=>JSON.stringify([x.id,x.title,x.period,x.theme,x.excerpt,x.body,x.location_text,x.tags]).toLowerCase().includes(q));
  $("cityList").innerHTML=arr.map(x=>{
    const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
@@ -1353,13 +1353,22 @@ function renderCityEssays(){
    return '<article class="cityCard">'+img+'<div class="cityCardBody"><h3>'+esc(x.title)+'</h3>'+
      '<div class="cityMeta">'+(x.period?'<span class="badge">'+esc(x.period)+'</span>':'')+(x.theme?'<span class="badge">'+esc(x.theme)+'</span>':'')+(x.location_text?'<span class="badge">'+esc(x.location_text)+'</span>':'')+(x.source_status?'<span class="badge">'+esc(x.source_status)+'</span>':'')+'</div>'+
      (x.excerpt?'<div class="cityExcerpt">'+esc(x.excerpt)+'</div>':'')+
-     '<div class="homeActions"><button class="secondary" data-city-open="'+esc(x.id)+'">Читать</button>'+(editor?'<button class="secondary" data-city-edit="'+esc(x.id)+'">Править</button>':'')+'</div></div></article>';
+     '<div class="homeActions">'+(x.body?'<button class="secondary" data-city-open="'+esc(x.id)+'">Читать</button>':'<button class="secondary" data-city-edit="'+esc(x.id)+'">'+(editor?'Внести оригинал':'Оригинал ищется')+'</button>')+(editor&&x.body?'<button class="secondary" data-city-edit="'+esc(x.id)+'">Править</button>':'')+'</div></div></article>';
  }).join("")||'<div class="notice">Этюды ещё не добавлены.</div>';
  $("cityList").querySelectorAll("[data-city-open]").forEach(b=>b.onclick=()=>openCityEssay(b.dataset.cityOpen));
  $("cityList").querySelectorAll("[data-city-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editCityEssay(b.dataset.cityEdit)});
 }
 function openCityEssay(id){
  const x=cityCache.find(a=>a.id===id);if(!x)return;
+ if(!x.body){
+   openPhotoModal(x.title,
+     '<div class="notice"><b>Текст пока не опубликован.</b><br>'+esc(x.source_note||"Последняя авторская редакция ещё не восстановлена.")+'</div>',
+     async()=>{}
+   );
+   $("photoModalSave").textContent="Закрыть";
+   photoModalSubmit=async()=>closePhotoModal();
+   return;
+ }
  const images=(Array.isArray(x.media_ids)?x.media_ids:[]).map(mid=>{
    const m=mediaCache.find(z=>z.id===mid);
    return m&&mediaSigned[mid]?'<img class="photoDetailImage" src="'+mediaSigned[mid]+'" alt="'+esc(m.title)+'">':'';

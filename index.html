@@ -53,6 +53,10 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .cityComments{max-width:760px;margin:28px auto 8px;border-top:1px solid var(--line);padding-top:18px}
 .cityComments h3{font:700 20px Georgia,serif;margin:0 0 10px}
 .cityComment{padding:10px 0;border-bottom:1px solid var(--line)}
+.cityComment.highlighted{background:var(--soft-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+.cityCommentMark{display:inline-block;margin-top:7px;font-size:11px;font-weight:700;color:var(--focus)}
+.cityCommentTools{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.cityCommentTools button{width:auto;margin:0;padding:7px 10px;font-size:12px}
 .cityCommentHead{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:5px}
 .cityCommentHead b{font-size:13px}
 .cityCommentTime{color:var(--muted);white-space:nowrap}
@@ -1809,22 +1813,52 @@ function openCityEssay(id){
 async function loadCityEssayComments(essayId){
  const box=$("cityEssayComments");if(!box)return;
  const {data,error}=await sb.from("city_essay_comments")
-   .select("id,essay_id,user_id,body,created_at,status,profiles(display_name,person_id)")
+   .select("id,essay_id,user_id,body,created_at,status,is_highlighted,archived_memory_detail_id,editorial_note,profiles(display_name,person_id)")
    .eq("essay_id",essayId)
    .order("created_at",{ascending:true});
  if(!box)return;
  if(error){box.innerHTML='<h3>Воспоминания и уточнения</h3><div class="small">Не удалось загрузить комментарии: '+esc(error.message)+'</div>';return}
  const rows=data||[];
+ const editor=profile?.role==="editor"||profile?.role==="admin";
  const list=rows.length?rows.map(c=>{
    const p=Array.isArray(c.profiles)?c.profiles[0]:c.profiles;
    const name=p?.display_name||"Участник";
-   return '<div class="cityComment"><div class="cityCommentHead"><b>'+esc(name)+'</b><span class="cityCommentTime">'+esc(fmtCityCommentTime(c.created_at))+'</span></div><div class="cityCommentBody">'+literaryHtml(c.body)+'</div></div>';
+   const tools=editor?'<div class="cityCommentTools">'+
+     '<button class="secondary" type="button" data-comment-highlight="'+esc(c.id)+'" data-value="'+(!c.is_highlighted)+'">'+(c.is_highlighted?'Снять отметку':'Ценная деталь')+'</button>'+
+     (c.archived_memory_detail_id
+       ?'<button class="secondary" type="button" data-comment-memory="'+esc(c.archived_memory_detail_id)+'">Уже в мозаике</button>'
+       :'<button class="secondary" type="button" data-comment-archive="'+esc(c.id)+'">Внести в архив</button>')+
+     '</div>':'';
+   return '<div class="cityComment '+(c.is_highlighted?'highlighted':'')+'"><div class="cityCommentHead"><b>'+esc(name)+'</b><span class="cityCommentTime">'+esc(fmtCityCommentTime(c.created_at))+'</span></div>'+
+     '<div class="cityCommentBody">'+literaryHtml(c.body)+'</div>'+
+     (c.is_highlighted?'<div class="cityCommentMark">★ Ценная деталь</div>':'')+
+     (c.archived_memory_detail_id?'<div class="cityCommentMark">✓ Включено в «Одну исчезнувшую деталь»</div>':'')+
+     tools+'</div>';
  }).join(""):'<div class="small">Пока никто не добавил своё воспоминание или уточнение.</div>';
  box.innerHTML='<h3>Воспоминания и уточнения</h3>'+list+
    '<div class="cityCommentForm"><textarea id="cityCommentText" maxlength="2000" placeholder="Напишите своё воспоминание, поправку или деталь…"></textarea>'+
    '<div class="cityCommentHint">До 2000 знаков. Комментарий будет подписан вашим именем.</div>'+
    '<button class="secondary" id="cityCommentSend" type="button">Добавить комментарий</button><div id="cityCommentMsg" class="small" style="margin-top:7px"></div></div>';
  $("cityCommentSend").onclick=()=>submitCityEssayComment(essayId);
+ box.querySelectorAll("[data-comment-highlight]").forEach(b=>b.onclick=async()=>{
+   b.disabled=true;
+   const {error}=await sb.rpc("set_city_comment_highlight",{p_comment_id:Number(b.dataset.commentHighlight),p_value:b.dataset.value==="true"});
+   if(error){b.disabled=false;alert(error.message);return}
+   await loadCityEssayComments(essayId);
+ });
+ box.querySelectorAll("[data-comment-archive]").forEach(b=>b.onclick=async()=>{
+   if(!confirm("Добавить эту реплику в мозаику «Одна исчезнувшая деталь»?"))return;
+   b.disabled=true;
+   const {error}=await sb.rpc("archive_city_comment_as_memory",{p_comment_id:Number(b.dataset.commentArchive),p_category:null});
+   if(error){b.disabled=false;alert(error.message);return}
+   await loadCityEssayComments(essayId);
+   await loadCityDetails();
+ });
+ box.querySelectorAll("[data-comment-memory]").forEach(b=>b.onclick=()=>{
+   closePhotoModal();
+   showView("city");
+   setTimeout(()=>$("cityDetailsList")?.scrollIntoView({behavior:"smooth",block:"start"}),120);
+ });
 }
 async function submitCityEssayComment(essayId){
  const ta=$("cityCommentText"),msg=$("cityCommentMsg"),btn=$("cityCommentSend");

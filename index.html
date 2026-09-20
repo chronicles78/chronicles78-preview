@@ -176,12 +176,14 @@ function closePhotoModal(){
  if($("photoModalSave"))$("photoModalSave").textContent="Сохранить";
  $("photoModal").setAttribute("aria-hidden","true");
  $("photoModalMsg").textContent="";
+ $("photoModalMsg").className="small";
  photoModalSubmit=null;
 }
 function openPhotoModal(title,html,onSave){
  $("photoModalTitle").textContent=title;
  $("photoModalBody").innerHTML=html;
  $("photoModalMsg").textContent="";
+ $("photoModalMsg").className="small";
  photoModalSubmit=onSave;
  $("photoModal").classList.add("open");
  $("photoModal").setAttribute("aria-hidden","false");
@@ -193,9 +195,15 @@ $("photoModalSave").onclick=async()=>{
  if(!photoModalSubmit)return;
  $("photoModalSave").disabled=true;
  $("photoModalMsg").textContent="Сохраняю…";
- try{await photoModalSubmit();closePhotoModal()}
- catch(e){$("photoModalMsg").textContent=e.message||String(e)}
- finally{$("photoModalSave").disabled=false}
+ try{
+   await photoModalSubmit();
+   if($("photoModal").classList.contains("open"))closePhotoModal();
+ } catch(e){
+   $("photoModalMsg").textContent="Ошибка: "+(e.message||String(e));
+   $("photoModalMsg").className="err";
+ } finally{
+   $("photoModalSave").disabled=false;
+ }
 };
 async function archiveFormLookups(){
  const [{data:stories},{data:people}]=await Promise.all([
@@ -1328,9 +1336,13 @@ async function editCityEssay(id=null){
        updated_at:new Date().toISOString()
      };
      if(!row.id||!row.title)throw new Error("Укажите ID и название.");
-     const {error}=await sb.from("city_essays").upsert(row,{onConflict:"id"});
+     $("photoModalMsg").textContent="Сохраняю этюд…";
+     const {data,error}=await sb.rpc("save_city_essay",{p_data:row});
      if(error)throw error;
+     $("photoModalMsg").textContent="Сохранено.";
+     closePhotoModal();
      await loadCityEssays();
+     return data;
    }
  );
 }

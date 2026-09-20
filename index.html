@@ -802,6 +802,7 @@ function editPersonIdentity(id){
      const idx=peopleCache.findIndex(x=>x.id===id);
      if(idx>=0)peopleCache[idx]={...peopleCache[idx],canonical_name:canonical,identification_status:status,identification_note:note||null};
      renderPeople();
+     if(status==="подтверждено")setTimeout(()=>alert("Имя подтверждено. Связанный вопрос 10А автоматически отмечен решённым."),50);
    }
  );
 }
@@ -1137,6 +1138,7 @@ function renderQuestions(){
      (q.why_it_matters?'<p class="small"><b>Почему важно:</b> '+esc(q.why_it_matters)+'</p>':'')+
      (q.ask?'<p class="small"><b>Кого/что спросить:</b> '+esc(q.ask)+'</p>':'')+
      (q.notes?'<p class="small"><b>Комментарий редакции:</b> '+esc(q.notes)+'</p>':'')+
+     (q.resolution_note?'<div class="notice" style="margin-top:8px"><b>Результат:</b> '+esc(q.resolution_note)+'</div>':'')+
      crop+
      (tags?'<div class="tagList">'+tags+'</div>':'')+
      '<div class="questionActions">'+
@@ -1162,7 +1164,7 @@ async function loadQuestions(){
  }
  $("questionStats").textContent="Загружаю вопросы…";
  const [a,e]=await Promise.all([
-   sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links,tags,discussion_room").order("priority").order("id"),
+   sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links,tags,discussion_room,resolution_note").order("priority").order("id"),
    sb.from("editorial_questions").select("id,source_message_id,question,status,priority,linked_entity_type,linked_entity_id,notes,tags,discussion_room,created_at").order("created_at",{ascending:false})
  ]);
  if(a.error||e.error){

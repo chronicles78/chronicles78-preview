@@ -77,6 +77,14 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <section id="stories" class="view"><div class="archiveList"><h2>Истории</h2><div class="storiesToolbar"><button class="mini on" data-storyfilter="all">Все</button><button class="mini" data-storyfilter="ready">Готово к чтению</button><button class="mini" data-storyfilter="full">Развёрнутые</button><button class="mini" data-storyfilter="cards">Карточки</button><input id="storySearch" placeholder="Поиск по истории, человеку, теме…"></div><div id="storyStats" class="notice" style="margin-bottom:10px"></div><div id="storiesList" class="notice">Войдите, чтобы открыть архив.</div></div></section>
 <div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
 <section id="photos" class="view"><div class="archiveList"><h2>Фотоархив</h2>
+<div class="photoToolbar">
+<button class="mini on" data-photofilter="all">Все</button>
+<button class="mini" data-photofilter="story">Связаны с историей</button>
+<button class="mini" data-photofilter="clarify">Нужно уточнить</button>
+<button class="mini" data-photofilter="unlinked">Без истории</button>
+<input id="photoSearch" placeholder="Поиск по фото, сюжету, описанию…">
+</div>
+<div id="photoStats" class="notice" style="margin-bottom:10px"></div>
 <div id="archiveUploadBox" class="uploadBox" style="display:none">
 <b>Работа с фотоархивом</b>
 <button class="secondary" id="newArchivePhotoBtn">＋ Новое фото в архив</button>
@@ -88,7 +96,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <button class="secondary" id="archiveUploadBtn">Загрузить в закрытый архив</button>
 <div id="archiveUploadMsg" class="small"></div>
 </div>
-<div id="photosList"></div></div></section>
+<div id="photosList" class="photoGrid"></div></div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
 <div id="questionStats" class="notice" style="margin-bottom:10px">Войдите, чтобы открыть реестр вопросов.</div>
 <div class="questionToolbar">
@@ -145,7 +153,7 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,storyCache=[],storyFilter="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -230,6 +238,7 @@ async function activateTag(tag){
  if(/^MEDIA-\d+$/i.test(tag)){
    mediaFocus=tag;
    showView("photos");
+   setTimeout(()=>openArchivePhoto(tag),120);
    return;
  }
  if(/^10[ABАБ]-\d+$/i.test(tag)){
@@ -1004,32 +1013,96 @@ async function archiveSignedImage(path){
  if(error)return null;
  return data?.signedUrl||null;
 }
-async function loadPhotos(){
- if(!user||!profile?.is_active){$("photosList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
- const {data,error}=await sb.from("archive_media").select("id,title,category,linked_story,archive_file,current_storage_path,current_file_name,quality_status,source_note,data").order("id");
- if(error){$("photosList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- const arr=mediaFocus?(data||[]).filter(m=>m.id===mediaFocus):(data||[]);
- const signed={};
- for(const m of arr){
-   if(m.current_storage_path)signed[m.id]=await archiveSignedImage(m.current_storage_path);
- }
- const editor=profile?.role==="editor"||profile?.role==="admin";
- $("photosList").innerHTML=(mediaFocus?'<button class="secondary" id="showAllMedia">← Показать весь фотоархив</button>':'')+
- arr.map(m=>'<div class="archiveCard"><h3>'+esc(m.title)+'</h3><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span>'+(m.linked_story?'<span class="badge">'+esc(m.linked_story)+'</span>':'')+'<span class="badge">'+esc(m.quality_status||"нужен оригинал")+'</span>'+
- (signed[m.id]?'<img class="archivePhoto" src="'+signed[m.id]+'" alt="'+esc(m.title)+'">':'<div class="notice" style="margin-top:10px">Файл изображения ещё не загружен в закрытый архив.</div>')+
- '<p class="small">'+esc(m.data?.visual_description||m.data?.identification_status||"")+'</p>'+
- '<p class="small"><b>Идентификация:</b> '+esc(m.data?.identification_status||"описание внесено")+'</p>'+
- (m.source_note?'<p class="small"><b>Источник:</b> '+esc(m.source_note)+'</p>':'')+
- (m.linked_story?'<button class="secondary" data-media-story="'+esc(m.linked_story)+'">Открыть связанную историю</button>':'')+
- '<button class="secondary" data-archive-history="'+m.id+'">История версий</button>'+
- (editor?'<button class="secondary" data-archive-replace="'+m.id+'">Заменить / улучшить изображение</button><button class="secondary" data-archive-edit="'+m.id+'">Редактировать карточку</button>':'')+
- '</div>').join("");
- if($("showAllMedia"))$("showAllMedia").onclick=()=>{mediaFocus=null;loadPhotos()};
- $("photosList").querySelectorAll("[data-media-story]").forEach(b=>b.onclick=()=>{showView("stories");openStory(b.dataset.mediaStory)});
- $("photosList").querySelectorAll("[data-archive-history]").forEach(b=>b.onclick=()=>showArchiveVersions(b.dataset.archiveHistory));
- $("photosList").querySelectorAll("[data-archive-replace]").forEach(b=>b.onclick=()=>{archiveReplaceId=b.dataset.archiveReplace;$("replaceArchivePhotoInput").value="";$("replaceArchivePhotoInput").click()});
- $("photosList").querySelectorAll("[data-archive-edit]").forEach(b=>b.onclick=()=>editArchiveCard(b.dataset.archiveEdit));
+function photoNeedsClarification(m){
+ const s=String(m.data?.identification_status||"").toLowerCase();
+ return /не установ|уточн|частич|треб|не закреп|не выполн|не найден|остается/.test(s);
 }
+function mediaPeopleNames(m){
+ const ids=Array.isArray(m.data?.people)?m.data.people:[];
+ return ids.map(id=>peopleCache.find(p=>p.id===id)?.canonical_name||id);
+}
+function renderPhotoGallery(){
+ let arr=mediaFocus?mediaCache.filter(m=>m.id===mediaFocus):[...mediaCache];
+ const q=($("photoSearch")?.value||"").trim().toLowerCase();
+ if(photoFilter==="story")arr=arr.filter(m=>!!m.linked_story);
+ if(photoFilter==="clarify")arr=arr.filter(photoNeedsClarification);
+ if(photoFilter==="unlinked")arr=arr.filter(m=>!m.linked_story);
+ if(q)arr=arr.filter(m=>JSON.stringify([m.id,m.title,m.category,m.linked_story,m.quality_status,m.source_note,m.data,mediaPeopleNames(m)]).toLowerCase().includes(q));
+ const total=mediaCache.length,withStory=mediaCache.filter(m=>m.linked_story).length,clarify=mediaCache.filter(photoNeedsClarification).length,loaded=mediaCache.filter(m=>m.current_storage_path).length;
+ $("photoStats").innerHTML='Фото: <b>'+total+'</b> · файлов загружено: <b>'+loaded+'</b> · связаны с историями: <b>'+withStory+'</b> · требуют уточнения: <b>'+clarify+'</b>';
+ const editor=profile?.role==="editor"||profile?.role==="admin";
+ $("photosList").className="photoGrid";
+ $("photosList").innerHTML=arr.map(m=>{
+   const names=mediaPeopleNames(m);
+   const desc=m.data?.visual_description||m.data?.identification_status||"";
+   return '<article class="photoTile">'+
+     '<div class="photoTileImage" data-photo-open="'+esc(m.id)+'">'+
+       (mediaSigned[m.id]?'<img src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Изображение ещё не загружено</div>')+
+     '</div>'+
+     '<div class="photoTileBody"><h3>'+esc(m.title)+'</h3>'+
+       '<div class="photoTileMeta"><button class="badge tagLink" data-tag="'+esc(m.id)+'">'+esc(m.id)+'</button>'+
+       (m.linked_story?'<button class="badge tagLink" data-tag="'+esc(m.linked_story)+'">'+esc(m.linked_story)+'</button>':'')+
+       '<span class="badge">'+esc(m.quality_status||"качество не указано")+'</span>'+
+       (photoNeedsClarification(m)?'<span class="badge">нужно уточнить</span>':'')+'</div>'+
+       (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+
+       (names.length?'<div class="small"><b>Люди:</b> '+esc(names.slice(0,4).join(", "))+(names.length>4?"…":"")+'</div>':'')+
+       '<div class="photoTileActions"><button class="secondary" data-photo-open="'+esc(m.id)+'">Открыть</button>'+
+       (m.linked_story?'<button class="secondary" data-media-story="'+esc(m.linked_story)+'">История</button>':'')+
+       (editor?'<button class="secondary" data-archive-edit="'+esc(m.id)+'">Править</button>':'')+
+       '</div></div></article>';
+ }).join("")||'<div class="notice">По выбранному фильтру фотографий нет.</div>';
+ $("photosList").querySelectorAll("[data-photo-open]").forEach(b=>b.onclick=()=>openArchivePhoto(b.dataset.photoOpen));
+ $("photosList").querySelectorAll("[data-media-story]").forEach(b=>b.onclick=e=>{e.stopPropagation();showView("stories");openStory(b.dataset.mediaStory)});
+ $("photosList").querySelectorAll("[data-archive-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editArchiveCard(b.dataset.archiveEdit)});
+}
+async function openArchivePhoto(id){
+ const m=mediaCache.find(x=>x.id===id);if(!m)return;
+ const editor=profile?.role==="editor"||profile?.role==="admin";
+ const names=mediaPeopleNames(m);
+ const image=mediaSigned[m.id]?'<img class="photoDetailImage" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="notice">Файл изображения ещё не загружен.</div>';
+ const people=names.length?'<div class="photoDetailPeople">'+names.map(n=>'<span class="badge">'+esc(n)+'</span>').join("")+'</div>':'<div class="small">Люди на фотографии пока не закреплены.</div>';
+ openPhotoModal(m.title,
+   image+
+   '<div class="photoTileMeta"><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span><span class="badge">'+esc(m.quality_status||"")+'</span>'+(m.linked_story?'<span class="badge">'+esc(m.linked_story)+'</span>':'')+'</div>'+
+   (m.data?.visual_description?'<p>'+esc(m.data.visual_description)+'</p>':'')+
+   '<p class="small"><b>Идентификация:</b> '+esc(m.data?.identification_status||"описание ещё не внесено")+'</p>'+
+   people+
+   (m.source_note?'<p class="small"><b>Источник:</b> '+esc(m.source_note)+'</p>':'')+
+   '<div class="questionActions">'+
+     (m.linked_story?'<button class="secondary" type="button" data-detail-story="'+esc(m.linked_story)+'">Открыть историю</button>':'')+
+     '<button class="secondary" type="button" data-detail-history="'+esc(m.id)+'">История версий</button>'+
+     (editor?'<button class="secondary" type="button" data-detail-replace="'+esc(m.id)+'">Заменить / улучшить</button><button class="secondary" type="button" data-detail-edit="'+esc(m.id)+'">Редактировать карточку</button>':'')+
+   '</div>',
+   async()=>{}
+ );
+ $("photoModalSave").textContent="Закрыть";
+ photoModalSubmit=async()=>closePhotoModal();
+ document.querySelectorAll("[data-detail-story]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.detailStory)});
+ document.querySelectorAll("[data-detail-history]").forEach(b=>b.onclick=()=>showArchiveVersions(b.dataset.detailHistory));
+ document.querySelectorAll("[data-detail-replace]").forEach(b=>b.onclick=()=>{closePhotoModal();archiveReplaceId=b.dataset.detailReplace;$("replaceArchivePhotoInput").value="";$("replaceArchivePhotoInput").click()});
+ document.querySelectorAll("[data-detail-edit]").forEach(b=>b.onclick=()=>{closePhotoModal();editArchiveCard(b.dataset.detailEdit)});
+}
+async function loadPhotos(){
+ if(!user||!profile?.is_active){$("photosList").className="";$("photosList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ if(!peopleCache.length){
+   const {data:pp}=await sb.from("archive_people").select("id,canonical_name,group_name,number").order("group_name").order("number");
+   peopleCache=pp||[];
+ }
+ const {data,error}=await sb.from("archive_media").select("id,title,category,linked_story,archive_file,current_storage_path,current_file_name,quality_status,source_note,data").order("id");
+ if(error){$("photosList").className="";$("photosList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
+ mediaCache=data||[];
+ mediaSigned={};
+ await Promise.all(mediaCache.map(async m=>{if(m.current_storage_path)mediaSigned[m.id]=await archiveSignedImage(m.current_storage_path)}));
+ renderPhotoGallery();
+}
+document.querySelectorAll("[data-photofilter]").forEach(b=>b.onclick=()=>{
+ photoFilter=b.dataset.photofilter;
+ mediaFocus=null;
+ document.querySelectorAll("[data-photofilter]").forEach(x=>x.classList.toggle("on",x===b));
+ renderPhotoGallery();
+});
+$("photoSearch").oninput=()=>{mediaFocus=null;renderPhotoGallery()};
+
 async function uploadArchiveVersion(mediaId,file,type,reason,sourceNote){
  const mime=ensureImageFile(file);
  const dims=await fileDimensions(file);

@@ -17,8 +17,20 @@ button,input,textarea,select{font:inherit;color:var(--ink)}button{color:var(--in
 main{max-width:760px;margin:auto}.view{display:none}.view.active{display:block}.pad{padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
 a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10px 0}.hero p{font-size:17px;line-height:1.45;color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.45}
 .bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--nav-bg);border-top:1px solid var(--line);z-index:30}
-.bottomIn{max-width:760px;margin:auto;height:var(--nav);display:grid;grid-template-columns:repeat(8,minmax(0,1fr))}
-.nav{border:0;background:transparent;color:var(--muted);font-size:9px;padding:3px 0;min-width:0;white-space:nowrap}.nav b{display:block;font-size:22px;margin-bottom:3px}.nav.active{color:var(--ink);font-weight:700}
+.bottomIn{max-width:760px;margin:auto;height:var(--nav);display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.nav{border:0;background:transparent;color:var(--muted);font-size:11px;padding:7px 2px 5px;min-width:0;min-height:56px;white-space:nowrap;touch-action:manipulation}
+.mobileSecondary{display:none}
+.mobileMore{display:block}
+.moreNavShade{position:fixed;inset:0;background:#0006;z-index:46;display:none}
+.moreNavShade.open{display:block}
+.moreNavMenu{position:fixed;left:10px;right:10px;bottom:calc(var(--nav) + env(safe-area-inset-bottom) + 10px);z-index:47;display:none;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:10px;box-shadow:0 14px 42px var(--shadow)}
+.moreNavMenu.open{display:block}
+.moreNavHead{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 9px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.moreNavHead b{font:700 17px Georgia,serif}
+.moreNavHead button{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;background:var(--input);font-size:24px}
+.moreNavItem{width:100%;min-height:54px;border:0;background:transparent;color:var(--ink);border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:14px;text-align:left;font-size:16px}
+.moreNavItem:active,.moreNavItem:hover{background:var(--soft)}
+.moreNavItem b{width:30px;font-size:23px;text-align:center}.nav b{display:block;font-size:22px;margin-bottom:3px}.nav.active{color:var(--ink);font-weight:700}
 .rooms{display:flex;gap:7px;overflow:auto;padding:9px 10px;background:var(--paper);border-bottom:1px solid var(--line)}
 .room{white-space:nowrap;border:1px solid var(--line);background:var(--input);border-radius:99px;padding:8px 12px}.room.active{background:var(--selected-bg);color:var(--selected-ink);border-color:var(--selected-bg);font-weight:700}
 .chat{height:calc(100dvh - 58px - var(--nav) - env(safe-area-inset-bottom));display:flex;flex-direction:column;min-height:0}
@@ -113,6 +125,8 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
     flex-direction:column;
     gap:5px;
   }
+  .mobileSecondary{display:flex}
+  .mobileMore,.moreNavMenu,.moreNavShade{display:none!important}
   .nav{
     width:100%;
     min-height:46px;
@@ -389,15 +403,24 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
     </div>
   </div>
 </div>
+<div id="moreNavShade" class="moreNavShade" aria-hidden="true"></div>
+<div id="moreNavMenu" class="moreNavMenu" aria-hidden="true">
+  <div class="moreNavHead"><b>Ещё разделы</b><button id="moreNavClose" aria-label="Закрыть меню">×</button></div>
+  <button class="moreNavItem" data-more-view="photos"><b>▧</b><span>Фото</span></button>
+  <button class="moreNavItem" data-more-view="city"><b>⌘</b><span>Город</span></button>
+  <button class="moreNavItem" data-more-view="questions"><b>?</b><span>Вопросы</span></button>
+  <button class="moreNavItem" data-more-view="profile"><b>○</b><span>Профиль</span></button>
+</div>
 <nav class="bottom"><div class="bottomIn">
 <button class="nav active" data-view="home"><b>⌂</b>Главная</button>
 <button class="nav" data-view="chat"><b>◌</b>Чат</button>
 <button class="nav" data-view="people"><b>◎</b>Люди</button>
 <button class="nav" data-view="stories"><b>▤</b>Истории</button>
-<button class="nav" data-view="photos"><b>▧</b>Фото</button>
-<button class="nav" data-view="city"><b>⌘</b>Город</button>
-<button class="nav" data-view="questions"><b>?</b>Вопросы</button>
-<button class="nav" data-view="profile"><b>○</b>Профиль</button>
+<button class="nav mobileSecondary" data-view="photos"><b>▧</b>Фото</button>
+<button class="nav mobileSecondary" data-view="city"><b>⌘</b>Город</button>
+<button class="nav mobileSecondary" data-view="questions"><b>?</b>Вопросы</button>
+<button class="nav mobileSecondary" data-view="profile"><b>○</b>Профиль</button>
+<button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
 <script>
@@ -484,10 +507,28 @@ function qualitySelectHtml(value="копия"){
  const opts=["превью","копия","хороший скан","оригинал","реставрация"];
  return '<select id="pfQuality">'+opts.map(x=>'<option '+(x===value?"selected":"")+'>'+x+'</option>').join("")+'</select>';
 }
+function closeMoreNav(){
+ $("moreNavMenu")?.classList.remove("open");
+ $("moreNavShade")?.classList.remove("open");
+ $("moreNavMenu")?.setAttribute("aria-hidden","true");
+ $("moreNavShade")?.setAttribute("aria-hidden","true");
+ $("mobileMoreBtn")?.setAttribute("aria-expanded","false");
+}
+function openMoreNav(){
+ $("moreNavMenu")?.classList.add("open");
+ $("moreNavShade")?.classList.add("open");
+ $("moreNavMenu")?.setAttribute("aria-hidden","false");
+ $("moreNavShade")?.setAttribute("aria-hidden","false");
+ $("mobileMoreBtn")?.setAttribute("aria-expanded","true");
+}
 function showView(v){
+ if(!v)return;
+ closeMoreNav();
  if($("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open");
  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));
- document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ document.querySelectorAll(".nav[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
+ const secondary=["photos","city","questions","profile"].includes(v);
+ $("mobileMoreBtn")?.classList.toggle("active",secondary);
  if(v==="home")loadHome();
  if(v==="chat"&&user&&profile?.is_active)loadRoom();
  if(v==="people")loadPeople();
@@ -496,7 +537,14 @@ function showView(v){
  if(v==="city")loadCityEssays();
  if(v==="questions")loadQuestions();
 }
-document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+$("mobileMoreBtn").onclick=()=>{
+ const isOpen=$("moreNavMenu").classList.contains("open");
+ isOpen?closeMoreNav():openMoreNav();
+};
+$("moreNavClose").onclick=closeMoreNav;
+$("moreNavShade").onclick=closeMoreNav;
+document.querySelectorAll("[data-more-view]").forEach(b=>b.onclick=()=>showView(b.dataset.moreView));
 function closeChatMenus(){
  document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
 }

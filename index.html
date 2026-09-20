@@ -99,7 +99,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="photosList" class="photoGrid"></div></div></section>
 <section id="city" class="view"><div class="archiveList">
 <div class="cityIntro"><div class="small">КУЙБЫШЕВ · 1970–1980-е</div><h2>Город и время</h2><p>Атмосферные этюды о повседневной жизни города: дворы, магазины, транспорт, кафе, одежда, музыка, улицы и привычки времени. Это не школьная хроника в узком смысле, а среда, в которой мы росли.</p></div>
-<div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><button class="mini" data-citytheme="restore">Восстановить</button><input id="citySearch" placeholder="Поиск по этюдам…"><button class="secondary" id="newCityEssayBtn" style="display:none">＋ Новый этюд</button></div>
+<div id="cityStats" class="notice" style="margin-bottom:10px"></div><div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><button class="mini" data-citytheme="restore">Восстановить</button><input id="citySearch" placeholder="Поиск по этюдам…"><button class="secondary" id="newCityEssayBtn" style="display:none">＋ Новый этюд</button></div>
 <div id="cityList" class="cityGrid"><div class="notice">Войдите, чтобы открыть раздел.</div></div>
 <div class="cityIntro" style="margin-top:14px"><div class="small">ЖИВАЯ ПАМЯТЬ</div><h2>Одна исчезнувшая деталь</h2><p>Одна вещь, место, звук, запах или городская деталь, которых сегодня уже нет, а для кого-то они до сих пор и есть настоящий Куйбышев.</p></div>
 <div id="cityDetailsList" class="cityGrid"><div class="notice">Загружаю городские детали…</div></div>
@@ -1339,6 +1339,8 @@ async function loadCityDetails(){
  const {data,error}=await sb.from("city_memory_details").select("*").order("sort_order").order("id");
  if(error){$("cityDetailsList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  const arr=data||[];
+ const intro=$("cityDetailsList")?.previousElementSibling;
+ if(intro&&intro.classList.contains("cityIntro")){const p=intro.querySelector("p");if(p&&!p.dataset.counted){p.textContent+=" Сейчас в мозаике — "+arr.length+" живых деталей.";p.dataset.counted="1"}}
  $("cityDetailsList").innerHTML=arr.map(x=>
    '<article class="cityCard"><div class="cityCardBody"><h3>'+esc(x.author_name)+'</h3>'+
    '<div class="cityMeta">'+(x.category?'<span class="badge">'+esc(x.category)+'</span>':'')+(x.person_id?'<button class="badge tagLink" data-tag="'+esc(x.person_id)+'">'+esc(x.person_id)+'</button>':'')+'</div>'+
@@ -1354,6 +1356,9 @@ async function loadCityEssays(){
  const {data,error}=await sb.from("city_essays").select("*").order("sort_order").order("id");
  if(error){$("cityList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  cityCache=data||[];
+ const confirmed=cityCache.filter(x=>x.source_status==="подтверждённая редакция").length;
+ const restore=cityCache.filter(x=>x.source_status==="требует восстановления").length;
+ if($("cityStats"))$("cityStats").innerHTML='Этюдов: <b>'+cityCache.length+'</b> · подтверждённых текстов: <b>'+confirmed+'</b> · на восстановлении: <b>'+restore+'</b>';
  renderCityEssays();
  await loadCityDetails();
 }

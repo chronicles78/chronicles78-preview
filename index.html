@@ -97,6 +97,11 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="archiveUploadMsg" class="small"></div>
 </div>
 <div id="photosList" class="photoGrid"></div></div></section>
+<section id="city" class="view"><div class="archiveList">
+<div class="cityIntro"><div class="small">КУЙБЫШЕВ · 1970–1980-е</div><h2>Город и время</h2><p>Атмосферные этюды о повседневной жизни города: дворы, магазины, транспорт, кафе, одежда, музыка, улицы и привычки времени. Это не школьная хроника в узком смысле, а среда, в которой мы росли.</p></div>
+<div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><input id="citySearch" placeholder="Поиск по этюдам…"></div>
+<div id="cityList" class="cityGrid"><div class="notice">Войдите, чтобы открыть раздел.</div></div>
+</div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
 <div id="questionStats" class="notice" style="margin-bottom:10px">Войдите, чтобы открыть реестр вопросов.</div>
 <div class="questionToolbar">
@@ -133,6 +138,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <button class="nav" data-view="people"><b>◎</b>Люди</button>
 <button class="nav" data-view="stories"><b>▤</b>Истории</button>
 <button class="nav" data-view="photos"><b>▧</b>Фото</button>
+<button class="nav" data-view="city"><b>⌘</b>Город</button>
 <button class="nav" data-view="questions"><b>?</b>Вопросы</button>
 <button class="nav" data-view="profile"><b>○</b>Профиль</button>
 </div></nav>
@@ -153,7 +159,7 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -219,6 +225,7 @@ function showView(v){
  if(v==="people")loadPeople();
  if(v==="stories")loadStories();
  if(v==="photos")loadPhotos();
+ if(v==="city")loadCityEssays();
  if(v==="questions")loadQuestions();
 }
 document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>showView(b.dataset.view));
@@ -1291,6 +1298,54 @@ async function loadQuestion10AVisual(){
  const map={};(regions||[]).forEach(r=>map[r.person_id]=r);
  question10AVisual={photo:cp,regions:map,url};
 }
+async function loadCityEssays(){
+ if(!user||!profile?.is_active){$("cityList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ if(!mediaCache.length){await loadPhotos()}
+ const {data,error}=await sb.from("city_essays").select("*").order("sort_order").order("id");
+ if(error){$("cityList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
+ cityCache=data||[];
+ renderCityEssays();
+}
+function renderCityEssays(){
+ const q=($("citySearch")?.value||"").trim().toLowerCase();
+ let arr=cityCache.filter(x=>cityTheme==="all"||String(x.theme||"").toLowerCase()===cityTheme);
+ if(q)arr=arr.filter(x=>JSON.stringify([x.id,x.title,x.period,x.theme,x.excerpt,x.body,x.location_text,x.tags]).toLowerCase().includes(q));
+ $("cityList").innerHTML=arr.map(x=>{
+   const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
+   const m=imgId?mediaCache.find(z=>z.id===imgId):null;
+   const img=m&&mediaSigned[m.id]?'<div class="cityCardImage"><img src="'+mediaSigned[m.id]+'" alt="'+esc(x.title)+'"></div>':'';
+   return '<article class="cityCard">'+img+'<div class="cityCardBody"><h3>'+esc(x.title)+'</h3>'+
+     '<div class="cityMeta">'+(x.period?'<span class="badge">'+esc(x.period)+'</span>':'')+(x.theme?'<span class="badge">'+esc(x.theme)+'</span>':'')+(x.location_text?'<span class="badge">'+esc(x.location_text)+'</span>':'')+'</div>'+
+     (x.excerpt?'<div class="cityExcerpt">'+esc(x.excerpt)+'</div>':'')+
+     '<div class="homeActions"><button class="secondary" data-city-open="'+esc(x.id)+'">Читать</button></div></div></article>';
+ }).join("")||'<div class="notice">Этюды ещё не добавлены.</div>';
+ $("cityList").querySelectorAll("[data-city-open]").forEach(b=>b.onclick=()=>openCityEssay(b.dataset.cityOpen));
+}
+function openCityEssay(id){
+ const x=cityCache.find(a=>a.id===id);if(!x)return;
+ const images=(Array.isArray(x.media_ids)?x.media_ids:[]).map(mid=>{
+   const m=mediaCache.find(z=>z.id===mid);
+   return m&&mediaSigned[mid]?'<img class="photoDetailImage" src="'+mediaSigned[mid]+'" alt="'+esc(m.title)+'">':'';
+ }).join("");
+ openPhotoModal(x.title,
+   (x.period||x.theme||x.location_text?'<div class="photoTileMeta">'+(x.period?'<span class="badge">'+esc(x.period)+'</span>':'')+(x.theme?'<span class="badge">'+esc(x.theme)+'</span>':'')+(x.location_text?'<span class="badge">'+esc(x.location_text)+'</span>':'')+'</div>':'')+
+   (x.excerpt?'<div class="cityEssayLead">'+esc(x.excerpt)+'</div>':'')+
+   images+
+   '<div class="cityEssayBody">'+esc(x.body||"")+'</div>'+
+   (x.linked_story?'<div class="homeActions"><button class="secondary" type="button" data-city-story="'+esc(x.linked_story)+'">Связанная история</button></div>':''),
+   async()=>{}
+ );
+ $("photoModalSave").textContent="Закрыть";
+ photoModalSubmit=async()=>closePhotoModal();
+ document.querySelectorAll("[data-city-story]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.cityStory)});
+}
+document.querySelectorAll("[data-citytheme]").forEach(b=>b.onclick=()=>{
+ cityTheme=b.dataset.citytheme;
+ document.querySelectorAll("[data-citytheme]").forEach(x=>x.classList.toggle("on",x===b));
+ renderCityEssays();
+});
+$("citySearch").oninput=()=>renderCityEssays();
+
 function questionIsOpen(q){
  const s=String(q.status||"").toLowerCase();
  return !["решён","решено","resolved","closed","закрыт"].includes(s);

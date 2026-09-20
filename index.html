@@ -466,7 +466,7 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -541,6 +541,58 @@ function insertCityPhotoMarker(){
  ta.value=before+prefix+marker+suffix+after;
  const pos=(before+prefix+marker).length;
  ta.focus();ta.setSelectionRange(pos,pos);
+}
+
+async function uploadCityInlinePhoto(file){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))throw new Error("Недостаточно прав.");
+ const mime=ensureImageFile(file);
+ if(file.size>10*1024*1024)throw new Error("Файл больше 10 МБ.");
+ const title=($("pfCityNewPhotoTitle")?.value||"").trim()||String(file.name||"Фото").replace(/\.[^.]+$/,"");
+ const source=($("pfCityNewPhotoSource")?.value||"").trim()||profile?.display_name||"";
+ const id=await nextMediaId();
+
+ const {error:ie}=await sb.from("archive_media").insert({
+   id,
+   title,
+   category:"иллюстрация к этюду",
+   archive_file:file.name,
+   linked_story:null,
+   data:{identification_status:"иллюстрация к этюду",people:[]},
+   visibility:"members",
+   quality_status:"оригинал",
+   source_note:source
+ });
+ if(ie)throw ie;
+
+ try{
+   await uploadArchiveVersion(id,file,"оригинал","Загружено из редактора этюда",source);
+ }catch(e){
+   await sb.from("archive_media").delete().eq("id",id);
+   throw e;
+ }
+
+ const {data:m}=await sb.from("archive_media")
+   .select("id,title,category,linked_story,archive_file,current_storage_path,current_file_name,quality_status,source_note,data")
+   .eq("id",id).maybeSingle();
+ if(m){
+   mediaCache=[...mediaCache.filter(x=>x.id!==id),m];
+   if(m.current_storage_path)mediaSigned[id]=await archiveSignedImage(m.current_storage_path);
+ }
+ const sel=$("pfCityPhotoSelect");
+ if(sel){
+   const opt=document.createElement("option");
+   opt.value=id; opt.textContent=id+" — "+title; opt.selected=true; sel.appendChild(opt);
+ }
+ const ta=$("pfCityBody");
+ if(ta&&cityPhotoCursor!=null){
+   ta.focus();
+   ta.setSelectionRange(cityPhotoCursor,cityPhotoCursor);
+ }
+ insertCityPhotoMarker();
+ cityPhotoCursor=null;
+ if($("pfCityNewPhotoTitle"))$("pfCityNewPhotoTitle").value="";
+ if($("pfCityNewPhotoSource"))$("pfCityNewPhotoSource").value="";
+ return id;
 }
 function fmtCityCommentTime(v){
  try{return new Intl.DateTimeFormat("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}).format(new Date(v))}
@@ -1721,7 +1773,13 @@ async function editCityEssay(id=null){
    '<label>Место</label><input id="pfCityLocation" value="'+esc(x?.location_text||"Куйбышев")+'">'+
    '<label>Короткий анонс</label><textarea id="pfCityExcerpt">'+esc(x?.excerpt||"")+'</textarea>'+
    '<label>Полный текст</label><div class="formHint">Переносы строк, пустые строки и авторская разбивка сохраняются без изменений.</div><textarea id="pfCityBody" style="min-height:320px;white-space:pre-wrap">'+esc(x?.body||"")+'</textarea>'+
-   '<div class="cityPhotoInsert"><div class="formHint" style="margin:0 0 7px">Поставьте курсор в нужное место текста, выберите фото из архива и нажмите «Вставить фото».</div><div class="cityPhotoInsertRow"><select id="pfCityPhotoSelect"><option value="">— выбрать фото —</option>'+mediaCache.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.id+" — "+m.title)+'</option>').join("")+'</select><button class="secondary" id="pfCityInsertPhoto" type="button">Вставить фото</button></div></div>'+
+   '<div class="cityPhotoInsert"><div class="formHint" style="margin:0 0 7px"><b>Фото внутри текста.</b> Поставьте курсор в нужное место.</div>'+
+   '<div class="cityPhotoInsertRow"><select id="pfCityPhotoSelect"><option value="">— фото из архива —</option>'+mediaCache.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.id+" — "+m.title)+'</option>').join("")+'</select><button class="secondary" id="pfCityInsertPhoto" type="button">Вставить из архива</button></div>'+
+   '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><div class="formHint" style="margin-bottom:7px">Или загрузите новое фото прямо в этюд — оно одновременно попадёт в Фотоархив.</div>'+
+   '<input id="pfCityNewPhotoTitle" placeholder="Подпись к новому фото">'+
+   '<input id="pfCityNewPhotoSource" style="margin-top:7px" placeholder="Источник / кто предоставил">'+
+   '<div class="cityPhotoInsertRow" style="margin-top:7px"><button class="secondary" id="pfCityUploadPhoto" type="button">＋ Загрузить новое фото</button><span id="pfCityUploadMsg" class="small"></span></div>'+
+   '<input id="pfCityUploadInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden></div></div>'+
    '<label>Статус источника</label><select id="pfCitySourceStatus">'+["подтверждённая редакция","рабочая версия","не проверено"].map(v=>'<option '+((x?.source_status||"не проверено")===v?"selected":"")+'>'+v+'</option>').join("")+'</select>'+
    '<label>Примечание об источнике</label><textarea id="pfCitySourceNote">'+esc(x?.source_note||"")+'</textarea>'+
    '<label>Музыка к этюду</label><div class="formHint">Вставьте ссылку YouTube или Яндекс Музыки. Для Яндекс Музыки можно использовать ссылку на трек.</div><input id="pfCityMusicUrl" value="'+esc(x?.music_url||"")+'" placeholder="https://...">'+
@@ -1753,6 +1811,26 @@ async function editCityEssay(id=null){
    }
  );
  if($("pfCityInsertPhoto"))$("pfCityInsertPhoto").onclick=insertCityPhotoMarker;
+ if($("pfCityUploadPhoto"))$("pfCityUploadPhoto").onclick=()=>{
+   const ta=$("pfCityBody");
+   cityPhotoCursor=ta?.selectionStart??ta?.value.length??0;
+   $("pfCityUploadInput").value="";
+   $("pfCityUploadInput").click();
+ };
+ if($("pfCityUploadInput"))$("pfCityUploadInput").onchange=async()=>{
+   const file=$("pfCityUploadInput").files?.[0];if(!file)return;
+   const btn=$("pfCityUploadPhoto"),msg=$("pfCityUploadMsg");
+   btn.disabled=true;msg.textContent="Загружаю…";
+   try{
+     const id=await uploadCityInlinePhoto(file);
+     msg.textContent="Фото "+id+" загружено и вставлено в текст.";
+   }catch(e){
+     msg.textContent="Ошибка: "+(e.message||e);
+   }finally{
+     btn.disabled=false;
+     $("pfCityUploadInput").value="";
+   }
+ };
 }
 async function loadCityDetails(){
  if(!user||!profile?.is_active){$("cityDetailsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}

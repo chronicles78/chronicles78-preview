@@ -37,6 +37,14 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .cityExcerpt{white-space:pre-wrap}
 .cityPersonLink{appearance:none;border:0;background:transparent;padding:0;color:var(--ink);font:700 20px Georgia,serif;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer;text-align:left}
 .cityPersonLink:hover{color:var(--focus)}
+.memoryMosaic{display:grid;grid-template-columns:1fr;gap:10px}
+.memoryTile{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative}
+.memoryTile::before{content:"“";position:absolute;right:14px;top:2px;font:700 46px Georgia,serif;color:var(--soft)}
+.memoryPrompt{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.memoryQuote{font:700 18px/1.38 Georgia,serif;padding-right:26px}
+.memoryBy{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.memoryBy .cityPersonLink{font:700 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.memoryWhy{margin-left:auto;border:0;background:transparent;color:var(--focus);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .cityDetailLink{display:inline-flex;align-items:center;gap:5px;margin-top:10px;border:0;background:transparent;padding:0;color:var(--focus);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .checkGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--input)}.checkItem{display:flex;gap:7px;align-items:flex-start;font-size:12px}.checkItem input{width:auto;margin-top:2px}.modalActions{display:flex;gap:8px;margin-top:14px}.modalActions button{flex:1}.formHint{font-size:11px;color:var(--muted);margin-top:4px}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
 /* Theme contrast and archival-photo treatment */
@@ -179,7 +187,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
     gap:16px;
     align-items:start;
   }
-  #cityDetailsList{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .memoryMosaic{grid-template-columns:repeat(3,minmax(0,1fr))}
   .cityCard{
     background:var(--paper);
     border:1px solid var(--line);
@@ -293,7 +301,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
   main{max-width:1440px;padding-left:38px;padding-right:38px}
   .photoGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .cityGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  #cityDetailsList{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .memoryMosaic{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 
 </style>
@@ -349,7 +357,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="cityStats" class="notice" style="margin-bottom:10px"></div><div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><button class="mini" data-citytheme="restore">Восстановить</button><input id="citySearch" placeholder="Поиск по этюдам…"><button class="secondary" id="newCityEssayBtn" style="display:none">＋ Новый этюд</button></div>
 <div id="cityList" class="cityGrid"><div class="notice">Войдите, чтобы открыть раздел.</div></div>
 <div class="cityIntro" style="margin-top:14px"><div class="small">ЖИВАЯ ПАМЯТЬ</div><h2>Одна исчезнувшая деталь</h2><p>Одна вещь, место, звук, запах или городская деталь, которых сегодня уже нет, а для кого-то они до сих пор и есть настоящий Куйбышев.</p></div>
-<div id="cityDetailsList" class="cityGrid"><div class="notice">Загружаю городские детали…</div></div>
+<div id="cityDetailsList" class="memoryMosaic"><div class="notice">Загружаю городские детали…</div></div>
 </div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
 <div id="questionStats" class="notice" style="margin-bottom:10px">Войдите, чтобы открыть реестр вопросов.</div>
@@ -1603,20 +1611,39 @@ async function loadCityDetails(){
  const arr=data||[];
  const intro=$("cityDetailsList")?.previousElementSibling;
  if(intro&&intro.classList.contains("cityIntro")){const p=intro.querySelector("p");if(p&&!p.dataset.counted){p.textContent+=" Сейчас в мозаике — "+arr.length+" живых деталей.";p.dataset.counted="1"}}
+ $("cityDetailsList").className="memoryMosaic";
  $("cityDetailsList").innerHTML=arr.map(x=>{
    const author=x.person_id
      ?'<button class="cityPersonLink" data-city-person="'+esc(x.person_id)+'" title="Открыть карточку участника">'+esc(x.author_name)+'</button>'
-     :'<h3>'+esc(x.author_name)+'</h3>';
-   return '<article class="cityCard"><div class="cityCardBody">'+author+
-   '<div class="cityMeta">'+(x.category?'<span class="badge">'+esc(x.category)+'</span>':'')+'</div>'+
-   '<div class="cityExcerpt">'+esc(x.detail_text)+'</div>'+
-   (x.source_label?'<div class="small" style="margin-top:8px">'+esc(x.source_label)+'</div>':'')+
-   (x.person_id?'<button class="cityDetailLink" data-city-person="'+esc(x.person_id)+'">Открыть карточку человека →</button>':'')+
-   '</div></article>';
+     :'<span><b>'+esc(x.author_name)+'</b></span>';
+   return '<article class="memoryTile">'+
+     '<div class="memoryPrompt">Куйбышев для меня —</div>'+
+     '<div class="memoryQuote">'+esc(x.detail_text)+'</div>'+
+     '<div class="memoryBy">'+author+
+       (x.category?'<span class="badge">'+esc(x.category)+'</span>':'')+
+       '<button class="memoryWhy" data-memory-why="'+esc(x.id)+'">Почему это здесь?</button>'+
+     '</div>'+
+   '</article>';
  }).join("")||'<div class="notice">Городские детали ещё не добавлены.</div>';
  $("cityDetailsList").querySelectorAll("[data-city-person]").forEach(b=>b.onclick=e=>{
-   e.preventDefault();
+   e.preventDefault(); e.stopPropagation();
    activateTag(b.dataset.cityPerson);
+ });
+ $("cityDetailsList").querySelectorAll("[data-memory-why]").forEach(b=>b.onclick=e=>{
+   e.preventDefault(); e.stopPropagation();
+   const x=arr.find(v=>String(v.id)===String(b.dataset.memoryWhy));
+   if(!x)return;
+   openPhotoModal("Почему эта деталь здесь?",
+     '<div class="notice">Это не связь с какой-либо историей и не редакционная догадка. Это самостоятельный ответ участника на вопрос проекта: <b>«Какая одна вещь, место, звук, запах или городская деталь для вас до сих пор и есть настоящий Куйбышев?»</b></div>'+
+     '<div style="margin-top:14px"><div class="small">ОТВЕТ</div><div class="cityEssayBody" style="margin:8px 0;max-width:none">'+literaryHtml(x.detail_text)+'</div></div>'+
+     '<div class="small"><b>Автор:</b> '+esc(x.author_name)+'</div>'+
+     (x.source_label?'<div class="small" style="margin-top:6px"><b>Источник:</b> '+esc(x.source_label)+'</div>':'')+
+     (x.person_id?'<div class="homeActions"><button class="secondary" type="button" data-memory-person="'+esc(x.person_id)+'">Открыть карточку человека</button></div>':''),
+     async()=>{}
+   );
+   $("photoModalSave").textContent="Закрыть";
+   photoModalSubmit=async()=>closePhotoModal();
+   document.querySelectorAll("[data-memory-person]").forEach(p=>p.onclick=()=>{closePhotoModal();activateTag(p.dataset.memoryPerson)});
  });
 }
 async function loadCityEssays(){

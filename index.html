@@ -99,7 +99,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="photosList" class="photoGrid"></div></div></section>
 <section id="city" class="view"><div class="archiveList">
 <div class="cityIntro"><div class="small">КУЙБЫШЕВ · 1970–1980-е</div><h2>Город и время</h2><p>Атмосферные этюды о повседневной жизни города: дворы, магазины, транспорт, кафе, одежда, музыка, улицы и привычки времени. Это не школьная хроника в узком смысле, а среда, в которой мы росли.</p></div>
-<div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><input id="citySearch" placeholder="Поиск по этюдам…"></div>
+<div class="cityToolbar"><button class="mini on" data-citytheme="all">Все</button><button class="mini" data-citytheme="быт">Быт</button><button class="mini" data-citytheme="город">Город</button><button class="mini" data-citytheme="культура">Культура</button><button class="mini" data-citytheme="транспорт">Транспорт</button><input id="citySearch" placeholder="Поиск по этюдам…"><button class="secondary" id="newCityEssayBtn" style="display:none">＋ Новый этюд</button></div>
 <div id="cityList" class="cityGrid"><div class="notice">Войдите, чтобы открыть раздел.</div></div>
 </div></section>
 <section id="questions" class="view"><div class="archiveList"><h2>Открытые вопросы</h2>
@@ -1298,8 +1298,43 @@ async function loadQuestion10AVisual(){
  const map={};(regions||[]).forEach(r=>map[r.person_id]=r);
  question10AVisual={photo:cp,regions:map,url};
 }
+async function editCityEssay(id=null){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))return;
+ const x=id?cityCache.find(a=>a.id===id):null;
+ const nextId=x?.id||("G-"+String((cityCache.reduce((m,a)=>Math.max(m,Number(String(a.id).replace(/\D/g,""))||0),0)+1)).padStart(3,"0"));
+ openPhotoModal(x?"Редактировать этюд":"Новый этюд",
+   '<label>ID</label><input id="pfCityId" value="'+esc(nextId)+'" '+(x?"readonly":"")+'>'+
+   '<label>Название</label><input id="pfCityTitle" value="'+esc(x?.title||"")+'">'+
+   '<label>Период</label><input id="pfCityPeriod" value="'+esc(x?.period||"1970–1980-е")+'">'+
+   '<label>Тема</label><select id="pfCityTheme">'+["быт","город","культура","транспорт"].map(v=>'<option '+((x?.theme||"быт")===v?"selected":"")+'>'+v+'</option>').join("")+'</select>'+
+   '<label>Место</label><input id="pfCityLocation" value="'+esc(x?.location_text||"Куйбышев")+'">'+
+   '<label>Короткий анонс</label><textarea id="pfCityExcerpt">'+esc(x?.excerpt||"")+'</textarea>'+
+   '<label>Полный текст</label><textarea id="pfCityBody" style="min-height:260px">'+esc(x?.body||"")+'</textarea>'+
+   '<label>Статус источника</label><select id="pfCitySourceStatus">'+["подтверждённая редакция","рабочая версия","не проверено"].map(v=>'<option '+((x?.source_status||"не проверено")===v?"selected":"")+'>'+v+'</option>').join("")+'</select>'+
+   '<label>Примечание об источнике</label><textarea id="pfCitySourceNote">'+esc(x?.source_note||"")+'</textarea>',
+   async()=>{
+     const row={
+       id:$("pfCityId").value.trim(),
+       title:$("pfCityTitle").value.trim(),
+       period:$("pfCityPeriod").value.trim()||null,
+       theme:$("pfCityTheme").value,
+       location_text:$("pfCityLocation").value.trim()||null,
+       excerpt:$("pfCityExcerpt").value.trim()||null,
+       body:$("pfCityBody").value.trim()||null,
+       source_status:$("pfCitySourceStatus").value,
+       source_note:$("pfCitySourceNote").value.trim()||null,
+       updated_at:new Date().toISOString()
+     };
+     if(!row.id||!row.title)throw new Error("Укажите ID и название.");
+     const {error}=await sb.from("city_essays").upsert(row,{onConflict:"id"});
+     if(error)throw error;
+     await loadCityEssays();
+   }
+ );
+}
 async function loadCityEssays(){
  if(!user||!profile?.is_active){$("cityList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ if($("newCityEssayBtn"))$("newCityEssayBtn").style.display=(profile?.role==="editor"||profile?.role==="admin")?"inline-block":"none";
  if(!mediaCache.length){await loadPhotos()}
  const {data,error}=await sb.from("city_essays").select("*").order("sort_order").order("id");
  if(error){$("cityList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
@@ -1314,12 +1349,14 @@ function renderCityEssays(){
    const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
    const m=imgId?mediaCache.find(z=>z.id===imgId):null;
    const img=m&&mediaSigned[m.id]?'<div class="cityCardImage"><img src="'+mediaSigned[m.id]+'" alt="'+esc(x.title)+'"></div>':'';
+   const editor=profile?.role==="editor"||profile?.role==="admin";
    return '<article class="cityCard">'+img+'<div class="cityCardBody"><h3>'+esc(x.title)+'</h3>'+
-     '<div class="cityMeta">'+(x.period?'<span class="badge">'+esc(x.period)+'</span>':'')+(x.theme?'<span class="badge">'+esc(x.theme)+'</span>':'')+(x.location_text?'<span class="badge">'+esc(x.location_text)+'</span>':'')+'</div>'+
+     '<div class="cityMeta">'+(x.period?'<span class="badge">'+esc(x.period)+'</span>':'')+(x.theme?'<span class="badge">'+esc(x.theme)+'</span>':'')+(x.location_text?'<span class="badge">'+esc(x.location_text)+'</span>':'')+(x.source_status?'<span class="badge">'+esc(x.source_status)+'</span>':'')+'</div>'+
      (x.excerpt?'<div class="cityExcerpt">'+esc(x.excerpt)+'</div>':'')+
-     '<div class="homeActions"><button class="secondary" data-city-open="'+esc(x.id)+'">Читать</button></div></div></article>';
+     '<div class="homeActions"><button class="secondary" data-city-open="'+esc(x.id)+'">Читать</button>'+(editor?'<button class="secondary" data-city-edit="'+esc(x.id)+'">Править</button>':'')+'</div></div></article>';
  }).join("")||'<div class="notice">Этюды ещё не добавлены.</div>';
  $("cityList").querySelectorAll("[data-city-open]").forEach(b=>b.onclick=()=>openCityEssay(b.dataset.cityOpen));
+ $("cityList").querySelectorAll("[data-city-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editCityEssay(b.dataset.cityEdit)});
 }
 function openCityEssay(id){
  const x=cityCache.find(a=>a.id===id);if(!x)return;
@@ -1330,6 +1367,7 @@ function openCityEssay(id){
  openPhotoModal(x.title,
    (x.period||x.theme||x.location_text?'<div class="photoTileMeta">'+(x.period?'<span class="badge">'+esc(x.period)+'</span>':'')+(x.theme?'<span class="badge">'+esc(x.theme)+'</span>':'')+(x.location_text?'<span class="badge">'+esc(x.location_text)+'</span>':'')+'</div>':'')+
    (x.excerpt?'<div class="cityEssayLead">'+esc(x.excerpt)+'</div>':'')+
+   (x.source_status?'<div class="notice"><b>Редакция:</b> '+esc(x.source_status)+(x.source_date?' · '+esc(x.source_date):'')+(x.source_note?'<br>'+esc(x.source_note):'')+'</div>':'')+
    images+
    '<div class="cityEssayBody">'+esc(x.body||"")+'</div>'+
    (x.linked_story?'<div class="homeActions"><button class="secondary" type="button" data-city-story="'+esc(x.linked_story)+'">Связанная история</button></div>':''),
@@ -1345,6 +1383,7 @@ document.querySelectorAll("[data-citytheme]").forEach(b=>b.onclick=()=>{
  renderCityEssays();
 });
 $("citySearch").oninput=()=>renderCityEssays();
+$("newCityEssayBtn").onclick=()=>editCityEssay();
 
 function questionIsOpen(q){
  const s=String(q.status||"").toLowerCase();

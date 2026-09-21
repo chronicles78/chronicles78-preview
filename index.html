@@ -921,7 +921,7 @@ sb.auth.onAuthStateChange((event,session)=>{
    setTimeout(()=>openNewPasswordForm(),0);
  }
 });
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],chatLoadSeq=0,chatReloadTimer=null,photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -1141,7 +1141,7 @@ async function openNotifications(){
    await loadNotificationCount();closePhotoModal();
    if(type==="message"){
      const {data:m}=await sb.from("messages").select("room_id").eq("id",eid).maybeSingle();
-     if(m?.room_id){currentRoom=m.room_id;renderRooms();showView("chat");await loadRoom();setTimeout(()=>document.querySelector('.bubble[data-mid="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),100)}
+     if(m?.room_id){currentRoom=m.room_id;renderRooms();showView("chat");setTimeout(()=>document.querySelector('.bubble[data-mid="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),260)}
    }else if(type==="city_essay"){
      showView("city");setTimeout(()=>openCityEssay(eid),120);
    }else if(type==="person"){
@@ -1567,18 +1567,50 @@ async function saveName(){
 }
 $("saveNameBtn").onclick=saveName;
 
+const chatSignedCache=new Map();
 async function signedImage(path){
  if(!path)return null;
+ const hit=chatSignedCache.get(path);
+ if(hit&&hit.expires>Date.now())return hit.url;
  const {data}=await sb.storage.from("chat-media").createSignedUrl(path,3600);
- return data?.signedUrl||null;
+ const url=data?.signedUrl||null;
+ if(url)chatSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
+ return url;
+}
+async function signedChatImages(paths){
+ const unique=[...new Set((paths||[]).filter(Boolean))],out={};
+ const missing=[];
+ for(const path of unique){
+   const hit=chatSignedCache.get(path);
+   if(hit&&hit.expires>Date.now())out[path]=hit.url;
+   else missing.push(path);
+ }
+ if(missing.length){
+   const {data,error}=await sb.storage.from("chat-media").createSignedUrls(missing,3600);
+   if(!error){
+     (data||[]).forEach((row,i)=>{
+       const path=missing[i],url=row?.signedUrl||null;
+       if(url){out[path]=url;chatSignedCache.set(path,{url,expires:Date.now()+55*60*1000})}
+     });
+   }else{
+     await Promise.all(missing.map(async path=>{const url=await signedImage(path);if(url)out[path]=url}));
+   }
+ }
+ return out;
+}
+function scheduleRoomReload(delay=220){
+ clearTimeout(chatReloadTimer);
+ chatReloadTimer=setTimeout(()=>{if(user&&profile?.is_active)loadRoom()},delay);
 }
 async function loadRoom(){
  if(!user||!profile?.is_active)return;
+ const seq=++chatLoadSeq,room=currentRoom;
  const {data,error}=await sb.from("messages")
   .select("id,body,created_at,edited_at,author_id,reply_to,is_evidence,is_hidden_from_publication,linked_entity_type,linked_entity_id,author:profiles!messages_author_id_fkey(display_name,role),attachments:message_attachments(id,current_storage_path,current_file_name,caption,created_by,is_removed,created_at)")
-  .eq("room_id",currentRoom).order("created_at",{ascending:true}).limit(300);
+  .eq("room_id",room).order("created_at",{ascending:false}).limit(120);
+ if(seq!==chatLoadSeq||room!==currentRoom)return;
  if(error){$("messages").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
- lastMessages=data||[];
+ lastMessages=(data||[]).reverse();
  const ids=lastMessages.map(x=>x.id);
 
  reactionRows=[];
@@ -1593,20 +1625,17 @@ async function loadRoom(){
    const already=new Set(readRows.filter(x=>x.user_id===user.id).map(x=>x.message_id));
    const unread=lastMessages.filter(m=>m.author_id!==user.id&&!already.has(m.id)).map(m=>({message_id:m.id,user_id:user.id}));
    if(unread.length){
-     const {error:re}=await sb.from("message_reads").insert(unread);
-     if(!re){
-       const now=new Date().toISOString();
-       readRows.push(...unread.map(x=>({...x,read_at:now})));
-     }
+     const now=new Date().toISOString();
+     readRows.push(...unread.map(x=>({...x,read_at:now})));
+     setTimeout(()=>sb.from("message_reads").insert(unread).then(()=>{}),0);
    }
  }
+ if(seq!==chatLoadSeq||room!==currentRoom)return;
 
- const signed={};
- for(const m of lastMessages){
-   for(const a of (m.attachments||[]).filter(x=>!x.is_removed)){
-     signed[a.id]=await signedImage(a.current_storage_path);
-   }
- }
+ const allAttachments=lastMessages.flatMap(m=>(m.attachments||[]).filter(x=>!x.is_removed));
+ const signedByPath=await signedChatImages(allAttachments.map(a=>a.current_storage_path));
+ if(seq!==chatLoadSeq||room!==currentRoom)return;
+ const signed=Object.fromEntries(allAttachments.map(a=>[a.id,signedByPath[a.current_storage_path]||null]));
 
  $("messages").innerHTML=lastMessages.map(m=>{
    const mine=m.author_id===user.id;
@@ -1952,10 +1981,9 @@ function subscribe(){
  if(!user||!profile?.is_active)return;
  if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();
  const room=currentRoom;
- const ch1=sb.channel("msg-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"room_id=eq."+room},()=>{if(currentRoom===room)loadRoom()}).subscribe(s=>{if(s==="SUBSCRIBED")setStatus("Онлайн · realtime");if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")setStatus("Онлайн · без realtime")});
- const ch2=sb.channel("react-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"reactions"},()=>{if(currentRoom===room)loadRoom()}).subscribe();
- const ch3=sb.channel("reads-"+room+"-"+Date.now()).on("postgres_changes",{event:"INSERT",schema:"public",table:"message_reads"},()=>{if(currentRoom===room)loadRoom()}).subscribe();
- unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);unsubRead=()=>sb.removeChannel(ch3);
+ const ch1=sb.channel("msg-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"messages",filter:"room_id=eq."+room},()=>{if(currentRoom===room)scheduleRoomReload(120)}).subscribe(s=>{if(s==="SUBSCRIBED")setStatus("Онлайн · realtime");if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")setStatus("Онлайн · без realtime")});
+ const ch2=sb.channel("react-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"reactions"},()=>{if(currentRoom===room)scheduleRoomReload(160)}).subscribe();
+ unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);unsubRead=null;
 }
 function cropRectFor(region,photo,aspect,padX=0,padY=0){
  if(!region||!photo)return null;

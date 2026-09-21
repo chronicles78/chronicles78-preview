@@ -134,7 +134,7 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
  .storyCatalogBody{padding:14px}
  .storyCatalogCard h3{font-size:27px}
  .storyCatalogSummary{font-size:16px;line-height:1.55}
-}.peopleToolbar,.questionToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.questionActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.questionPhotoRow{display:flex;gap:10px;align-items:center;margin:9px 0}.questionCrop{width:86px;height:106px;flex:0 0 86px;border-radius:10px;border:1px solid var(--line);background-color:var(--image-bg);background-repeat:no-repeat;cursor:pointer}.questionCropMeta{min-width:0}.questionCropMeta b{display:block;margin-bottom:3px}.questionCropHint{font-size:11px;color:var(--muted);line-height:1.35}.tagList{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.tagChip{display:inline-block;border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:4px 8px;font-size:11px;color:var(--ink)}.tagLink{border:0;background:transparent;color:inherit;padding:0;font:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;cursor:pointer}.tagChip.tagLink,.badge.tagLink{text-decoration:none;cursor:pointer}.tagChip.tagLink:hover,.badge.tagLink:hover{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}.peopleArchivePage{max-width:1180px;margin:0 auto}.peopleArchiveIntro{padding:18px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}.peopleArchiveIntro h2{font:700 clamp(40px,7vw,68px)/.95 Georgia,serif;margin:7px 0 10px;letter-spacing:-.025em}.peopleArchiveIntro p{max-width:800px;font:400 18px/1.55 Georgia,serif;margin:0;color:var(--muted)}
+}.peopleToolbar,.questionToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.questionActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.questionPhotoRow{display:flex;gap:10px;align-items:center;margin:9px 0}.archiveCrop{position:relative;overflow:hidden;background-color:var(--image-bg)}.archiveCrop>img{position:absolute;display:block;max-width:none;max-height:none;user-select:none;pointer-events:none}.questionCrop{width:86px;height:106px;flex:0 0 86px;border-radius:10px;border:1px solid var(--line);cursor:pointer}.questionCropMeta{min-width:0}.questionCropMeta b{display:block;margin-bottom:3px}.questionCropHint{font-size:11px;color:var(--muted);line-height:1.35}.tagList{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.tagChip{display:inline-block;border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:4px 8px;font-size:11px;color:var(--ink)}.tagLink{border:0;background:transparent;color:inherit;padding:0;font:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;cursor:pointer}.tagChip.tagLink,.badge.tagLink{text-decoration:none;cursor:pointer}.tagChip.tagLink:hover,.badge.tagLink:hover{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}.peopleArchivePage{max-width:1180px;margin:0 auto}.peopleArchiveIntro{padding:18px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}.peopleArchiveIntro h2{font:700 clamp(40px,7vw,68px)/.95 Georgia,serif;margin:7px 0 10px;letter-spacing:-.025em}.peopleArchiveIntro p{max-width:800px;font:400 18px/1.55 Georgia,serif;margin:0;color:var(--muted)}
 .peopleToolbar input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--input)}
 .classPeopleLayout{display:block}.classPhotoPanel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:16px;box-shadow:0 10px 28px #0000000b}.classPhotoHead{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}.classPhotoHead b{font:700 19px Georgia,serif}.classPhotoStage{position:relative;isolation:isolate;width:100%;background:var(--image-bg);border-radius:14px;overflow:visible}.classPhotoStage>img{border-radius:14px;overflow:hidden}.classHotspot{z-index:2}.classPhotoStage img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;filter:saturate(.82) contrast(.98)}.classHotspot{position:absolute;border:1px solid transparent;background:transparent;border-radius:8px;padding:0;color:transparent}.classHotspot:hover,.classHotspot.active{border:2px solid var(--focus);background:#d4b48322;box-shadow:0 0 0 2px #0005}.classHotspot.showNo{color:var(--selected-ink);background:var(--selected-bg);font-size:10px;font-weight:700;display:grid;place-items:center}.classPhotoMissing{height:100%;display:grid;place-items:center;text-align:center;padding:18px;color:var(--muted)}
 .classSelection{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px;border-top:1px solid var(--line)}.classSelectionPortrait{width:64px;height:82px;flex:0 0 64px;border-radius:9px;background-color:var(--soft);background-repeat:no-repeat;border:1px solid var(--line)}.classSelectionText{min-width:0}.classSelectionText b{font:700 20px Georgia,serif}.classSelectionText .small{margin-top:3px}.classSelectionActions{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}.classSelectionActions button{width:auto;margin:0}
@@ -1797,12 +1797,40 @@ function subscribe(){
  const ch3=sb.channel("reads-"+room+"-"+Date.now()).on("postgres_changes",{event:"INSERT",schema:"public",table:"message_reads"},()=>{if(currentRoom===room)loadRoom()}).subscribe();
  unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);unsubRead=()=>sb.removeChannel(ch3);
 }
-function personThumbStyle(p){
- const r=classPhotoState?.regions?.[p.id], cp=classPhotoState?.photo, url=classPhotoState?.url;
+function cropRectFor(region,photo,aspect,padX=0,padY=0){
+ if(!region||!photo)return null;
+ const sw=Number(photo.source_width),sh=Number(photo.source_height);
+ const rw=Number(region.w),rh=Number(region.h),rx=Number(region.x),ry=Number(region.y);
+ if(!(sw>0&&sh>0&&rw>0&&rh>0&&aspect>0))return null;
+
+ let x=Math.max(0,rx-rw*padX),y=Math.max(0,ry-rh*padY);
+ let w=Math.min(sw-x,rw*(1+padX*2)),h=Math.min(sh-y,rh*(1+padY*2));
+ const cx=x+w/2,cy=y+h/2;
+
+ if(w/h<aspect)w=h*aspect;
+ else h=w/aspect;
+
+ if(w>sw){w=sw;h=w/aspect}
+ if(h>sh){h=sh;w=h*aspect}
+
+ x=Math.min(Math.max(0,cx-w/2),sw-w);
+ y=Math.min(Math.max(0,cy-h/2),sh-h);
+ return {x,y,w,h,sw,sh};
+}
+function cropImageHtml(url,photo,region,className,aspect,padX=0,padY=0,attrs="",alt=""){
+ const r=cropRectFor(region,photo,aspect,padX,padY);
+ if(!url||!r)return "";
+ const width=(r.sw/r.w*100).toFixed(4);
+ const left=(-r.x/r.w*100).toFixed(4);
+ const top=(-r.y/r.h*100).toFixed(4);
+ return '<div class="'+className+' archiveCrop"'+(attrs?' '+attrs:'')+'><img src="'+esc(url)+'" alt="'+esc(alt)+'" style="width:'+width+'%;height:auto;left:'+left+'%;top:'+top+'%"></div>';
+}
+function personThumbHtml(p,className="personPortrait"){
+ const r=classPhotoState?.regions?.[p.id],cp=classPhotoState?.photo,url=classPhotoState?.url;
  if(!r||!cp||!url)return "";
- const sx=(cp.source_width/r.w*100).toFixed(2), sy=(cp.source_height/r.h*100).toFixed(2);
- const px=(r.x/(cp.source_width-r.w)*100).toFixed(2), py=(r.y/(cp.source_height-r.h)*100).toFixed(2);
- return "background-image:url('"+url.replace(/'/g,"%27")+"');background-size:"+sx+"% "+sy+"%;background-position:"+px+"% "+py+"%;";
+ const aspect=className==="classSelectionPortrait"?64/82:4/5;
+ const label=p.canonical_name||("Позиция № "+(p.number??""));
+ return cropImageHtml(url,cp,r,className,aspect,0,0,'aria-label="'+esc(label)+'"',label);
 }
 function selectPerson(id,scrollList=true){
  selectedPersonId=id;
@@ -1830,7 +1858,7 @@ function renderClassPhotoPanel(arr){
  }else{
    stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография '+esc(peopleGroup)+'</b><br>Файл ещё не загружен в закрытый архив.'+(editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
  }
- return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?'<div class="classSelectionPortrait" style="'+personThumbStyle(p)+'"></div>':"";const stories=(p.story_refs||[]);return '<div class="classSelection">'+portrait+'<div class="classSelectionText"><b>'+esc(p.canonical_name||("Имя не установлено · № "+(p.number??"")))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div><div class="classSelectionActions">'+((profile?.role==="editor"||profile?.role==="admin")&&p.group_name==="10А"?'<button class="secondary" id="editSelectedPersonBtn">Уточнить имя</button>':'')+'</div></div>'})():'')+'</div>';
+ return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);return '<div class="classSelection">'+portrait+'<div class="classSelectionText"><b>'+esc(p.canonical_name||("Имя не установлено · № "+(p.number??"")))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div><div class="classSelectionActions">'+((profile?.role==="editor"||profile?.role==="admin")&&p.group_name==="10А"?'<button class="secondary" id="editSelectedPersonBtn">Уточнить имя</button>':'')+'</div></div>'})():'')+'</div>';
 }
 function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
@@ -1841,7 +1869,7 @@ function renderPeople(){
    const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
    const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
    const thumb=["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
-     ?'<div class="personPortrait" style="'+personThumbStyle(p)+'" aria-label="Школьный портрет"></div>'
+     ?personThumbHtml(p,"personPortrait")
      :'<div class="personNo">'+esc(p.number??"")+'</div>';
    const editor=profile?.role==="editor"||profile?.role==="admin";
    const status=p.identification_status||"подтверждено";
@@ -2459,15 +2487,15 @@ function questionTargetPersonId(q){
  const vals=[...(Array.isArray(q.links)?q.links:[]),...(Array.isArray(q.tags)?q.tags:[])];
  return vals.find(x=>/^10A-\d+$/i.test(String(x)))||null;
 }
-function questionCropStyle(personId){
- const v=question10AVisual;if(!v?.url||!v?.photo||!v?.regions?.[personId])return "";
- const r=v.regions[personId], cp=v.photo;
- const padX=Math.round(r.w*.35), padY=Math.round(r.h*.20);
- const x=Math.max(0,r.x-padX), y=Math.max(0,r.y-padY);
- const w=Math.min(cp.source_width-x,r.w+padX*2), hh=Math.min(cp.source_height-y,r.h+padY*2);
- const sx=(cp.source_width/w*100).toFixed(2), sy=(cp.source_height/hh*100).toFixed(2);
- const px=(x/(cp.source_width-w)*100||0).toFixed(2), py=(y/(cp.source_height-hh)*100||0).toFixed(2);
- return "background-image:url('"+v.url.replace(/'/g,"%27")+"');background-size:"+sx+"% "+sy+"%;background-position:"+px+"% "+py+"%;";
+function questionCropHtml(personId){
+ const v=question10AVisual;
+ const region=v?.regions?.[personId];
+ if(!v?.url||!v?.photo||!region)return "";
+ return cropImageHtml(
+   v.url,v.photo,region,"questionCrop",86/106,.35,.20,
+   'data-q-crop="'+esc(personId)+'" aria-label="Фрагмент общей фотографии 10А"',
+   "Фрагмент общей фотографии 10А"
+ );
 }
 async function loadQuestion10AVisual(){
  question10AVisual=null;
@@ -2774,8 +2802,9 @@ function renderQuestions(){
    const about10A=(q.question||"").includes("10А")||qt.includes("10А")||String(q.category||"").includes("10А");
    const targetPerson=questionTargetPersonId(q);
    const person=targetPerson?peopleCache.find(p=>p.id===targetPerson):null;
-   const crop=(about10A&&targetPerson&&question10AVisual?.url)
-     ?'<div class="questionPhotoRow"><div class="questionCrop" data-q-crop="'+esc(targetPerson)+'" style="'+questionCropStyle(targetPerson)+'"></div><div class="questionCropMeta"><b>Позиция № '+esc(person?.number??targetPerson)+'</b><div class="questionCropHint">'+esc(person?.canonical_name&&person.canonical_name!=="Не установлено"?person.canonical_name:"Имя пока не установлено")+'<br>Нажмите на фрагмент, чтобы открыть общую фотографию.</div></div></div>'
+   const cropThumb=(about10A&&targetPerson)?questionCropHtml(targetPerson):"";
+   const crop=cropThumb
+     ?'<div class="questionPhotoRow">'+cropThumb+'<div class="questionCropMeta"><b>Позиция № '+esc(person?.number??targetPerson)+'</b><div class="questionCropHint">'+esc(person?.canonical_name&&person.canonical_name!=="Не установлено"?person.canonical_name:"Имя пока не установлено")+'<br>Нажмите на фрагмент, чтобы открыть общую фотографию.</div></div></div>'
      :'';
    return '<div class="archiveCard"><h3>'+esc(q.question)+'</h3>'+
      '<span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span>'+sourceBadge+

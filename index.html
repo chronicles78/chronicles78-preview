@@ -814,8 +814,18 @@ const mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):nul
 if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("auto")});
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
+const SITE_URL="https://chronicles78.github.io/chronicles78-preview/";
+const authReturn=(()=>{
+ const q=new URLSearchParams(location.search);
+ const h=new URLSearchParams(location.hash.replace(/^#/,""));
+ return {
+   type:h.get("type")||q.get("type")||"",
+   error:h.get("error_description")||q.get("error_description")||"",
+   hasToken:!!(h.get("access_token")||h.get("refresh_token")||q.get("code"))
+ };
+})();
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const PASSWORD_RESET_REDIRECT="https://chronicles78.github.io/chronicles78-preview/";
+const PASSWORD_RESET_REDIRECT=SITE_URL;
 
 function openForgotPassword(){
  const current=($("email")?.value||"").trim();
@@ -859,6 +869,44 @@ function openNewPasswordForm(){
  );
 }
 
+function clearAuthReturnUrl(){
+ try{history.replaceState(null,document.title,location.pathname)}catch(e){}
+}
+function showSignupConfirmationState(){
+ if(authReturn.error){
+   openPhotoModal("Ссылка подтверждения",
+     '<div class="notice"><b>Не удалось завершить переход по ссылке.</b><br>'+esc(authReturn.error)+'</div>'+
+     '<div class="formHint">Если e-mail уже был подтверждён, повторная регистрация не нужна. Откройте профиль и войдите своим e-mail и паролем.</div>',
+     async()=>{closePhotoModal();showView("profile")}
+   );
+   $("photoModalSave").textContent="Перейти ко входу";
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
+   return;
+ }
+ if(authReturn.type!=="signup"&&!authReturn.hasToken)return;
+ if(user&&profile?.is_active){
+   openPhotoModal("E-mail подтверждён",
+     '<div class="notice"><b>Готово.</b><br>E-mail подтверждён, доступ к «Хроникам-78» активен. Вы уже вошли на сайт.</div>',
+     async()=>{clearAuthReturnUrl();closePhotoModal();showView("home")}
+   );
+   $("photoModalSave").textContent="Перейти в архив";
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("home")};
+ }else if(user){
+   openPhotoModal("E-mail подтверждён",
+     '<div class="notice"><b>Адрес подтверждён.</b><br>Теперь редактор должен активировать доступ к закрытому архиву. Повторно регистрироваться не нужно.</div>',
+     async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
+   );
+   $("photoModalSave").textContent="Понятно";
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
+ }else{
+   openPhotoModal("E-mail подтверждён",
+     '<div class="notice"><b>Адрес подтверждён.</b><br>Теперь войдите на сайт с тем же e-mail и паролем, которые указали при регистрации.</div>',
+     async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
+   );
+   $("photoModalSave").textContent="Перейти ко входу";
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
+ }
+}
 sb.auth.onAuthStateChange((event,session)=>{
  if(event==="PASSWORD_RECOVERY"){
    setTimeout(()=>openNewPasswordForm(),0);
@@ -1457,6 +1505,7 @@ async function init(){
  const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(session?.access_token)sb.realtime.setAuth(session.access_token);
  if(user){const {data,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(!error&&data?.is_active)profile=data}
  renderRooms();renderProfile();if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}if(profile){subscribe();subscribeNotifications();}
+ if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
 }
 async function login(){
  $("loginError").textContent="";

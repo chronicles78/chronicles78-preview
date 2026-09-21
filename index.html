@@ -2007,6 +2007,32 @@ function selectPerson(id,scrollList=true){
    card?.scrollIntoView({behavior:"smooth",block:"nearest"});
  }
 }
+function showPersonLinks(p){
+ const stories=p?.story_refs||[];
+ const media=p?.data?.media_links||[];
+ openPhotoModal(personDisplayName(p),
+   '<div class="notice">Связанные материалы участника.</div>'+
+   (stories.length?'<label>Истории</label>'+stories.map(s=>'<button class="secondary" type="button" data-person-story-open="'+esc(s.id)+'">'+esc(s.title||s.id)+'</button>').join(""):'<div class="small">Связанных историй пока нет.</div>')+
+   (media.length?'<label>Фотографии</label>'+media.map(m=>'<button class="secondary" type="button" data-person-media-open="'+esc(m.media_id)+'">'+esc(m.media_id)+'</button>').join(""):""),
+   async()=>{}
+ );
+ $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
+ document.querySelectorAll("[data-person-story-open]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.personStoryOpen)});
+ document.querySelectorAll("[data-person-media-open]").forEach(b=>b.onclick=()=>{closePhotoModal();mediaFocus=b.dataset.personMediaOpen;showView("photos");setTimeout(()=>openArchivePhoto(b.dataset.personMediaOpen),120)});
+}
+function openPersonContext(id){
+ const p=peopleCache.find(x=>x.id===id);if(!p)return;
+ selectedPersonId=id;renderPeople();
+ const unknown=personIdentityUnknown(p),editor=profile?.role==="editor"||profile?.role==="admin";
+ const preview=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
+ const actions=[
+   {icon:"◎",label:"Показать на общей фотографии",hint:p.group_name+" · позиция № "+(p.number??""),kind:"primary",run:()=>{selectedPersonId=id;renderPeople();setTimeout(()=>$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),50)}},
+   (p.story_refs?.length||p.data?.media_links?.length)?{icon:"⌁",label:"Связанные материалы",hint:(p.story_refs?.length||0)+" историй",run:()=>showPersonLinks(p)}:null,
+   unknown&&!editor?{icon:"✎",label:"Предложить имя",hint:"Редактор проверит подпись",run:()=>suggestPersonIdentity(id)}:null,
+   editor?{icon:"✎",label:unknown?"Назначить имя":"Исправить подпись",hint:"Имя, статус и подтверждение",run:()=>editPersonIdentity(id)}:null
+ ];
+ openContextSheet({eyebrow:"УЧАСТНИК КЛАССА",title:personDisplayName(p),meta:[p.group_name,"позиция № "+(p.number??""),p.person_role].filter(Boolean).join(" · "),preview,actions});
+}
 function renderClassPhotoPanel(arr){
  if(!["10А","10Б"].includes(peopleGroup))return "";
  const cp=classPhotoState?.photo, url=classPhotoState?.url, regs=classPhotoState?.regions||{};
@@ -2025,7 +2051,7 @@ function renderClassPhotoPanel(arr){
  }else{
    stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография '+esc(peopleGroup)+'</b><br>Файл ещё не загружен в закрытый архив.'+(editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
  }
- return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);const unknown=personIdentityUnknown(p);const editor=profile?.role==="editor"||profile?.role==="admin";const action=editor?'<button class="secondary" id="editSelectedPersonBtn">'+(unknown?"Назначить имя":"Исправить подпись")+'</button>':(unknown?'<button class="secondary" id="suggestSelectedPersonBtn">Предложить имя</button>':'');return '<div class="classSelection">'+portrait+'<div class="classSelectionText"><b>'+esc(personDisplayName(p))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(unknown?'<div class="small">Лицо выбрано. Имя пока не подтверждено.</div>':'')+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div><div class="classSelectionActions">'+action+'</div></div>'})():'')+'</div>';
+ return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);const unknown=personIdentityUnknown(p);const editor=profile?.role==="editor"||profile?.role==="admin";return '<div class="classSelection contextObject" data-selected-person-context="'+esc(p.id)+'">'+portrait+'<div class="classSelectionText"><b>'+esc(personDisplayName(p))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(unknown?'<div class="small">Лицо выбрано. Нажмите на карточку, чтобы выбрать действие.</div>':'<div class="small">Нажмите на карточку, чтобы открыть действия.</div>')+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div></div>'})():'')+'</div>';
 }
 function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
@@ -2042,13 +2068,12 @@ function renderPeople(){
    const status=p.identification_status||"подтверждено";
    const shownName=personDisplayName(p);
    const confirmed=!personIdentityUnknown(p);
-   return '<article class="personCard '+(p.id===selectedPersonId?"selected":"")+'" data-person-id="'+esc(p.id)+'">'+thumb+'<div class="personMeta"><h3>'+esc(shownName)+'</h3>'+
+   return '<article class="personCard contextObject '+(p.id===selectedPersonId?"selected":"")+'" data-person-context="'+esc(p.id)+'" tabindex="0">'+thumb+'<div class="personMeta"><h3>'+esc(shownName)+'</h3>'+
      '<div class="personAlbumSub">'+esc(p.group_name||"")+' · № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+
      (!confirmed?'<span class="badge">имя уточняется</span>':'')+
      (p.identification_note&&!confirmed?'<div class="small" style="margin-top:5px">'+esc(p.identification_note)+'</div>':'')+
-     ((stories||media)?'<div class="personLinks">'+stories+media+'</div>':'')+
+     ((linkedStories.length||p.data?.media_links?.length)?'<div class="small" style="margin-top:6px">Нажмите, чтобы открыть действия</div>':'<div class="small" style="margin-top:6px">Нажмите, чтобы открыть действия</div>')+
      (editor?'<div class="personTech">'+esc(p.id)+' · '+esc(status)+(p.aliases?.length?" · в чате: "+esc(p.aliases.join(", ")):"")+'</div>':'')+
-     (editor?'<div class="personLinks"><button class="mini" data-edit-person="'+esc(p.id)+'">'+(confirmed?"Исправить подпись":"Назначить имя")+'</button></div>':'')+
    '</div></article>';
  }).join("")||'<div class="notice">Ничего не найдено.</div>';
  if(["10А","10Б"].includes(peopleGroup)){
@@ -2058,14 +2083,10 @@ function renderPeople(){
    $("peopleList").className="";
    $("peopleList").innerHTML='<div class="peopleSide">'+cards+'</div>';
  }
- $("peopleList").querySelectorAll("[data-pstory]").forEach(b=>b.onclick=e=>{e.stopPropagation();showView("stories");openStory(b.dataset.pstory)});
- $("peopleList").querySelectorAll("[data-pmedia]").forEach(b=>b.onclick=e=>{e.stopPropagation();mediaFocus=b.dataset.pmedia;showView("photos")});
- $("peopleList").querySelectorAll("[data-person-id]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;selectPerson(c.dataset.personId,false)});
- $("peopleList").querySelectorAll("[data-edit-person]").forEach(b=>b.onclick=e=>{e.stopPropagation();editPersonIdentity(b.dataset.editPerson)});
- $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>selectPerson(b.dataset.hotPerson,false));
+ $("peopleList").querySelectorAll("[data-person-context]").forEach(el=>{el.onclick=()=>openPersonContext(el.dataset.personContext);el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPersonContext(el.dataset.personContext)}}});
+ $("peopleList").querySelectorAll("[data-selected-person-context]").forEach(el=>el.onclick=()=>openPersonContext(el.dataset.selectedPersonContext));
+ $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>openPersonContext(b.dataset.hotPerson));
  if($("toggleClassNumbers"))$("toggleClassNumbers").onclick=()=>{showClassNumbers=!showClassNumbers;renderPeople()};
- if($("suggestSelectedPersonBtn"))$("suggestSelectedPersonBtn").onclick=()=>suggestPersonIdentity(selectedPersonId);
- if($("editSelectedPersonBtn"))$("editSelectedPersonBtn").onclick=()=>editPersonIdentity(selectedPersonId);
  if($("uploadClassPhotoBtn"))$("uploadClassPhotoBtn").onclick=()=>{$("classPhotoInput").value="";$("classPhotoInput").click()};
 }
 
@@ -2199,6 +2220,23 @@ function storyCoverFor(story){
  for(const id of mids){if(storyCoverMedia[id])return storyCoverMedia[id]}
  return null;
 }
+function openStoryContext(id){
+ const s=storyCache.find(x=>x.id===id);if(!s)return;
+ const room=s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general";
+ const cover=storyCoverFor(s);
+ const preview=cover?.url?'<img src="'+esc(cover.url)+'" alt="'+esc(s.title)+'">':"";
+ openContextSheet({
+   eyebrow:"ИСТОРИЯ",
+   title:s.title,
+   meta:[s.period,storyState(s),s.kind].filter(Boolean).join(" · "),
+   preview,
+   actions:[
+     {icon:"▤",label:"Читать историю",kind:"primary",run:()=>openStory(id)},
+     {icon:"💬",label:"Обсудить",hint:"Открыть связанную комнату чата",run:()=>{currentRoom=room;renderRooms();showView("chat");subscribe()}},
+     ...(s.data?.media_ids?.length?[{icon:"▧",label:"Связанные фотографии",hint:s.data.media_ids.length+" фото",run:()=>{mediaFocus=null;photoMode="archive";photoFilter="story";showView("photos");$("photoSearch").value=s.title;renderPhotosSection()}}]:[])
+   ]
+ });
+}
 function renderStoriesCatalog(){
  const q=($("storySearch")?.value||"").trim().toLowerCase();
  let arr=storyCache.filter(storyMatchesFilter);
@@ -2230,8 +2268,8 @@ function renderStoriesCatalog(){
    const cover=storyCoverFor(s);
    const coverUrl=cover?.url||null;
    const status=state==="готовая история"?"готовая история":state==="фрагмент памяти"?"фрагмент памяти":"история в работе";
-   return '<article class="storyCatalogCard '+(featured?"featured":"")+'">'+
-     '<div class="storyCatalogCover" '+(coverUrl?'data-story="'+esc(s.id)+'"':'')+'>'+
+   return '<article class="storyCatalogCard contextObject '+(featured?"featured":"")+'" data-story-context="'+esc(s.id)+'" tabindex="0">'+
+     '<div class="storyCatalogCover">'+
        (coverUrl?'<img src="'+coverUrl+'" alt="'+esc(cover.title||s.title)+'">':'<div class="storyCatalogCoverNo">'+esc(s.period||"Из памяти класса")+'</div>')+
      '</div>'+
      '<div class="storyCatalogBody">'+
@@ -2245,11 +2283,10 @@ function renderStoriesCatalog(){
          (media?'<span class="badge">фото '+media+'</span>':'')+
        '</div>':'')+
        (kws?'<div class="storyCatalogTags">'+kws+'</div>':'')+
-       '<div class="storyCatalogActions"><button class="editorialLink" data-story="'+s.id+'">Читать историю →</button><button class="editorialLink" data-openroom="'+room+'">Обсудить</button></div>'+
+       '<div class="storyCatalogActions"><span class="small">Нажмите, чтобы выбрать действие</span></div>'+
      '</div></article>';
  }).join("")||'<div class="notice">По выбранному фильтру историй нет.</div>';
- $("storiesList").querySelectorAll("[data-story]").forEach(b=>b.onclick=()=>openStory(b.dataset.story));
- $("storiesList").querySelectorAll("[data-openroom]").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.openroom;renderRooms();showView("chat");subscribe()});
+ $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});
 }
 async function loadStories(){
  if(!user||!profile?.is_active){$("storiesList").className="";$("storiesList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}

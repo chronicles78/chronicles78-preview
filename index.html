@@ -2459,6 +2459,20 @@ function renderPhotosSection(){
  else if(photoMode==="candidates")renderVisualCandidates();
  else renderPhotoGallery();
 }
+function openPhotoContext(id){
+ const m=mediaCache.find(x=>x.id===id);if(!m)return;
+ const editor=profile?.role==="editor"||profile?.role==="admin";
+ const preview=mediaSigned[m.id]?'<img src="'+esc(mediaSigned[m.id])+'" alt="'+esc(m.title)+'">':"";
+ const meta=[m.approx_date_text,m.location_text,m.quality_status].filter(Boolean).join(" · ");
+ const actions=[
+   {icon:"▧",label:"Рассмотреть фотографию",kind:"primary",run:()=>openArchivePhoto(id)},
+   m.linked_story?{icon:"▤",label:"Открыть связанную историю",run:()=>{showView("stories");openStory(m.linked_story)}}:null,
+   editor?{icon:"✎",label:"Редактировать карточку",hint:"Название, люди, источник, дата и место",run:()=>editArchiveCard(id)}:null,
+   editor?{icon:"↥",label:"Заменить / улучшить файл",run:()=>{archiveReplaceId=id;$("replaceArchivePhotoInput").value="";$("replaceArchivePhotoInput").click()}}:null,
+   editor?{icon:"↺",label:"История версий",run:()=>showArchiveVersions(id)}:null
+ ];
+ openContextSheet({eyebrow:"ФОТОАРХИВ",title:m.title,meta,preview,actions});
+}
 function renderPhotoGallery(){
  let arr=mediaFocus?mediaCache.filter(m=>m.id===mediaFocus):[...mediaCache];
  const q=($("photoSearch")?.value||"").trim().toLowerCase();
@@ -2477,18 +2491,15 @@ function renderPhotoGallery(){
    const origin=m.provenance_type||"";
    const readerCaption=whenWhere||(origin?origin:"Из архива «Хроник-78»");
    const lead=!mediaFocus&&photoFilter==="all"&&!q&&idx===0&&!!mediaSigned[m.id];
-   return '<article class="photoTile '+(lead?"photoAlbumLead":"")+'">'+
-     '<div class="photoTileImage" data-photo-open="'+esc(m.id)+'">'+
+   return '<article class="photoTile contextObject '+(lead?"photoAlbumLead":"")+'" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
+     '<div class="photoTileImage">'+
        (mediaSigned[m.id]?'<img src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография ещё не загружена</div>')+
      '</div>'+
      '<div class="photoTileBody"><div class="photoTileCaption">'+esc(readerCaption)+'</div><h3>'+esc(m.title)+'</h3>'+
        (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+
        (names.length?'<div class="photoTilePeople"><b>На фото:</b> '+esc(names.slice(0,5).join(", "))+(names.length>5?"…":"")+'</div>':'')+
        (photoNeedsClarification(m)?'<div class="photoTilePeople"><b>Помогите уточнить:</b> '+esc(m.data?.identification_status||"дата, место или люди")+'</div>':'')+
-       '<div class="photoTileActions"><button class="editorialLink" data-photo-open="'+esc(m.id)+'">Рассмотреть →</button>'+
-       (m.linked_story?'<button class="editorialLink" data-media-story="'+esc(m.linked_story)+'">К истории</button>':'')+
-       (editor?'<details class="overflowMenu"><summary aria-label="Действия с фотографией" title="Действия">⋯</summary><div class="overflowMenuPanel"><button class="overflowMenuItem" data-archive-edit="'+esc(m.id)+'">✎&nbsp; Редактировать карточку</button></div></details>':'')+
-       '</div>'+
+       '<div class="photoTileActions"><span class="small">Нажмите, чтобы выбрать действие</span></div>'+
        (editor?'<div class="photoEditorialMeta"><button class="badge tagLink" data-tag="'+esc(m.id)+'">'+esc(m.id)+'</button>'+
          (m.linked_story?'<button class="badge tagLink" data-tag="'+esc(m.linked_story)+'">'+esc(m.linked_story)+'</button>':'')+
          (m.visual_topic_id?'<span class="badge">'+esc(m.visual_topic_id)+'</span>':'')+
@@ -2497,9 +2508,7 @@ function renderPhotoGallery(){
        '</div>':'')+
      '</div></article>';
  }).join("")||'<div class="notice">По выбранному фильтру фотографий нет.</div>';
- $("photosList").querySelectorAll("[data-photo-open]").forEach(b=>b.onclick=()=>openArchivePhoto(b.dataset.photoOpen));
- $("photosList").querySelectorAll("[data-media-story]").forEach(b=>b.onclick=e=>{e.stopPropagation();showView("stories");openStory(b.dataset.mediaStory)});
- $("photosList").querySelectorAll("[data-archive-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editArchiveCard(b.dataset.archiveEdit)});
+ $("photosList").querySelectorAll("[data-photo-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]"))return;openPhotoContext(el.dataset.photoContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPhotoContext(el.dataset.photoContext)}}});
 }
 async function openArchivePhoto(id){
  const m=mediaCache.find(x=>x.id===id);if(!m)return;
@@ -2930,6 +2939,19 @@ async function loadCityEssays(){
  renderCityEssays();
  await loadCityDetails();
 }
+function openCityContext(id){
+ const x=cityCache.find(a=>a.id===id);if(!x)return;
+ const editor=profile?.role==="editor"||profile?.role==="admin";
+ const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
+ const preview=imgId&&mediaSigned[imgId]?'<img src="'+esc(mediaSigned[imgId])+'" alt="'+esc(x.title)+'">':"";
+ const actions=[
+   x.body?{icon:"⌘",label:"Читать этюд",kind:"primary",run:()=>openCityEssay(id)}:null,
+   !x.body&&editor?{icon:"✎",label:"Внести авторский текст",kind:"primary",run:()=>editCityEssay(id)}:null,
+   x.linked_story?{icon:"▤",label:"Связанная история",run:()=>{showView("stories");openStory(x.linked_story)}}:null,
+   editor?{icon:"✎",label:x.body?"Редактировать этюд":"Редактировать карточку",run:()=>editCityEssay(id)}:null
+ ];
+ openContextSheet({eyebrow:"ГОРОД И ВРЕМЯ",title:x.title,meta:[x.theme,x.period,x.location_text].filter(Boolean).join(" · "),preview,actions});
+}
 function renderCityEssays(){
  const q=($("citySearch")?.value||"").trim().toLowerCase();
  let arr=cityCache.filter(x=>cityTheme==="all"||(cityTheme==="restore"?x.source_status==="требует восстановления":String(x.theme||"").toLowerCase()===cityTheme));
@@ -2944,21 +2966,17 @@ function renderCityEssays(){
    const lead=!q&&cityTheme==="all"&&idx===0&&!!x.body;
    const kicker=[x.theme,x.period].filter(Boolean).join(" · ");
    const readerMeta=[x.location_text].filter(Boolean).join(" · ");
-   return '<article class="cityCard '+(lead?"cityLeadCard":"")+'">'+img+'<div class="cityCardBody">'+
+   return '<article class="cityCard contextObject '+(lead?"cityLeadCard":"")+'" data-city-context="'+esc(x.id)+'" tabindex="0">'+img+'<div class="cityCardBody">'+
      (kicker?'<div class="cityCardKicker">'+esc(kicker)+'</div>':'')+
      '<h3>'+esc(x.title)+'</h3>'+
      (readerMeta?'<div class="cityCardMetaLine">'+esc(readerMeta)+'</div>':'')+
      (x.excerpt?'<div class="cityExcerpt">'+literaryHtml(x.excerpt)+'</div>':'')+
      (!x.body?'<div class="cityCardReaderStatus">Последняя авторская редакция пока восстанавливается.</div>':'')+
-     '<div class="cityReaderActions">'+
-       (x.body?'<button class="secondary" data-city-open="'+esc(x.id)+'">Читать этюд</button>':(editor?'<button class="secondary" data-city-edit="'+esc(x.id)+'">Внести оригинал</button>':''))+
-       (editor&&x.body?'<button class="secondary" data-city-edit="'+esc(x.id)+'">Править</button>':'')+
-     '</div>'+
+     '<div class="cityReaderActions"><span class="small">Нажмите, чтобы выбрать действие</span></div>'+
      (editor?'<div class="cityCardEditorial"><span class="badge">'+esc(x.id)+'</span>'+(x.source_status?'<span class="badge">'+esc(x.source_status)+'</span>':'')+'</div>':'')+
    '</div></article>';
  }).join("")||'<div class="notice">Этюды ещё не добавлены.</div>';
- $("cityList").querySelectorAll("[data-city-open]").forEach(b=>b.onclick=()=>openCityEssay(b.dataset.cityOpen));
- $("cityList").querySelectorAll("[data-city-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editCityEssay(b.dataset.cityEdit)});
+ $("cityList").querySelectorAll("[data-city-context]").forEach(el=>{el.onclick=()=>openCityContext(el.dataset.cityContext);el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openCityContext(el.dataset.cityContext)}}});
 }
 function openCityEssay(id){
  const x=cityCache.find(a=>a.id===id);if(!x)return;
@@ -3076,6 +3094,23 @@ function questionTags(q){
  if(q.linked_entity_id)extras.push(q.linked_entity_id);
  return [...new Set([...raw,...extras].filter(Boolean))];
 }
+function openQuestionContext(cacheId){
+ const q=questionCache.find(x=>x.cache_id===cacheId);if(!q)return;
+ const editor=profile?.role==="editor"||profile?.role==="admin";
+ const qt=questionTags(q);
+ const about10A=(q.question||"").includes("10А")||qt.includes("10А")||String(q.category||"").includes("10А");
+ const targetPerson=questionTargetPersonId(q);
+ const person=targetPerson?peopleCache.find(p=>p.id===targetPerson):null;
+ const preview=(about10A&&targetPerson)?questionCropHtml(targetPerson):"";
+ const actions=[
+   {icon:"💬",label:"Обсудить вопрос",kind:"primary",run:()=>discussQuestion(cacheId)},
+   {icon:"⌁",label:"Связи и теги",run:()=>showQuestionDetails(cacheId)},
+   about10A?{icon:"▧",label:"Открыть общую фотографию 10А",hint:person?"позиция № "+person.number:"",run:()=>openClassPhotoFromQuestion("10А")}:null,
+   q.source_message_id?{icon:"↗",label:"Исходное сообщение",run:()=>openQuestionMessage(q.source_message_id)}:null,
+   editor&&q.source==="archive"?{icon:questionIsOpen(q)?"✓":"↺",label:questionIsOpen(q)?"Отметить решённым":"Вернуть в работу",run:()=>toggleArchiveQuestion(q.id)}:null
+ ];
+ openContextSheet({eyebrow:"ОТКРЫТЫЙ ВОПРОС",title:q.question,meta:[q.priority,q.status,q.category].filter(Boolean).join(" · "),preview,actions});
+}
 function renderQuestions(){
  const rows=questionCache.filter(q=>
    (questionPriority==="all"||q.priority===questionPriority) &&
@@ -3097,15 +3132,7 @@ function renderQuestions(){
    const crop=cropThumb
      ?'<div class="questionPhotoRow">'+cropThumb+'<div class="questionCropMeta"><b>Позиция № '+esc(person?.number??targetPerson)+'</b><div class="questionCropHint">'+esc(person?.canonical_name&&person.canonical_name!=="Не установлено"?person.canonical_name:"Имя пока не установлено")+'<br>Нажмите на фрагмент, чтобы открыть общую фотографию.</div></div></div>'
      :'';
-   const menu=
-     '<details class="overflowMenu questionMenu"><summary aria-label="Действия с вопросом" title="Действия">⋯</summary><div class="overflowMenuPanel">'+
-       '<button class="overflowMenuItem" data-q-discuss="'+esc(q.cache_id)+'">💬&nbsp; Обсудить</button>'+
-       '<button class="overflowMenuItem" data-q-details="'+esc(q.cache_id)+'">⌁&nbsp; Связи и теги</button>'+
-       (about10A?'<button class="overflowMenuItem" data-q-photo10a="'+esc(q.cache_id)+'">▧&nbsp; Общая фотография 10А</button>':'')+
-       (q.source_message_id?'<button class="overflowMenuItem" data-q-chat="'+esc(q.source_message_id)+'">↗&nbsp; Исходное сообщение</button>':'')+
-       (editor&&q.source==="archive"?'<div class="overflowMenuSep"></div><button class="overflowMenuItem" data-q-toggle="'+esc(q.id)+'">'+(questionIsOpen(q)?"✓&nbsp; Отметить решённым":"↺&nbsp; Вернуть в работу")+'</button>':'')+
-     '</div></details>';
-   return '<article class="archiveCard questionCard">'+menu+'<h3>'+esc(q.question)+'</h3>'+
+   return '<article class="archiveCard questionCard contextObject" data-question-context="'+esc(q.cache_id)+'" tabindex="0"><h3>'+esc(q.question)+'</h3>'+
      '<span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span>'+sourceBadge+
      (q.category?'<button class="badge tagLink" data-tag="'+esc(q.category)+'">'+esc(q.category)+'</button>':'')+
      (q.why_it_matters?'<p class="small"><b>Почему важно:</b> '+esc(q.why_it_matters)+'</p>':'')+
@@ -3116,12 +3143,8 @@ function renderQuestions(){
      (tags?'<div class="tagList">'+tags+'</div>':'')+
      '</article>';
  }).join("")||'<div class="notice">По выбранному фильтру вопросов нет.</div>';
- $("questionsList").querySelectorAll("[data-q-toggle]").forEach(b=>b.onclick=()=>toggleArchiveQuestion(b.dataset.qToggle));
- $("questionsList").querySelectorAll("[data-q-chat]").forEach(b=>b.onclick=()=>openQuestionMessage(b.dataset.qChat));
- $("questionsList").querySelectorAll("[data-q-discuss]").forEach(b=>b.onclick=()=>discussQuestion(b.dataset.qDiscuss));
- $("questionsList").querySelectorAll("[data-q-details]").forEach(b=>b.onclick=()=>showQuestionDetails(b.dataset.qDetails));
- $("questionsList").querySelectorAll("[data-q-photo10a]").forEach(b=>b.onclick=()=>openClassPhotoFromQuestion("10А"));
- $("questionsList").querySelectorAll("[data-q-crop]").forEach(b=>b.onclick=async()=>{peopleGroup="10А";selectedPersonId=b.dataset.qCrop;showClassNumbers=true;showView("people");document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup==="10А"));await loadClassPhoto();renderPeople();setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(selectedPersonId)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),100)});
+ $("questionsList").querySelectorAll("[data-question-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]")||e.target.closest("[data-q-crop]"))return;openQuestionContext(el.dataset.questionContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openQuestionContext(el.dataset.questionContext)}}});
+ $("questionsList").querySelectorAll("[data-q-crop]").forEach(b=>b.onclick=async e=>{e.stopPropagation();peopleGroup="10А";selectedPersonId=b.dataset.qCrop;showClassNumbers=true;showView("people");document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup==="10А"));await loadClassPhoto();renderPeople();setTimeout(()=>openPersonContext(selectedPersonId),100)});
 }
 async function loadQuestions(){
  if(!user||!profile?.is_active){

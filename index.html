@@ -968,7 +968,7 @@ sb.auth.onAuthStateChange((event,session)=>{
 });
 window.addEventListener("pageshow",()=>setTimeout(()=>syncAuthState({render:true}),0));
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")setTimeout(()=>syncAuthState({render:true}),0)});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],chatLoadSeq=0,chatReloadTimer=null,chatLoadedLimit=80,photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],chatLoadSeq=0,chatReloadTimer=null,chatLoadedLimit=80,photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleLoadPromise=null,peopleGroup="10Б",storyIndex=[],classPhotoState=null,classPhotoLoadSeq=0,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -2158,7 +2158,8 @@ function renderClassPhotoPanel(arr){
    }).join("");
    stage='<div class="classPhotoStage" style="aspect-ratio:'+cp.source_width+' / '+cp.source_height+'"><img src="'+url+'" alt="'+esc(cp.title)+'">'+hotspots+'</div>';
  }else{
-   stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография '+esc(peopleGroup)+'</b><br>Файл ещё не загружен в закрытый архив.'+(editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
+   const loading=classPhotoState?.loading;
+   stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография '+esc(peopleGroup)+'</b><br>'+(loading?'Фотография загружается…':'Фото появится здесь после загрузки.')+(!loading&&editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
  }
  return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);const unknown=personIdentityUnknown(p);const editor=profile?.role==="editor"||profile?.role==="admin";return '<div class="classSelection contextObject" data-selected-person-context="'+esc(p.id)+'">'+portrait+'<div class="classSelectionText"><b>'+esc(personDisplayName(p))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(unknown?'<div class="small">Лицо выбрано. Нажмите на карточку, чтобы выбрать действие.</div>':'<div class="small">Нажмите на карточку, чтобы открыть действия.</div>')+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div></div>'})():'')+'</div>';
 }
@@ -2247,39 +2248,56 @@ function editPersonIdentity(id){
  );
 }
 async function loadClassPhoto(){
+ const seq=++classPhotoLoadSeq;
+ const group=peopleGroup;
  classPhotoState=null;
- if(!["10А","10Б"].includes(peopleGroup))return;
- const classId=peopleGroup==="10А"?"CLASS-10A":"CLASS-10B";
+ if(!["10А","10Б"].includes(group))return;
+ const classId=group==="10А"?"CLASS-10A":"CLASS-10B";
  const [{data:cp,error:ce},{data:regions,error:re}]=await Promise.all([
-   sb.from("class_photos").select("id,group_name,title,storage_path,source_width,source_height").eq("group_name",peopleGroup).maybeSingle(),
+   sb.from("class_photos").select("id,group_name,title,storage_path,source_width,source_height").eq("group_name",group).maybeSingle(),
    sb.from("class_photo_regions").select("person_id,x,y,w,h").eq("class_photo_id",classId)
  ]);
- if(ce||re||!cp)return;
- let url=null;
- if(cp.storage_path)url=await archiveSignedImage(cp.storage_path);
+ if(seq!==classPhotoLoadSeq||group!==peopleGroup||ce||re||!cp)return;
  const map={};(regions||[]).forEach(r=>map[r.person_id]=r);
- classPhotoState={photo:cp,regions:map,url};
+ classPhotoState={photo:cp,regions:map,url:null,loading:true};
+ if(activeViewId()==="people")renderPeople();
+ if(!cp.storage_path){classPhotoState.loading=false;return}
+ const url=await archiveSignedImage(cp.storage_path);
+ if(seq!==classPhotoLoadSeq||group!==peopleGroup)return;
+ classPhotoState={photo:cp,regions:map,url,loading:false};
+ if(activeViewId()==="people")renderPeople();
 }
-async function loadPeople(){
- if(!user||!profile?.is_active){$("peopleList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
- if(!peopleCache.length){
+async function ensurePeopleData(){
+ if(peopleCache.length)return true;
+ if(peopleLoadPromise)return peopleLoadPromise;
+ peopleLoadPromise=(async()=>{
    const [{data,error},{data:stories,error:se}]=await Promise.all([
      sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data,identification_status,identification_note").order("group_name").order("number"),
      sb.from("archive_stories").select("id,title,data").order("id")
    ]);
-   if(error||se){$("peopleList").innerHTML='<div class="notice">'+esc(error?.message||se?.message)+'</div>';return}
+   if(error||se)throw new Error(error?.message||se?.message);
    storyIndex=stories||[];
-   peopleCache=(data||[]).map(p=>{
-     const refs=storyIndex.filter(s=>{
-       if((s.data?.people||[]).includes(p.id))return true;
-       const ps=s.data?.chapter?.participants||{};
-       return ["confirmed","possible","absent","absent_or_not_on_photo"].some(k=>(ps[k]||[]).some(x=>x.id===p.id));
-     }).map(s=>({id:s.id,title:s.title}));
-     return {...p,story_refs:refs};
-   });
- }
- await loadClassPhoto();
+   const storyRefsByPerson=new Map();
+   for(const s of storyIndex){
+     const ids=new Set(s.data?.people||[]);
+     const ps=s.data?.chapter?.participants||{};
+     ["confirmed","possible","absent","absent_or_not_on_photo"].forEach(k=>(ps[k]||[]).forEach(x=>x?.id&&ids.add(x.id)));
+     ids.forEach(id=>{
+       if(!storyRefsByPerson.has(id))storyRefsByPerson.set(id,[]);
+       storyRefsByPerson.get(id).push({id:s.id,title:s.title});
+     });
+   }
+   peopleCache=(data||[]).map(p=>({...p,story_refs:storyRefsByPerson.get(p.id)||[]}));
+   return true;
+ })().finally(()=>{peopleLoadPromise=null});
+ return peopleLoadPromise;
+}
+async function loadPeople(){
+ if(!user||!profile?.is_active){$("peopleList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ if(!peopleCache.length)$("peopleList").innerHTML='<div class="notice">Загружаю список класса…</div>';
+ try{await ensurePeopleData()}catch(e){$("peopleList").innerHTML='<div class="notice">'+esc(e.message||String(e))+'</div>';return}
  renderPeople();
+ loadClassPhoto();
 }
 $("classPhotoInput").onchange=async()=>{
  const file=$("classPhotoInput").files?.[0];if(!file)return;
@@ -2297,10 +2315,11 @@ $("classPhotoInput").onchange=async()=>{
    await loadClassPhoto();renderPeople();
  }catch(e){alert("Фото класса не загружено: "+(e.message||e))}
  finally{$("classPhotoInput").value=""}
-};document.querySelectorAll("[data-pgroup]").forEach(b=>b.onclick=async()=>{
- peopleGroup=b.dataset.pgroup;selectedPersonId=null;showClassNumbers=false;
+};document.querySelectorAll("[data-pgroup]").forEach(b=>b.onclick=()=>{
+ peopleGroup=b.dataset.pgroup;selectedPersonId=null;showClassNumbers=false;classPhotoState=null;
  document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x===b));
- await loadClassPhoto();renderPeople();
+ renderPeople();
+ loadClassPhoto();
 });
 $("peopleSearch").addEventListener("input",renderPeople);
 
@@ -2497,11 +2516,16 @@ document.addEventListener("keydown",e=>{
  }
 });
 
+const archiveSignedCache=new Map();
 async function archiveSignedImage(path){
  if(!path)return null;
+ const hit=archiveSignedCache.get(path);
+ if(hit&&hit.expires>Date.now())return hit.url;
  const {data,error}=await sb.storage.from("archive-media").createSignedUrl(path,3600);
  if(error)return null;
- return data?.signedUrl||null;
+ const url=data?.signedUrl||null;
+ if(url)archiveSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
+ return url;
 }
 function photoNeedsClarification(m){
  const s=String(m.data?.identification_status||"").toLowerCase();

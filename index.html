@@ -1802,7 +1802,7 @@ function personThumbStyle(p){
  if(!r||!cp||!url)return "";
  const sx=(cp.source_width/r.w*100).toFixed(2), sy=(cp.source_height/r.h*100).toFixed(2);
  const px=(r.x/(cp.source_width-r.w)*100).toFixed(2), py=(r.y/(cp.source_height-r.h)*100).toFixed(2);
- return 'background-image:url("'+url.replace(/"/g,"%22")+'");background-size:'+sx+'% '+sy+'%;background-position:'+px+'% '+py+'%;';
+ return "background-image:url('"+url.replace(/'/g,"%27")+"');background-size:"+sx+"% "+sy+"%;background-position:"+px+"% "+py+"%;";
 }
 function selectPerson(id,scrollList=true){
  selectedPersonId=id;
@@ -2467,7 +2467,7 @@ function questionCropStyle(personId){
  const w=Math.min(cp.source_width-x,r.w+padX*2), hh=Math.min(cp.source_height-y,r.h+padY*2);
  const sx=(cp.source_width/w*100).toFixed(2), sy=(cp.source_height/hh*100).toFixed(2);
  const px=(x/(cp.source_width-w)*100||0).toFixed(2), py=(y/(cp.source_height-hh)*100||0).toFixed(2);
- return 'background-image:url("'+v.url.replace(/"/g,"%22")+'");background-size:'+sx+'% '+sy+'%;background-position:'+px+'% '+py+'%;';
+ return "background-image:url('"+v.url.replace(/'/g,"%27")+"');background-size:"+sx+"% "+sy+"%;background-position:"+px+"% "+py+"%;";
 }
 async function loadQuestion10AVisual(){
  question10AVisual=null;

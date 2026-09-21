@@ -921,7 +921,7 @@ sb.auth.onAuthStateChange((event,session)=>{
    setTimeout(()=>openNewPasswordForm(),0);
  }
 });
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],chatLoadSeq=0,chatReloadTimer=null,photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],chatLoadSeq=0,chatReloadTimer=null,chatLoadedLimit=80,photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -1431,7 +1431,7 @@ function reportContent(entityType,entityId){
  );
 }
 
-function renderRooms(){$("rooms").innerHTML=rooms.map(r=>'<button class="room '+(r.id===currentRoom?"active":"")+'" data-id="'+r.id+'">'+esc(r.name)+'</button>').join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;replyTo=null;pendingFiles=[];renderReply();renderRooms();loadRoom();subscribe()})}
+function renderRooms(){$("rooms").innerHTML=rooms.map(r=>'<button class="room '+(r.id===currentRoom?"active":"")+'" data-id="'+r.id+'">'+esc(r.name)+'</button>').join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;chatLoadedLimit=80;replyTo=null;pendingFiles=[];renderReply();renderRooms();loadRoom();subscribe()})}
 async function loadHome(){
  const box=$("homeDashboard");
  if(!box)return;
@@ -1607,7 +1607,7 @@ async function loadRoom(){
  const seq=++chatLoadSeq,room=currentRoom;
  const {data,error}=await sb.from("messages")
   .select("id,body,created_at,edited_at,author_id,reply_to,is_evidence,is_hidden_from_publication,linked_entity_type,linked_entity_id,author:profiles!messages_author_id_fkey(display_name,role),attachments:message_attachments(id,current_storage_path,current_file_name,caption,created_by,is_removed,created_at)")
-  .eq("room_id",room).order("created_at",{ascending:false}).limit(120);
+  .eq("room_id",room).order("created_at",{ascending:false}).limit(chatLoadedLimit);
  if(seq!==chatLoadSeq||room!==currentRoom)return;
  if(error){$("messages").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  lastMessages=(data||[]).reverse();
@@ -1636,17 +1636,29 @@ async function loadRoom(){
  const signedByPath=await signedChatImages(allAttachments.map(a=>a.current_storage_path));
  if(seq!==chatLoadSeq||room!==currentRoom)return;
  const signed=Object.fromEntries(allAttachments.map(a=>[a.id,signedByPath[a.current_storage_path]||null]));
+ const messageById=new Map(lastMessages.map(m=>[m.id,m]));
+ const readCountByMessage=new Map();
+ readRows.forEach(r=>{
+   const authorId=messageById.get(r.message_id)?.author_id;
+   if(authorId&&r.user_id!==authorId)readCountByMessage.set(r.message_id,(readCountByMessage.get(r.message_id)||0)+1);
+ });
+ const reactionsByMessage=new Map();
+ reactionRows.forEach(r=>{
+   const key=r.message_id+"|"+r.emoji;
+   if(!reactionsByMessage.has(key))reactionsByMessage.set(key,[]);
+   reactionsByMessage.get(key).push(r);
+ });
+ const olderControl=lastMessages.length>=chatLoadedLimit?'<div class="chatOlderWrap"><button class="secondary" id="loadOlderMessages" type="button">Показать более ранние сообщения</button></div>':"";
 
- $("messages").innerHTML=lastMessages.map(m=>{
+ $("messages").innerHTML=olderControl+lastMessages.map(m=>{
    const mine=m.author_id===user.id;
    const editor=profile?.role==="editor"||profile?.role==="admin";
    const canEdit=mine||editor;
-   const replied=m.reply_to?lastMessages.find(x=>x.id===m.reply_to):null;
-   const otherReads=readRows.filter(r=>r.message_id===m.id&&r.user_id!==m.author_id);
-   const isRead=otherReads.length>0;
+   const replied=m.reply_to?messageById.get(m.reply_to):null;
+   const isRead=(readCountByMessage.get(m.id)||0)>0;
 
    const reactions=["👍","❤️","😂"].map(e=>{
-      const rows=reactionRows.filter(r=>r.message_id===m.id&&r.emoji===e), on=rows.some(r=>r.user_id===user.id);
+      const rows=reactionsByMessage.get(m.id+"|"+e)||[], on=rows.some(r=>r.user_id===user.id);
       return rows.length?'<button class="reactionChip '+(on?"on":"")+'" data-react="'+e+'" data-mid="'+m.id+'">'+e+' '+rows.length+'</button>':"";
    }).join("");
 
@@ -1695,6 +1707,12 @@ async function loadRoom(){
      '</div></div></div>';
  }).join("")||'<div class="notice">В этой комнате пока нет сообщений.</div>';
 
+ if($("loadOlderMessages"))$("loadOlderMessages").onclick=async()=>{
+   const beforeHeight=$("messages").scrollHeight,beforeTop=$("messages").scrollTop;
+   chatLoadedLimit+=80;
+   await loadRoom();
+   requestAnimationFrame(()=>$("messages").scrollTop=Math.max(0,$("messages").scrollHeight-beforeHeight+beforeTop));
+ };
  $("messages").querySelectorAll("[data-menu-trigger]").forEach(s=>{
    s.onclick=e=>e.preventDefault();
  });

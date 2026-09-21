@@ -925,11 +925,49 @@ function showSignupConfirmationState(){
    photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
  }
 }
+let authSyncPromise=null;
+async function hydrateProfileFromSession(session,{render=true}={}){
+ const nextUser=session?.user||null;
+ user=nextUser;
+ profile=null;
+ if(session?.access_token)sb.realtime.setAuth(session.access_token);
+ if(nextUser){
+   const {data:p,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",nextUser.id).maybeSingle();
+   if(!error&&p?.is_active)profile=p;
+ }
+ if(render){
+   renderProfile();
+   if(profile){subscribeNotifications();if(activeViewId()==="chat")subscribe()}
+ }
+ return !!profile;
+}
+async function syncAuthState({render=true}={}){
+ if(authSyncPromise)return authSyncPromise;
+ authSyncPromise=(async()=>{
+   const {data:{session}}=await sb.auth.getSession();
+   return hydrateProfileFromSession(session,{render});
+ })().finally(()=>{authSyncPromise=null});
+ return authSyncPromise;
+}
 sb.auth.onAuthStateChange((event,session)=>{
- if(event==="PASSWORD_RECOVERY"){
-   setTimeout(()=>openNewPasswordForm(),0);
+ if(event==="PASSWORD_RECOVERY")setTimeout(()=>openNewPasswordForm(),0);
+ if(["INITIAL_SESSION","SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","SIGNED_OUT"].includes(event)){
+   setTimeout(()=>hydrateProfileFromSession(session,{render:true}).then(ok=>{
+     if(ok){
+       const v=activeViewId();
+       if(v==="home")loadHome();
+       else if(v==="chat")loadRoom();
+       else if(v==="people")loadPeople();
+       else if(v==="stories")loadStories();
+       else if(v==="photos")loadPhotos();
+       else if(v==="city")loadCityEssays();
+       else if(v==="questions")loadQuestions();
+     }
+   }),0);
  }
 });
+window.addEventListener("pageshow",()=>setTimeout(()=>syncAuthState({render:true}),0));
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")setTimeout(()=>syncAuthState({render:true}),0)});
 let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],chatLoadSeq=0,chatReloadTimer=null,chatLoadedLimit=80,photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",photoMode="archive",visualTopicCache=[],visualCandidateCache=[],pendingVisualTopicId=null,storyCache=[],storyFilter="all",storyCoverUrls={},storyCoverMedia={},cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
@@ -1549,18 +1587,19 @@ function renderProfile(){
  }
 }
 async function init(){
- const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(session?.access_token)sb.realtime.setAuth(session.access_token);
- if(user){const {data,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(!error&&data?.is_active)profile=data}
- renderRooms();renderProfile();if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}if(profile){subscribe();subscribeNotifications();}
+ await syncAuthState({render:false});
+ renderRooms();renderProfile();
+ if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
+ if(profile){subscribe();subscribeNotifications();}
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
 }
 async function login(){
  $("loginError").textContent="";
  try{
   const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;
-  user=data.user;if(data.session?.access_token)sb.realtime.setAuth(data.session.access_token);
-  const {data:p,error:pe}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(pe)throw pe;if(!p?.is_active)throw new Error("Учётная запись ещё не активирована редакцией.");
-  profile=p;renderProfile();subscribe();subscribeNotifications();showView("home");await loadHome();
+  const ok=await hydrateProfileFromSession(data.session,{render:false});
+  if(!ok)throw new Error("Учётная запись ещё не активирована редакцией.");
+  renderProfile();subscribe();subscribeNotifications();showView("home");await loadHome();
  }catch(e){$("loginError").textContent=e.message||String(e)}
 }
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}

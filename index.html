@@ -510,7 +510,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
 <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
 <div class="card" id="adminUsersBox" style="display:none"><h2>Заявки на доступ</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
-<div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><p class="small" style="margin-top:12px">Впервые на сайте? Сначала зарегистрируйтесь.</p><p><a href="register.html">Зарегистрироваться</a></p><div id="loginError"></div></div>
+<div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button><p class="small" style="margin-top:12px">Впервые на сайте? Сначала зарегистрируйтесь.</p><p><a href="register.html">Зарегистрироваться</a></p><div id="loginError"></div></div>
 </div></section>
 </main>
 <div id="photoModal" class="modalShade" aria-hidden="true">
@@ -560,6 +560,55 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+const PASSWORD_RESET_REDIRECT="https://chronicles78.github.io/chronicles78-preview/";
+
+function openForgotPassword(){
+ const current=($("email")?.value||"").trim();
+ openPhotoModal("Восстановить пароль",
+   '<div class="notice">Укажите e-mail, использованный при регистрации. На него придёт письмо со ссылкой для смены пароля.</div>'+
+   '<label>E-mail</label><input id="pfResetEmail" type="email" autocomplete="email" value="'+esc(current)+'" placeholder="name@example.com">',
+   async()=>{
+     const email=$("pfResetEmail").value.trim();
+     if(!email)throw new Error("Введите e-mail.");
+     $("photoModalMsg").textContent="Отправляю письмо…";
+     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:PASSWORD_RESET_REDIRECT});
+     if(error)throw error;
+     $("photoModalBody").innerHTML='<div class="notice"><b>Письмо отправлено.</b><br>Откройте ссылку из письма. Если письма нет несколько минут, проверьте папку «Спам».</div>';
+     $("photoModalSave").textContent="Закрыть";
+     photoModalSubmit=async()=>closePhotoModal();
+   }
+ );
+}
+
+function openNewPasswordForm(){
+ openPhotoModal("Новый пароль",
+   '<div class="notice">Ссылка подтверждена. Придумайте новый пароль.</div>'+
+   '<label>Новый пароль</label><input id="pfNewPassword" type="password" autocomplete="new-password" minlength="6">'+
+   '<label>Повторите пароль</label><input id="pfNewPassword2" type="password" autocomplete="new-password" minlength="6">'+
+   '<div class="formHint">Не менее 6 символов.</div>',
+   async()=>{
+     const p1=$("pfNewPassword").value;
+     const p2=$("pfNewPassword2").value;
+     if(p1.length<6)throw new Error("Пароль должен содержать не менее 6 символов.");
+     if(p1!==p2)throw new Error("Пароли не совпадают.");
+     $("photoModalMsg").textContent="Сохраняю новый пароль…";
+     const {error}=await sb.auth.updateUser({password:p1});
+     if(error)throw error;
+     await sb.auth.signOut();
+     user=null; profile=null;
+     history.replaceState(null,document.title,location.pathname+location.search);
+     $("photoModalBody").innerHTML='<div class="notice"><b>Пароль изменён.</b><br>Теперь войдите с новым паролем.</div>';
+     $("photoModalSave").textContent="Перейти ко входу";
+     photoModalSubmit=async()=>{closePhotoModal();renderProfile();showView("profile")};
+   }
+ );
+}
+
+sb.auth.onAuthStateChange((event,session)=>{
+ if(event==="PASSWORD_RECOVERY"){
+   setTimeout(()=>openNewPasswordForm(),0);
+ }
+});
 let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
@@ -1017,6 +1066,7 @@ async function login(){
 }
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
+$("forgotPasswordBtn").onclick=openForgotPassword;
 
 async function saveName(){
  const name=$("displayName").value.trim();$("nameMsg").textContent="";

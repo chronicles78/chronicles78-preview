@@ -3106,17 +3106,33 @@ async function createQuestionFromMessage(mid){
 
 async function loadIdentityReview(){
  if(!["editor","admin"].includes(profile?.role)||!$("identityReviewList"))return;
- const {data,error}=await sb.from("identity_suggestions").select("id,person_id,suggested_name,note,submitted_by,created_at,status").eq("status","pending").order("created_at",{ascending:true});
+ const {data,error}=await sb.from("identity_suggestions").select("id,class_photo_id,person_id,suggested_name,note,submitted_by,created_at,status").eq("status","pending").order("created_at",{ascending:true});
  if(error){$("identityReviewList").innerHTML='<div class="err">'+esc(error.message)+'</div>';return}
  const rows=data||[];
  const userIds=[...new Set(rows.map(x=>x.submitted_by))];
- const {data:ps}=userIds.length?await sb.from("profiles").select("id,display_name").in("id",userIds):{data:[]};
+ const personIds=[...new Set(rows.map(x=>x.person_id))];
+ const photoIds=[...new Set(rows.map(x=>x.class_photo_id))];
+ const [{data:ps},{data:persons},{data:photos},{data:regions}]=await Promise.all([
+   userIds.length?sb.from("profiles").select("id,display_name").in("id",userIds):Promise.resolve({data:[]}),
+   personIds.length?sb.from("archive_people").select("id,group_name,number,canonical_name,identification_status").in("id",personIds):Promise.resolve({data:[]}),
+   photoIds.length?sb.from("class_photos").select("id,storage_path,source_width,source_height").in("id",photoIds):Promise.resolve({data:[]}),
+   photoIds.length?sb.from("class_photo_regions").select("class_photo_id,person_id,x,y,w,h").in("class_photo_id",photoIds):Promise.resolve({data:[]})
+ ]);
  const names=Object.fromEntries((ps||[]).map(x=>[x.id,x.display_name]));
+ const personMap=Object.fromEntries((persons||[]).map(x=>[x.id,x]));
+ const photoMap=Object.fromEntries((photos||[]).map(x=>[x.id,x]));
+ const regionMap=Object.fromEntries((regions||[]).map(x=>[x.class_photo_id+"|"+x.person_id,x]));
+ const urlMap={};
+ await Promise.all((photos||[]).map(async cp=>{if(cp.storage_path)urlMap[cp.id]=await archiveSignedImage(cp.storage_path)}));
  $("identityReviewList").className="";
  $("identityReviewList").innerHTML=rows.map(x=>{
-   const p=peopleCache.find(v=>v.id===x.person_id);
-   return '<div class="reviewCard"><b>'+esc(x.suggested_name)+'</b><div class="small">'+esc((p?.group_name||"")+" № "+(p?.number??"")+" · "+x.person_id)+'</div>'+
-     '<div style="margin-top:6px">'+esc(x.note||"Без комментария")+'</div><div class="small" style="margin-top:5px">Предложил: '+esc(names[x.submitted_by]||"Участник")+'</div>'+
+   const p=personMap[x.person_id];
+   const cp=photoMap[x.class_photo_id],r=regionMap[x.class_photo_id+"|"+x.person_id],url=urlMap[x.class_photo_id];
+   const crop=(cp&&r&&url)?cropImageHtml(url,cp,r,"identityReviewCrop",72/92,0,0,'aria-label="Выбранное лицо"',"Выбранное лицо"):"";
+   return '<div class="reviewCard"><div class="identityReviewTop">'+
+     (crop||'<div class="identityReviewCrop"></div>')+
+     '<div><div class="identityReviewName">'+esc(x.suggested_name)+'</div><div class="small">'+esc((p?.group_name||"")+" · позиция № "+(p?.number??"")+" · "+x.person_id)+'</div>'+
+     '<div style="margin-top:6px">'+esc(x.note||"Без комментария")+'</div><div class="small" style="margin-top:5px">Предложил: '+esc(names[x.submitted_by]||"Участник")+'</div></div></div>'+
      '<div class="reviewActions"><button class="secondary" data-accept-identity="'+x.id+'">Подтвердить</button><button class="secondary" data-reject-identity="'+x.id+'">Отклонить</button></div></div>';
  }).join("")||'<div class="notice">Новых предложений нет.</div>';
  $("identityReviewList").querySelectorAll("[data-accept-identity]").forEach(b=>b.onclick=async()=>{b.disabled=true;const {error}=await sb.rpc("accept_identity_suggestion",{p_id:Number(b.dataset.acceptIdentity)});if(error){alert(error.message);b.disabled=false;return}peopleCache=[];await loadPeople();await loadIdentityReview()});

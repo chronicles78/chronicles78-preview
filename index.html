@@ -67,8 +67,20 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .memoryHeroShade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(24,19,15,.82) 0%,rgba(24,19,15,.52) 48%,rgba(24,19,15,.08) 100%)}
 .memoryHeroText{position:relative;z-index:2;min-height:440px;padding:54px 50px;display:flex;flex-direction:column;justify-content:flex-end;max-width:720px;color:#fffaf2}
 .memoryKicker{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
-.memoryHero h1{font:700 clamp(48px,8vw,88px)/.92 Georgia,serif;margin:11px 0 14px;letter-spacing:-.035em}
+.memoryHero h1{font:700 clamp(46px,6vw,82px)/.92 Georgia,serif;margin:11px 0 14px;letter-spacing:-.045em;white-space:nowrap;display:flex;align-items:baseline;gap:.16em}
+.memoryHeroEdition{font-size:.58em;font-weight:400;letter-spacing:.015em;opacity:.9;border-bottom:1px solid #ffffff66;padding-bottom:.08em}
 .memoryHero p{font:400 clamp(20px,3vw,30px)/1.22 Georgia,serif;margin:0;max-width:620px}
+.editorialLink{appearance:none;border:0;background:transparent;color:var(--focus);padding:3px 0;margin:0;font:700 13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;cursor:pointer;text-align:left;text-decoration:none}
+.editorialLink:hover,.editorialLink:focus-visible{text-decoration:underline;text-underline-offset:4px}
+.overflowMenu{position:relative;display:inline-block}
+.overflowMenu>summary{list-style:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--muted);font-size:21px;line-height:1;user-select:none}
+.overflowMenu>summary::-webkit-details-marker{display:none}
+.overflowMenu>summary:hover,.overflowMenu>summary:focus-visible,.overflowMenu[open]>summary{background:var(--soft);color:var(--ink);outline:none}
+.overflowMenuPanel{display:none;position:absolute;right:0;top:calc(100% + 4px);min-width:218px;padding:6px;background:var(--paper);border:1px solid var(--line);border-radius:13px;box-shadow:0 14px 34px var(--shadow);z-index:60}
+.overflowMenu[open]>.overflowMenuPanel,.overflowMenu:hover>.overflowMenuPanel,.overflowMenu:focus-within>.overflowMenuPanel{display:block}
+.overflowMenuItem{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;color:var(--ink);border-radius:9px;padding:9px 10px;margin:0;text-align:left;font-size:13px;cursor:pointer}
+.overflowMenuItem:hover,.overflowMenuItem:focus-visible{background:var(--soft);outline:none}
+.overflowMenuSep{height:1px;background:var(--line);margin:5px 4px}
 .memoryHeroActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
 .memoryPrimary,.memoryGhost{border-radius:999px;padding:12px 18px;font-weight:800;cursor:pointer}
 .memoryPrimary{border:1px solid #fff4;background:#fffaf2;color:#2d261f}
@@ -103,7 +115,7 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .memoryArchiveNote{margin-top:12px;padding:12px 14px;border-left:4px solid var(--focus);background:var(--soft-2);border-radius:0 12px 12px 0;font-size:13px;line-height:1.45}
 .memoryEditorStrip{margin-top:12px;border:1px dashed var(--line);border-radius:14px;padding:12px;background:var(--soft-2);font-size:12px;color:var(--muted)}
 .memoryEditorStrip b{color:var(--ink)}
-.homeIntro{padding:20px 2px 8px}.homeIntro h1{font:700 clamp(34px,7vw,58px) Georgia,serif;line-height:1;margin:5px 0 10px}.homeIntro p{font-size:17px;line-height:1.45;margin:0;color:var(--muted)}.homeGrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;margin-top:14px}.homeCard{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;min-width:0}.homeCard h2,.homeCard h3{font:700 20px Georgia,serif;margin:0 0 8px}.homeLead{grid-column:span 8}.homeSide{grid-column:span 4}.homeHalf{grid-column:span 6}.homeFull{grid-column:1/-1}.homeStatRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.homeStat{background:var(--soft);border-radius:11px;padding:10px}.homeStat b{display:block;font-size:22px}.homeStat span{font-size:10px;color:var(--muted)}.homeListItem{border-top:1px solid var(--line);padding:9px 0}.homeListItem:first-child{border-top:0}.homeListItem b{display:block;margin-bottom:3px}.homeActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.homeExcerpt{font-size:13px;line-height:1.48;color:var(--ink)}@media(max-width:760px){.homeLead,.homeSide,.homeHalf{grid-column:1/-1}.homeStatRow{grid-template-columns:repeat(2,minmax(0,1fr))}.homeIntro{padding-top:10px}}.archiveList{padding:12px}.storiesToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.filterRail{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.filterAction{width:auto;margin:0;padding:8px 11px}.storiesToolbar input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--input)}.storyArchivePage{max-width:1180px;margin:0 auto}.storyArchiveIntro{padding:18px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}.storyArchiveIntro h2{font:700 clamp(40px,7vw,68px)/.95 Georgia,serif;margin:7px 0 10px;letter-spacing:-.025em}.storyArchiveIntro p{max-width:760px;font:400 18px/1.55 Georgia,serif;margin:0;color:var(--muted)}
+.homeIntro{padding:20px 2px 8px}.homeIntro h1{font:700 clamp(34px,7vw,58px) Georgia,serif;line-height:1;margin:5px 0 10px}.homeIntro p{font-size:17px;line-height:1.45;margin:0;color:var(--muted)}.homeGrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;margin-top:14px}.homeCard{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;min-width:0}.homeCard h2,.homeCard h3{font:700 20px Georgia,serif;margin:0 0 8px}.homeLead{grid-column:span 8}.homeSide{grid-column:span 4}.homeHalf{grid-column:span 6}.homeFull{grid-column:1/-1}.homeStatRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.homeStat{background:var(--soft);border-radius:11px;padding:10px}.homeStat b{display:block;font-size:22px}.homeStat span{font-size:10px;color:var(--muted)}.homeListItem{border-top:1px solid var(--line);padding:9px 0}.homeListItem:first-child{border-top:0}.homeListItem b{display:block;margin-bottom:3px}.homeActions{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}.memoryFeature .homeActions .secondary,.memoryUpdateItem .homeActions .secondary{width:auto;margin:0;padding:3px 0;border:0;border-radius:0;background:transparent;color:var(--focus);font-weight:700;text-align:left}.memoryFeature .homeActions .secondary:hover,.memoryUpdateItem .homeActions .secondary:hover{text-decoration:underline;text-underline-offset:4px}.homeExcerpt{font-size:13px;line-height:1.48;color:var(--ink)}@media(max-width:760px){.homeLead,.homeSide,.homeHalf{grid-column:1/-1}.homeStatRow{grid-template-columns:repeat(2,minmax(0,1fr))}.homeIntro{padding-top:10px}}.archiveList{padding:12px}.storiesToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.filterRail{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.filterAction{width:auto;margin:0;padding:8px 11px}.storiesToolbar input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--input)}.storyArchivePage{max-width:1180px;margin:0 auto}.storyArchiveIntro{padding:18px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}.storyArchiveIntro h2{font:700 clamp(40px,7vw,68px)/.95 Georgia,serif;margin:7px 0 10px;letter-spacing:-.025em}.storyArchiveIntro p{max-width:760px;font:400 18px/1.55 Georgia,serif;margin:0;color:var(--muted)}
 .storyArchiveStats{font-size:12px;color:var(--muted);padding:2px 2px 12px}
 .storyCatalogGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .storyCatalogCard{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-width:0;display:flex;flex-direction:column}
@@ -119,9 +131,8 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .storyCatalogPeople{font-size:12px;line-height:1.45;color:var(--muted);margin-top:4px}
 .storyCatalogStats{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
 .storyCatalogTags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-.storyCatalogActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto;padding-top:12px}
-.storyCatalogActions .secondary{width:auto;margin:0}
-.storyCatalogActions [data-story]{background:var(--primary-bg);color:var(--primary-ink);border-color:var(--primary-bg)}
+.storyCatalogActions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:auto;padding-top:13px;border-top:1px solid var(--line)}
+.storyCatalogActions .editorialLink:first-child{color:var(--ink);font-size:14px}
 .storyCatalogCard.featured:first-child{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(330px,.95fr)}
 .storyCatalogCard.featured:first-child .storyCatalogCover{aspect-ratio:auto;min-height:340px}
 .storyCatalogCard.featured:first-child h3{font-size:36px}
@@ -134,7 +145,7 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
  .storyCatalogBody{padding:14px}
  .storyCatalogCard h3{font-size:27px}
  .storyCatalogSummary{font-size:16px;line-height:1.55}
-}.peopleToolbar,.questionToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.questionActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.questionPhotoRow{display:flex;gap:10px;align-items:center;margin:9px 0}.archiveCrop{position:relative;overflow:hidden;background-color:var(--image-bg)}.archiveCrop>img{position:absolute;display:block;max-width:none;max-height:none;user-select:none;pointer-events:none}.questionCrop{width:86px;height:106px;flex:0 0 86px;border-radius:10px;border:1px solid var(--line);cursor:pointer}.questionCropMeta{min-width:0}.questionCropMeta b{display:block;margin-bottom:3px}.questionCropHint{font-size:11px;color:var(--muted);line-height:1.35}.tagList{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.tagChip{display:inline-block;border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:4px 8px;font-size:11px;color:var(--ink)}.tagLink{border:0;background:transparent;color:inherit;padding:0;font:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;cursor:pointer}.tagChip.tagLink,.badge.tagLink{text-decoration:none;cursor:pointer}.tagChip.tagLink:hover,.badge.tagLink:hover{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}.peopleArchivePage{max-width:1180px;margin:0 auto}.peopleArchiveIntro{padding:18px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}.peopleArchiveIntro h2{font:700 clamp(40px,7vw,68px)/.95 Georgia,serif;margin:7px 0 10px;letter-spacing:-.025em}.peopleArchiveIntro p{max-width:800px;font:400 18px/1.55 Georgia,serif;margin:0;color:var(--muted)}
+}.peopleToolbar,.questionToolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.questionCard{position:relative;padding-right:52px;transition:box-shadow .15s ease,transform .15s ease}.questionCard:hover{box-shadow:0 10px 26px #0000000d}.questionMenu{position:absolute;right:10px;top:9px;z-index:10}.questionPhotoRow{display:flex;gap:10px;align-items:center;margin:9px 0}.archiveCrop{position:relative;overflow:hidden;background-color:var(--image-bg)}.archiveCrop>img{position:absolute;display:block;max-width:none;max-height:none;user-select:none;pointer-events:none}.questionCrop{width:86px;height:106px;flex:0 0 86px;border-radius:10px;border:1px solid var(--line);cursor:pointer}.questionCropMeta{min-width:0}.questionCropMeta b{display:block;margin-bottom:3px}.questionCropHint{font-size:11px;color:var(--muted);line-height:1.35}.tagList{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.tagChip{display:inline-block;border:1px solid var(--line);background:var(--soft);border-radius:99px;padding:4px 8px;font-size:11px;color:var(--ink)}.tagLink{border:0;background:transparent;color:inherit;padding:0;font:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px;cursor:pointer}.tagChip.tagLink,.badge.tagLink{text-decoration:none;cursor:pointer}.tagChip.tagLink:hover,.badge.tagLink:hover{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}.peopleArchivePage{max-width:1180px;margin:0 auto}.peopleArchiveIntro{padding:18px 2px 16px;border-bottom:1px solid var(--line);margin-bottom:14px}.peopleArchiveIntro h2{font:700 clamp(40px,7vw,68px)/.95 Georgia,serif;margin:7px 0 10px;letter-spacing:-.025em}.peopleArchiveIntro p{max-width:800px;font:400 18px/1.55 Georgia,serif;margin:0;color:var(--muted)}
 .peopleToolbar input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--input)}
 .classPeopleLayout{display:block}.classPhotoPanel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px;margin-bottom:16px;box-shadow:0 10px 28px #0000000b}.classPhotoHead{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}.classPhotoHead b{font:700 19px Georgia,serif}.classPhotoStage{position:relative;isolation:isolate;width:100%;background:var(--image-bg);border-radius:14px;overflow:visible}.classPhotoStage>img{border-radius:14px;overflow:hidden}.classHotspot{z-index:2}.classPhotoStage img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;filter:saturate(.82) contrast(.98)}.classHotspot{position:absolute;border:1px solid transparent;background:transparent;border-radius:8px;padding:0;color:transparent}.classHotspot:hover,.classHotspot.active{border:2px solid var(--focus);background:#d4b48322;box-shadow:0 0 0 2px #0005}.classHotspot.showNo{color:var(--selected-ink);background:var(--selected-bg);font-size:10px;font-weight:700;display:grid;place-items:center}.classPhotoMissing{height:100%;display:grid;place-items:center;text-align:center;padding:18px;color:var(--muted)}
 .classSelection{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px;border-top:1px solid var(--line)}.classSelectionPortrait{width:64px;height:82px;flex:0 0 64px;border-radius:9px;background-color:var(--soft);background-repeat:no-repeat;border:1px solid var(--line)}.classSelectionText{min-width:0}.classSelectionText b{font:700 20px Georgia,serif}.classSelectionText .small{margin-top:3px}.classSelectionActions{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}.classSelectionActions button{width:auto;margin:0}
@@ -210,7 +221,8 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
   .memoryHero{min-height:420px;border-radius:18px}
   .memoryHeroText{min-height:420px;padding:28px 20px 22px}
   .memoryHeroShade{background:linear-gradient(0deg,rgba(24,19,15,.86) 0%,rgba(24,19,15,.52) 58%,rgba(24,19,15,.18) 100%)}
-  .memoryHero h1{font-size:50px}
+  .memoryHero h1{font-size:clamp(38px,11vw,50px);letter-spacing:-.05em;gap:.13em}
+  .memoryHeroEdition{font-size:.56em}
   .memoryHero p{font-size:21px}
   .memoryHeroActions{gap:8px}
   .memoryPrimary,.memoryGhost{min-height:46px;padding:11px 14px}
@@ -471,7 +483,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
   .photoTilePeople{font-size:12px;line-height:1.45;color:var(--muted);margin-top:7px}
   .photoEditorialMeta{border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
   .photoEditorialMeta .badge{font-size:9px}
-  .photoTileActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .photoTileActions{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}.photoTileActions .overflowMenu{margin-left:auto}
 .visualRegistryGrid{display:grid;grid-template-columns:1fr;gap:10px}
 .visualRegistryCard{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px}
 .visualRegistryCard h3{font:700 19px Georgia,serif;margin:4px 0 8px}
@@ -482,7 +494,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 .visualRegistryActions button,.visualRegistryActions a{width:auto;margin:0}
 .visualRule{border-left:4px solid var(--focus);padding:10px 12px;background:var(--soft-2);border-radius:10px;margin-bottom:12px;font-size:13px;line-height:1.45}
 .visualCandidateLink{display:inline-block;color:var(--focus);font-weight:700;text-decoration:underline;text-underline-offset:3px}
-  .photoTileActions .secondary{width:auto;margin:0;padding:8px 10px}
+  .photoTileActions .editorialLink{font-size:13px}
 
   .cityGrid{
     display:grid;
@@ -627,7 +639,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
     <div class="memoryHeroShade"></div>
     <div class="memoryHeroText">
       <div class="memoryKicker">ШКОЛА №78 · КУЙБЫШЕВ · ВЫПУСК 1983</div>
-      <h1>Хроники 78-й</h1>
+      <h1><span>Хроники</span><span class="memoryHeroEdition">78-й</span></h1>
       <p>Книга, которую можно читать.<br>Память, по которой можно ходить.</p>
       <div class="memoryHeroActions">
         <button class="memoryPrimary" data-home-view="stories">Читать истории</button>
@@ -1163,6 +1175,14 @@ $("moreNavClose").onclick=closeMoreNav;
 $("moreNavShade").onclick=closeMoreNav;
 document.querySelectorAll("[data-more-view]").forEach(b=>b.onclick=()=>showView(b.dataset.moreView));
 $("contextBackBtn").onclick=()=>history.back();
+function closeOverflowMenus(except=null){
+ document.querySelectorAll("details.overflowMenu[open]").forEach(d=>{if(d!==except)d.removeAttribute("open")});
+}
+document.addEventListener("click",e=>{
+ const menu=e.target.closest("details.overflowMenu");
+ if(!menu)closeOverflowMenus();
+ else document.querySelectorAll("details.overflowMenu[open]").forEach(d=>{if(d!==menu)d.removeAttribute("open")});
+});
 function closeChatMenus(){
  document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
 }
@@ -2070,7 +2090,7 @@ function renderStoriesCatalog(){
          (media?'<span class="badge">фото '+media+'</span>':'')+
        '</div>':'')+
        (kws?'<div class="storyCatalogTags">'+kws+'</div>':'')+
-       '<div class="storyCatalogActions"><button class="secondary" data-story="'+s.id+'">Читать</button><button class="secondary" data-openroom="'+room+'">Обсудить</button></div>'+
+       '<div class="storyCatalogActions"><button class="editorialLink" data-story="'+s.id+'">Читать историю →</button><button class="editorialLink" data-openroom="'+room+'">Обсудить</button></div>'+
      '</div></article>';
  }).join("")||'<div class="notice">По выбранному фильтру историй нет.</div>';
  $("storiesList").querySelectorAll("[data-story]").forEach(b=>b.onclick=()=>openStory(b.dataset.story));
@@ -2273,9 +2293,9 @@ function renderPhotoGallery(){
        (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+
        (names.length?'<div class="photoTilePeople"><b>На фото:</b> '+esc(names.slice(0,5).join(", "))+(names.length>5?"…":"")+'</div>':'')+
        (photoNeedsClarification(m)?'<div class="photoTilePeople"><b>Помогите уточнить:</b> '+esc(m.data?.identification_status||"дата, место или люди")+'</div>':'')+
-       '<div class="photoTileActions"><button class="secondary" data-photo-open="'+esc(m.id)+'">Рассмотреть</button>'+
-       (m.linked_story?'<button class="secondary" data-media-story="'+esc(m.linked_story)+'">История</button>':'')+
-       (editor?'<button class="secondary" data-archive-edit="'+esc(m.id)+'">Править</button>':'')+
+       '<div class="photoTileActions"><button class="editorialLink" data-photo-open="'+esc(m.id)+'">Рассмотреть →</button>'+
+       (m.linked_story?'<button class="editorialLink" data-media-story="'+esc(m.linked_story)+'">К истории</button>':'')+
+       (editor?'<details class="overflowMenu"><summary aria-label="Действия с фотографией" title="Действия">⋯</summary><div class="overflowMenuPanel"><button class="overflowMenuItem" data-archive-edit="'+esc(m.id)+'">✎&nbsp; Редактировать карточку</button></div></details>':'')+
        '</div>'+
        (editor?'<div class="photoEditorialMeta"><button class="badge tagLink" data-tag="'+esc(m.id)+'">'+esc(m.id)+'</button>'+
          (m.linked_story?'<button class="badge tagLink" data-tag="'+esc(m.linked_story)+'">'+esc(m.linked_story)+'</button>':'')+
@@ -2806,7 +2826,15 @@ function renderQuestions(){
    const crop=cropThumb
      ?'<div class="questionPhotoRow">'+cropThumb+'<div class="questionCropMeta"><b>Позиция № '+esc(person?.number??targetPerson)+'</b><div class="questionCropHint">'+esc(person?.canonical_name&&person.canonical_name!=="Не установлено"?person.canonical_name:"Имя пока не установлено")+'<br>Нажмите на фрагмент, чтобы открыть общую фотографию.</div></div></div>'
      :'';
-   return '<div class="archiveCard"><h3>'+esc(q.question)+'</h3>'+
+   const menu=
+     '<details class="overflowMenu questionMenu"><summary aria-label="Действия с вопросом" title="Действия">⋯</summary><div class="overflowMenuPanel">'+
+       '<button class="overflowMenuItem" data-q-discuss="'+esc(q.cache_id)+'">💬&nbsp; Обсудить</button>'+
+       '<button class="overflowMenuItem" data-q-details="'+esc(q.cache_id)+'">⌁&nbsp; Связи и теги</button>'+
+       (about10A?'<button class="overflowMenuItem" data-q-photo10a="'+esc(q.cache_id)+'">▧&nbsp; Общая фотография 10А</button>':'')+
+       (q.source_message_id?'<button class="overflowMenuItem" data-q-chat="'+esc(q.source_message_id)+'">↗&nbsp; Исходное сообщение</button>':'')+
+       (editor&&q.source==="archive"?'<div class="overflowMenuSep"></div><button class="overflowMenuItem" data-q-toggle="'+esc(q.id)+'">'+(questionIsOpen(q)?"✓&nbsp; Отметить решённым":"↺&nbsp; Вернуть в работу")+'</button>':'')+
+     '</div></details>';
+   return '<article class="archiveCard questionCard">'+menu+'<h3>'+esc(q.question)+'</h3>'+
      '<span class="badge">'+esc(q.priority||"")+'</span><span class="badge">'+esc(q.status||"")+'</span>'+sourceBadge+
      (q.category?'<button class="badge tagLink" data-tag="'+esc(q.category)+'">'+esc(q.category)+'</button>':'')+
      (q.why_it_matters?'<p class="small"><b>Почему важно:</b> '+esc(q.why_it_matters)+'</p>':'')+
@@ -2815,13 +2843,7 @@ function renderQuestions(){
      (q.resolution_note?'<div class="notice" style="margin-top:8px"><b>Результат:</b> '+esc(q.resolution_note)+'</div>':'')+
      crop+
      (tags?'<div class="tagList">'+tags+'</div>':'')+
-     '<div class="questionActions">'+
-       '<button class="mini" data-q-discuss="'+esc(q.cache_id)+'">💬 Обсудить</button>'+
-       '<button class="mini" data-q-details="'+esc(q.cache_id)+'">Связи и теги</button>'+
-       (about10A?'<button class="mini" data-q-photo10a="'+esc(q.cache_id)+'">Фото 10А</button>':'')+
-       (q.source_message_id?'<button class="mini" data-q-chat="'+esc(q.source_message_id)+'">Исходное сообщение</button>':'')+
-       (editor&&q.source==="archive"?'<button class="mini" data-q-toggle="'+esc(q.id)+'">'+(questionIsOpen(q)?"Отметить решённым":"Вернуть в работу")+'</button>':'')+
-     '</div></div>';
+     '</article>';
  }).join("")||'<div class="notice">По выбранному фильтру вопросов нет.</div>';
  $("questionsList").querySelectorAll("[data-q-toggle]").forEach(b=>b.onclick=()=>toggleArchiveQuestion(b.dataset.qToggle));
  $("questionsList").querySelectorAll("[data-q-chat]").forEach(b=>b.onclick=()=>openQuestionMessage(b.dataset.qChat));

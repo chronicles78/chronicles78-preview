@@ -1,0 +1,126 @@
+name: Chronicles-78 encrypted backup
+
+on:
+  schedule:
+    # Monday and Thursday, 01:30 UTC
+    - cron: "30 1 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout full repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate backup secrets
+        shell: bash
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_S3_ACCESS_KEY_ID: ${{ secrets.SUPABASE_S3_ACCESS_KEY_ID }}
+          SUPABASE_S3_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_S3_SECRET_ACCESS_KEY }}
+          BACKUP_ENCRYPTION_PASSWORD: ${{ secrets.BACKUP_ENCRYPTION_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for v in SUPABASE_DB_URL SUPABASE_S3_ACCESS_KEY_ID SUPABASE_S3_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSWORD; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $v"
+              exit 1
+            fi
+          done
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install rclone
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone
+
+      - name: Prepare backup workspace
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          STAMP="$(date -u +'%Y%m%dT%H%M%SZ')"
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
+          mkdir -p backup/database backup/storage/archive-media backup/storage/chat-media backup/source
+          {
+            echo "project=Хроники-78"
+            echo "created_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "commit=${GITHUB_SHA}"
+            echo "supabase_project=fnwpkmjjdhflnqghnogj"
+          } > backup/MANIFEST.txt
+
+      - name: Dump Supabase database
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/data.sql --use-copy --data-only
+
+      - name: Copy Supabase Storage
+        env:
+          RCLONE_CONFIG_SUPABASE_TYPE: s3
+          RCLONE_CONFIG_SUPABASE_PROVIDER: Other
+          RCLONE_CONFIG_SUPABASE_ACCESS_KEY_ID: ${{ secrets.SUPABASE_S3_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_SUPABASE_SECRET_ACCESS_KEY: ${{ secrets.SUPABASE_S3_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_SUPABASE_ENDPOINT: https://fnwpkmjjdhflnqghnogj.storage.supabase.co/storage/v1/s3
+          RCLONE_CONFIG_SUPABASE_REGION: eu-central-1
+          RCLONE_CONFIG_SUPABASE_FORCE_PATH_STYLE: "true"
+        shell: bash
+        run: |
+          set -euo pipefail
+          rclone copy supabase:archive-media backup/storage/archive-media --fast-list --transfers 4 --checkers 8
+          rclone copy supabase:chat-media backup/storage/chat-media --fast-list --transfers 4 --checkers 8
+          {
+            echo "archive_media_files=$(find backup/storage/archive-media -type f | wc -l | tr -d ' ')"
+            echo "chat_media_files=$(find backup/storage/chat-media -type f | wc -l | tr -d ' ')"
+            echo "storage_bytes=$(du -sb backup/storage | cut -f1)"
+          } >> backup/MANIFEST.txt
+
+      - name: Bundle website source history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git bundle create backup/source/chronicles78-preview.git.bundle --all
+
+      - name: Create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          find backup -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > /tmp/SHA256SUMS.txt
+          mv /tmp/SHA256SUMS.txt backup/SHA256SUMS.txt
+
+      - name: Encrypt complete backup
+        env:
+          BACKUP_ENCRYPTION_PASSWORD: ${{ secrets.BACKUP_ENCRYPTION_PASSWORD }}
+          STAMP: ${{ steps.meta.outputs.stamp }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "/tmp/chronicles78-backup-${STAMP}.tar.gz" backup
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000             -in "/tmp/chronicles78-backup-${STAMP}.tar.gz"             -out "chronicles78-backup-${STAMP}.tar.gz.enc"             -pass env:BACKUP_ENCRYPTION_PASSWORD
+          rm -rf backup "/tmp/chronicles78-backup-${STAMP}.tar.gz"
+
+      - name: Upload encrypted backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chronicles78-backup-${{ steps.meta.outputs.stamp }}
+          path: chronicles78-backup-${{ steps.meta.outputs.stamp }}.tar.gz.enc
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

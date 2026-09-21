@@ -2171,7 +2171,8 @@ function renderPeople(){
    const linkedStories=(p.story_refs||[]);
    const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
    const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
-   const thumb=["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
+   const mobilePortraitLite=window.matchMedia?.("(max-width:760px)")?.matches;
+   const thumb=!mobilePortraitLite&&["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
      ?personThumbHtml(p,"personPortrait")
      :'<div class="personNo">'+esc(p.number??"")+'</div>';
    const editor=profile?.role==="editor"||profile?.role==="admin";
@@ -2267,15 +2268,10 @@ async function loadClassPhoto(){
  classPhotoState={photo:cp,regions:map,url,loading:false};
  if(activeViewId()==="people")renderPeople();
 }
-async function ensurePeopleData(){
- if(peopleCache.length)return true;
- if(peopleLoadPromise)return peopleLoadPromise;
- peopleLoadPromise=(async()=>{
-   const [{data,error},{data:stories,error:se}]=await Promise.all([
-     sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data,identification_status,identification_note").order("group_name").order("number"),
-     sb.from("archive_stories").select("id,title,data").order("id")
-   ]);
-   if(error||se)throw new Error(error?.message||se?.message);
+async function enrichPeopleStoryRefs(){
+ try{
+   const {data:stories,error}=await sb.from("archive_stories").select("id,title,data").order("id");
+   if(error)return;
    storyIndex=stories||[];
    const storyRefsByPerson=new Map();
    for(const s of storyIndex){
@@ -2287,7 +2283,18 @@ async function ensurePeopleData(){
        storyRefsByPerson.get(id).push({id:s.id,title:s.title});
      });
    }
-   peopleCache=(data||[]).map(p=>({...p,story_refs:storyRefsByPerson.get(p.id)||[]}));
+   peopleCache=peopleCache.map(p=>({...p,story_refs:storyRefsByPerson.get(p.id)||[]}));
+   if(activeViewId()==="people")renderPeople();
+ }catch(e){}
+}
+async function ensurePeopleData(){
+ if(peopleCache.length)return true;
+ if(peopleLoadPromise)return peopleLoadPromise;
+ peopleLoadPromise=(async()=>{
+   const {data,error}=await sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data,identification_status,identification_note").order("group_name").order("number");
+   if(error)throw new Error(error.message);
+   peopleCache=(data||[]).map(p=>({...p,story_refs:[]}));
+   setTimeout(enrichPeopleStoryRefs,0);
    return true;
  })().finally(()=>{peopleLoadPromise=null});
  return peopleLoadPromise;

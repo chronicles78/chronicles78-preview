@@ -189,14 +189,31 @@ a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-hei
 .cityExcerpt{white-space:pre-wrap}
 .cityPersonLink{appearance:none;border:0;background:transparent;padding:0;color:var(--ink);font:700 20px Georgia,serif;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer;text-align:left}
 .cityPersonLink:hover{color:var(--focus)}
-.memoryMosaic{display:grid;grid-template-columns:1fr;gap:10px}
-.memoryTile{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative}
-.memoryTile::before{content:"“";position:absolute;right:14px;top:2px;font:700 46px Georgia,serif;color:var(--soft)}
-.memoryPrompt{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-.memoryQuote{font:700 18px/1.38 Georgia,serif;padding-right:26px}
-.memoryBy{margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.memoryMosaic{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.memoryTile{position:relative;isolation:isolate;min-height:285px;border-radius:18px;overflow:hidden;background:linear-gradient(145deg,var(--soft),var(--paper));border:1px solid var(--line);box-shadow:0 8px 28px #0000000a}
+.memoryTileMedia{position:absolute;inset:0;z-index:-3}
+.memoryTileMedia img{width:100%;height:100%;display:block;object-fit:cover;filter:saturate(.82) contrast(.96)}
+.memoryTileShade{position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,rgba(20,17,14,.08) 10%,rgba(20,17,14,.34) 45%,rgba(20,17,14,.88) 100%)}
+.memoryTileContent{min-height:285px;padding:20px;display:flex;flex-direction:column;justify-content:flex-end}
+.memoryTile.hasPhoto{color:#fff;border-color:#ffffff24}
+.memoryTile.hasPhoto .memoryPrompt,.memoryTile.hasPhoto .memoryBy,.memoryTile.hasPhoto .memoryWhy,.memoryTile.hasPhoto .cityPersonLink{color:#fff}
+.memoryTile.hasPhoto .badge{background:#00000035;color:#fff;border-color:#ffffff40}
+.memoryTile.hasPhoto .cityPersonLink{text-decoration-color:#ffffff88}
+.memoryTileEmptyMark{position:absolute;left:18px;top:16px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.memoryTilePhotoLabel{position:absolute;left:16px;top:14px;padding:5px 8px;border:1px solid #ffffff55;border-radius:999px;background:#00000030;color:#fff;font-size:9px;letter-spacing:.07em;text-transform:uppercase;backdrop-filter:blur(5px)}
+.memoryTileEditor{position:absolute;right:10px;top:9px;z-index:8}
+.memoryTile.hasPhoto .memoryTileEditor>summary{color:#fff;background:#00000022}
+.memoryPrompt{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.memoryQuote{font:700 20px/1.34 Georgia,serif;text-wrap:balance}
+.memoryQuote.compact{font-size:17px;line-height:1.38}
+.memoryBy{margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
 .memoryBy .cityPersonLink{font:700 13px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-.memoryWhy{margin-left:auto;border:0;background:transparent;color:var(--focus);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.memoryWhy{margin-left:auto;border:0;background:transparent;color:var(--focus);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:2px 0}
+.memoryVisualPreview{aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--soft);margin-bottom:10px}
+.memoryVisualPreview img{width:100%;height:100%;object-fit:cover;display:block}
+.memoryVisualMeta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(min-width:1180px){.memoryMosaic{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.memoryMosaic{grid-template-columns:1fr;gap:10px}.memoryTile,.memoryTileContent{min-height:270px}.memoryTileContent{padding:17px}.memoryQuote{font-size:19px}.memoryVisualMeta{grid-template-columns:1fr}}
 .cityDetailLink{display:inline-flex;align-items:center;gap:5px;margin-top:10px;border:0;background:transparent;padding:0;color:var(--focus);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .checkGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--input)}.checkItem{display:flex;gap:7px;align-items:flex-start;font-size:12px}.checkItem input{width:auto;margin-top:2px}.modalActions{display:flex;gap:8px;margin-top:14px}.modalActions button{flex:1}.formHint{font-size:11px;color:var(--muted);margin-top:4px}#loginError,#nameMsg{margin-top:10px;font-size:13px}.ok{color:#35623c}.err{color:#8b3b32}
 /* Theme contrast and archival-photo treatment */
@@ -2611,24 +2628,89 @@ async function editCityEssay(id=null){
    }
  };
 }
+async function uploadCityMemoryPhoto(detailId,file){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))throw new Error("Недостаточно прав.");
+ const mime=ensureImageFile(file);
+ if(file.size>10*1024*1024)throw new Error("Файл больше 10 МБ.");
+ const path="city-memory/"+detailId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
+ const {error}=await sb.storage.from("archive-media").upload(path,file,{contentType:mime,upsert:false});
+ if(error)throw error;
+ return path;
+}
+async function editCityMemoryVisual(id){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))return;
+ const [{data:x,error},{data:media}]=await Promise.all([
+   sb.from("city_memory_details").select("*").eq("id",id).single(),
+   sb.from("archive_media").select("id,title,current_storage_path").not("current_storage_path","is",null).order("updated_at",{ascending:false}).limit(120)
+ ]);
+ if(error||!x){alert(error?.message||"Деталь не найдена");return}
+ const currentUrl=x.image_storage_path?await archiveSignedImage(x.image_storage_path):null;
+ const options=(media||[]).map(m=>'<option value="'+esc(m.current_storage_path)+'">'+esc(m.id+" — "+m.title)+'</option>').join("");
+ openPhotoModal("Фото и оформление",
+   (currentUrl?'<div class="memoryVisualPreview"><img src="'+esc(currentUrl)+'" alt=""></div>':'<div class="notice">Для этой детали фото пока не назначено.</div>')+
+   '<label>Загрузить новое фото</label><input id="pfMemoryPhoto" type="file" accept="image/jpeg,image/png,image/webp">'+
+   '<div class="formHint">JPG, PNG или WEBP, до 10 МБ. Новая загрузка имеет приоритет над выбором из архива.</div>'+
+   '<label>Или выбрать из фотоархива</label><select id="pfMemoryArchive"><option value="">— оставить текущее —</option>'+options+'</select>'+
+   '<div class="memoryVisualMeta">'+
+     '<div><label>Тип изображения</label><select id="pfMemoryMode"><option value="archive" '+(x.image_mode==="archive"?"selected":"")+'>Архивное фото</option><option value="atmosphere" '+(x.image_mode==="atmosphere"?"selected":"")+'>Атмосферная иллюстрация</option></select></div>'+
+     '<div><label>Статус прав</label><input id="pfMemoryRights" value="'+esc(x.image_rights_status||"")+'" placeholder="разрешено / проверить права"></div>'+
+   '</div>'+
+   '<label>Подпись к фото</label><input id="pfMemoryCaption" value="'+esc(x.image_caption||"")+'" placeholder="Что изображено, место, период">'+
+   '<label>Источник / владелец</label><input id="pfMemoryCredit" value="'+esc(x.image_credit||"")+'" placeholder="Архив класса, автор, сайт-источник…">'+
+   '<label class="checkItem" style="margin-top:10px"><input id="pfMemoryRemove" type="checkbox"><span>Убрать текущее фото из карточки</span></label>',
+   async()=>{
+     let path=x.image_storage_path||null;
+     if($("pfMemoryRemove").checked)path=null;
+     const archivePath=$("pfMemoryArchive").value;
+     if(archivePath)path=archivePath;
+     const file=$("pfMemoryPhoto").files?.[0];
+     if(file)path=await uploadCityMemoryPhoto(id,file);
+     const payload={
+       image_storage_path:path,
+       image_mode:path?$("pfMemoryMode").value:null,
+       image_caption:$("pfMemoryCaption").value.trim()||null,
+       image_credit:$("pfMemoryCredit").value.trim()||null,
+       image_rights_status:$("pfMemoryRights").value.trim()||null,
+       updated_at:new Date().toISOString()
+     };
+     const {error:ue}=await sb.from("city_memory_details").update(payload).eq("id",id);
+     if(ue)throw ue;
+     await loadCityDetails();
+   }
+ );
+}
 async function loadCityDetails(){
  if(!user||!profile?.is_active){$("cityDetailsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
  const {data,error}=await sb.from("city_memory_details").select("*").order("sort_order").order("id");
  if(error){$("cityDetailsList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  const arr=data||[];
+ const editor=profile?.role==="editor"||profile?.role==="admin";
+ const visualUrls={};
+ await Promise.all(arr.map(async x=>{
+   if(x.image_storage_path)visualUrls[x.id]=await archiveSignedImage(x.image_storage_path);
+ }));
  const intro=$("cityDetailsList")?.previousElementSibling;
  if(intro&&intro.classList.contains("cityIntro")){const p=intro.querySelector("p");if(p&&!p.dataset.counted){p.textContent+=" Сейчас в мозаике — "+arr.length+" живых деталей.";p.dataset.counted="1"}}
  $("cityDetailsList").className="memoryMosaic";
  $("cityDetailsList").innerHTML=arr.map(x=>{
+   const url=visualUrls[x.id]||null;
    const author=x.person_id
      ?'<button class="cityPersonLink" data-city-person="'+esc(x.person_id)+'" title="Открыть карточку участника">'+esc(x.author_name)+'</button>'
      :'<span><b>'+esc(x.author_name)+'</b></span>';
-   return '<article class="memoryTile">'+
-     '<div class="memoryPrompt">Куйбышев для меня —</div>'+
-     '<div class="memoryQuote">'+esc(x.detail_text)+'</div>'+
-     '<div class="memoryBy">'+author+
-       (x.category?'<span class="badge">'+esc(x.category)+'</span>':'')+
-       '<button class="memoryWhy" data-memory-why="'+esc(x.id)+'">Почему это здесь?</button>'+
+   const photoLabel=url?(x.image_mode==="atmosphere"?"атмосферная иллюстрация":"архивное фото"):"";
+   const editorMenu=editor
+     ?'<details class="overflowMenu memoryTileEditor"><summary aria-label="Оформление детали" title="Оформление">⋯</summary><div class="overflowMenuPanel"><button class="overflowMenuItem" data-memory-visual="'+esc(x.id)+'">▧&nbsp; Фото и оформление</button></div></details>'
+     :"";
+   return '<article class="memoryTile '+(url?"hasPhoto":"noPhoto")+'">'+
+     (url?'<div class="memoryTileMedia"><img loading="lazy" src="'+esc(url)+'" alt="'+esc(x.image_caption||x.detail_text)+'"></div><div class="memoryTileShade"></div><div class="memoryTilePhotoLabel">'+esc(photoLabel)+'</div>':'<div class="memoryTileEmptyMark">фото пока не найдено</div>')+
+     editorMenu+
+     '<div class="memoryTileContent">'+
+       '<div class="memoryPrompt">Куйбышев для меня —</div>'+
+       '<div class="memoryQuote '+(String(x.detail_text||"").length>175?"compact":"")+'">'+esc(x.detail_text)+'</div>'+
+       '<div class="memoryBy">'+author+
+         (x.category?'<span class="badge">'+esc(x.category)+'</span>':'')+
+         '<button class="memoryWhy" data-memory-why="'+esc(x.id)+'">Почему это здесь?</button>'+
+       '</div>'+
      '</div>'+
    '</article>';
  }).join("")||'<div class="notice">Городские детали ещё не добавлены.</div>';
@@ -2636,15 +2718,29 @@ async function loadCityDetails(){
    e.preventDefault(); e.stopPropagation();
    activateTag(b.dataset.cityPerson);
  });
+ $("cityDetailsList").querySelectorAll("[data-memory-visual]").forEach(b=>b.onclick=e=>{
+   e.preventDefault();e.stopPropagation();
+   b.closest("details")?.removeAttribute("open");
+   editCityMemoryVisual(Number(b.dataset.memoryVisual));
+ });
  $("cityDetailsList").querySelectorAll("[data-memory-why]").forEach(b=>b.onclick=e=>{
    e.preventDefault(); e.stopPropagation();
    const x=arr.find(v=>String(v.id)===String(b.dataset.memoryWhy));
    if(!x)return;
+   const url=visualUrls[x.id]||null;
+   const visual=url?'<div class="memoryVisualPreview"><img src="'+esc(url)+'" alt="'+esc(x.image_caption||x.detail_text)+'"></div>':"";
+   const photoMeta=url?'<div class="small" style="margin-top:8px">'+
+     '<b>'+(x.image_mode==="atmosphere"?"Атмосферная иллюстрация":"Архивное фото")+'</b>'+
+     (x.image_caption?' · '+esc(x.image_caption):'')+
+     (x.image_credit?'<br>Источник: '+esc(x.image_credit):'')+
+     '</div>':"";
    openPhotoModal("Почему эта деталь здесь?",
+     visual+
      '<div class="notice">Это не связь с какой-либо историей и не редакционная догадка. Это самостоятельный ответ участника на вопрос проекта: <b>«Какая одна вещь, место, звук, запах или городская деталь для вас до сих пор и есть настоящий Куйбышев?»</b></div>'+
      '<div style="margin-top:14px"><div class="small">ОТВЕТ</div><div class="cityEssayBody" style="margin:8px 0;max-width:none">'+literaryHtml(x.detail_text)+'</div></div>'+
      '<div class="small"><b>Автор:</b> '+esc(x.author_name)+'</div>'+
      (x.source_label?'<div class="small" style="margin-top:6px"><b>Источник:</b> '+esc(x.source_label)+'</div>':'')+
+     photoMeta+
      (x.person_id?'<div class="homeActions"><button class="secondary" type="button" data-memory-person="'+esc(x.person_id)+'">Открыть карточку человека</button></div>':''),
      async()=>{}
    );

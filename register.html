@@ -38,6 +38,7 @@ a{color:#2b2722}
   </div>
 </div>
 <script>
+const SITE_URL="https://chronicles78.github.io/chronicles78-preview/";
 const sb=window.supabase.createClient(
  "https://fnwpkmjjdhflnqghnogj.supabase.co",
  "sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX"
@@ -53,12 +54,12 @@ $("btn").onclick=async()=>{
  if(password.length<6){$("msg").classList.add("err");$("msg").textContent="Пароль должен содержать не менее 6 символов.";return}
  $("btn").disabled=true;
  try{
-   const {data,error}=await sb.auth.signUp({email,password,options:{data:{display_name},emailRedirectTo:"https://chronicles78.github.io/chronicles78-preview/"}});
+   const {data,error}=await sb.auth.signUp({email,password,options:{data:{display_name},emailRedirectTo:SITE_URL}});
    if(error) throw error;
    $("msg").classList.add("ok");
-   $("msg").textContent=data.session
+   $("msg").innerHTML=data.session
     ?"Аккаунт создан. Администратор должен включить доступ."
-    :"Заявка создана. Проверьте входящие и папку «Спам», подтвердите e-mail, затем администратор включит доступ.";
+    :"Заявка создана. Проверьте входящие и папку «Спам» и подтвердите e-mail.<br><br><b>После подтверждения должен открыться сайт «Хроники-78».</b> Если вместо него открылся localhost или появилась ERR_CONNECTION_REFUSED — закройте эту страницу и откройте <a href=\""+SITE_URL+"\">основной сайт</a>. Повторно регистрироваться не нужно.";
    $("resendBtn").style.display=data.session?"none":"block";
  }catch(e){
    $("msg").classList.add("err");
@@ -70,9 +71,9 @@ $("resendBtn").onclick=async()=>{
  if(!email){$("msg").className="msg err";$("msg").textContent="Введите e-mail.";return}
  $("resendBtn").disabled=true;$("msg").className="msg";$("msg").textContent="Отправляю повторное письмо…";
  try{
-  const {error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:"https://chronicles78.github.io/chronicles78-preview/"}});
+  const {error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:SITE_URL}});
   if(error)throw error;
-  $("msg").className="msg ok";$("msg").textContent="Письмо отправлено повторно. Проверьте также папку «Спам».";
+  $("msg").className="msg ok";$("msg").innerHTML="Письмо отправлено повторно. Проверьте также папку «Спам». Если после подтверждения откроется localhost, вернитесь на <a href=\""+SITE_URL+"\">сайт «Хроники-78»</a> — аккаунт создавать заново не нужно.";
  }catch(e){$("msg").className="msg err";$("msg").textContent=e.message||String(e)}
  finally{$("resendBtn").disabled=false}
 };

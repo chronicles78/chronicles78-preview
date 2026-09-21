@@ -13,7 +13,22 @@ html[data-theme="dark"]{--bg:#171512;--paper:#211e1a;--paper-2:#26221d;--ink:#ee
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 body{min-height:100dvh;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))}
 button,input,textarea,select{font:inherit;color:var(--ink)}button{color:var(--ink)}.top{height:58px;position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px}
-.topLeft{display:flex;align-items:center;gap:10px}.brand{font:700 21px Georgia,serif}.contextBackBtn{display:none;border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;padding:7px 10px;font-size:12px;font-weight:700}.contextBackBtn.show{display:inline-flex;align-items:center;gap:4px}.topRight{display:flex;align-items:center;gap:7px}.themeBtn{border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;width:34px;height:34px;font-size:16px;display:grid;place-items:center}.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
+.topLeft{display:flex;align-items:center;gap:10px}.brand{font:700 21px Georgia,serif}.contextBackBtn{display:none;border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;padding:7px 10px;font-size:12px;font-weight:700}.contextBackBtn.show{display:inline-flex;align-items:center;gap:4px}.topRight{display:flex;align-items:center;gap:7px}.themeBtn{border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;width:34px;height:34px;font-size:16px;display:grid;place-items:center}
+.notifyBtn{position:relative;border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;width:38px;height:38px;font-size:18px;place-items:center;padding:0}
+.notifyBadge{position:absolute;right:-5px;top:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#c62828;color:#fff;font:700 11px/20px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;text-align:center;border:2px solid var(--paper)}
+.notificationItem{padding:10px 0;border-bottom:1px solid var(--line)}
+.notificationItem.unread{background:var(--soft-2);margin:0 -8px;padding:10px 8px;border-radius:10px}
+.notificationTitle{font-weight:700;font-size:14px}
+.notificationBody{font-size:13px;line-height:1.4;margin-top:3px}
+.notificationActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.notificationActions button{width:auto;margin:0;padding:7px 10px}
+.classHotspot{--tip:"";overflow:visible}
+.classHotspot::after{content:attr(data-person-label);position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:5px 7px;border-radius:7px;font-size:11px;font-weight:700;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:20}
+.classHotspot:hover::after,.classHotspot:focus-visible::after{opacity:1}
+.classHotspot.unknown{border-color:#b8842f55}
+.reviewCard,.moderationCard{border:1px solid var(--line);border-radius:12px;padding:11px;margin:8px 0;background:var(--paper)}
+.reviewActions,.moderationActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.reviewActions button,.moderationActions button{width:auto;margin:0;padding:8px 10px}.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
 main{max-width:760px;margin:auto}.view{display:none}.view.active{display:block}.pad{padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
 a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10px 0}.hero p{font-size:17px;line-height:1.45;color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.45}
 .bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--nav-bg);border-top:1px solid var(--line);z-index:30}
@@ -440,7 +455,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 </style>
 </head>
 <body>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">Хроники-78</div></div><div class="topRight"><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">Хроники-78</div></div><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active"><div class="pad"><div class="homeWrap"><div class="homeIntro"><div class="small">ХРОНИКИ 78-Й</div><h1>Книга, которую можно читать.<br>Память, по которой можно ходить.</h1><p>Школа №78 · Куйбышев · выпуск 1983 года. Истории, лица, фотографии и воспоминания, которые мы собираем вместе.</p></div><div id="homeState" class="notice">Проверяю общую базу…</div><div id="homeDashboard"></div></div></div></section>
 
@@ -510,6 +525,8 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
 <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
 <div class="card" id="adminUsersBox" style="display:none"><h2>Заявки на доступ</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
+<div class="card" id="identityReviewBox" style="display:none"><h2>Подписи к фотографиям</h2><div id="identityReviewList" class="notice">Загрузка…</div></div>
+<div class="card" id="moderationBox" style="display:none"><h2>Жалобы и модерация</h2><div id="moderationList" class="notice">Загрузка…</div></div>
 <div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button><p class="small" style="margin-top:12px">Впервые на сайте? Сначала зарегистрируйтесь.</p><p><a href="register.html">Зарегистрироваться</a></p><div id="loginError"></div></div>
 </div></section>
 </main>
@@ -609,7 +626,7 @@ sb.auth.onAuthStateChange((event,session)=>{
    setTimeout(()=>openNewPasswordForm(),0);
  }
 });
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,unsubNotif=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -797,6 +814,59 @@ function qualitySelectHtml(value="копия"){
  const opts=["превью","копия","хороший скан","оригинал","реставрация"];
  return '<select id="pfQuality">'+opts.map(x=>'<option '+(x===value?"selected":"")+'>'+x+'</option>').join("")+'</select>';
 }
+
+async function loadNotificationCount(){
+ if(!user||!profile?.is_active){if($("notifyBtn"))$("notifyBtn").style.display="none";return}
+ $("notifyBtn").style.display="grid";
+ const {count,error}=await sb.from("notifications").select("id",{count:"exact",head:true}).eq("is_read",false);
+ if(error)return;
+ const n=count||0;
+ $("notifyBadge").textContent=n>99?"99+":String(n);
+ $("notifyBadge").style.display=n?"block":"none";
+}
+async function openNotifications(){
+ if(!user||!profile?.is_active)return;
+ const {data,error}=await sb.from("notifications").select("*").order("created_at",{ascending:false}).limit(50);
+ if(error){alert(error.message);return}
+ const rows=data||[];
+ openPhotoModal("Уведомления",
+   '<div class="notificationActions"><button class="secondary" type="button" id="markAllNotifications">Отметить всё прочитанным</button></div>'+
+   '<div id="notificationList">'+(rows.map(n=>'<div class="notificationItem '+(!n.is_read?'unread':'')+'">'+
+     '<div class="notificationTitle">'+esc(n.title)+'</div>'+
+     (n.body?'<div class="notificationBody">'+esc(n.body)+'</div>':'')+
+     '<div class="small">'+new Date(n.created_at).toLocaleString("ru-RU")+'</div>'+
+     '<div class="notificationActions"><button class="secondary" type="button" data-open-notification="'+n.id+'" data-etype="'+esc(n.entity_type||"")+'" data-eid="'+esc(n.entity_id||"")+'">Открыть</button></div></div>').join("")||'<div class="notice">Новых уведомлений нет.</div>')+'</div>',
+   async()=>{}
+ );
+ $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
+ $("markAllNotifications").onclick=async()=>{await sb.from("notifications").update({is_read:true}).eq("is_read",false);await loadNotificationCount();closePhotoModal()};
+ document.querySelectorAll("[data-open-notification]").forEach(b=>b.onclick=async()=>{
+   const id=Number(b.dataset.openNotification),type=b.dataset.etype,eid=b.dataset.eid;
+   await sb.from("notifications").update({is_read:true}).eq("id",id);
+   await loadNotificationCount();closePhotoModal();
+   if(type==="message"){
+     const {data:m}=await sb.from("messages").select("room_id").eq("id",eid).maybeSingle();
+     if(m?.room_id){currentRoom=m.room_id;renderRooms();showView("chat");await loadRoom();setTimeout(()=>document.querySelector('.bubble[data-mid="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),100)}
+   }else if(type==="city_essay"){
+     showView("city");setTimeout(()=>openCityEssay(eid),120);
+   }else if(type==="person"){
+     activateTag(eid);
+   }else if(type==="moderation_report"){
+     showView("profile");setTimeout(()=>$("moderationBox")?.scrollIntoView({behavior:"smooth",block:"start"}),120);
+   }
+ });
+}
+function subscribeNotifications(){
+ if(unsubNotif){unsubNotif();unsubNotif=null}
+ if(!user||!profile?.is_active)return;
+ const ch=sb.channel("notifications-"+user.id+"-"+Date.now())
+   .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},()=>loadNotificationCount())
+   .subscribe();
+ unsubNotif=()=>sb.removeChannel(ch);
+ loadNotificationCount();
+}
+$("notifyBtn").onclick=openNotifications;
+
 function closeMoreNav(){
  $("moreNavMenu")?.classList.remove("open");
  $("moreNavShade")?.classList.remove("open");
@@ -985,6 +1055,22 @@ document.addEventListener("click",e=>{
  activateTag(t.dataset.tag);
 });
 
+
+function reportContent(entityType,entityId){
+ openPhotoModal("Пожаловаться",
+   '<div class="notice">Жалоба уйдёт редактору. Укажите, что именно не так с публикацией.</div>'+
+   '<label>Причина</label><select id="pfReportReason"><option>Оскорбление или ругань</option><option>Ненормативная лексика</option><option>Личная информация</option><option>Спам</option><option>Другое</option></select>'+
+   '<label>Комментарий</label><textarea id="pfReportNote" placeholder="Коротко поясните проблему"></textarea>',
+   async()=>{
+     const reason=$("pfReportReason").value+($("pfReportNote").value.trim()?" — "+$("pfReportNote").value.trim():"");
+     const {error}=await sb.from("moderation_reports").insert({reporter_id:user.id,entity_type:entityType,entity_id:String(entityId),reason});
+     if(error)throw error;
+     $("photoModalBody").innerHTML='<div class="notice"><b>Жалоба отправлена.</b><br>Редактор увидит её в панели модерации.</div>';
+     $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
+   }
+ );
+}
+
 function renderRooms(){$("rooms").innerHTML=rooms.map(r=>'<button class="room '+(r.id===currentRoom?"active":"")+'" data-id="'+r.id+'">'+esc(r.name)+'</button>').join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;replyTo=null;pendingFiles=[];renderReply();renderRooms();loadRoom();subscribe()})}
 async function loadHome(){
  const box=$("homeDashboard");
@@ -1045,15 +1131,21 @@ function renderProfile(){
  if(user&&profile){
    $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
    $("loginBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
-   $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";if(profile.role==="admin")loadAdminUsers();setStatus("Онлайн · "+profile.role);
+   $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
+   const canModerate=profile.role==="editor"||profile.role==="admin";
+   if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
+   if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
+   if(profile.role==="admin")loadAdminUsers();
+   if(canModerate){loadIdentityReview();loadModerationPanel()}
+   subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";if($("adminUsersBox"))$("adminUsersBox").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
  }
 }
 async function init(){
  const {data:{session}}=await sb.auth.getSession();user=session?.user||null;if(session?.access_token)sb.realtime.setAuth(session.access_token);
  if(user){const {data,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(!error&&data?.is_active)profile=data}
- renderRooms();renderProfile();if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}if(profile)subscribe();
+ renderRooms();renderProfile();if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}if(profile){subscribe();subscribeNotifications();}
 }
 async function login(){
  $("loginError").textContent="";
@@ -1061,10 +1153,10 @@ async function login(){
   const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;
   user=data.user;if(data.session?.access_token)sb.realtime.setAuth(data.session.access_token);
   const {data:p,error:pe}=await sb.from("profiles").select("display_name,role,is_active").eq("id",user.id).maybeSingle();if(pe)throw pe;if(!p?.is_active)throw new Error("Учётная запись ещё не активирована редакцией.");
-  profile=p;renderProfile();subscribe();showView("home");await loadHome();
+  profile=p;renderProfile();subscribe();subscribeNotifications();showView("home");await loadHome();
  }catch(e){$("loginError").textContent=e.message||String(e)}
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
 $("forgotPasswordBtn").onclick=openForgotPassword;
 
@@ -1154,6 +1246,7 @@ async function loadRoom(){
        '<button class="menuBtn" data-react="👍" data-mid="'+m.id+'">👍 Нравится</button>'+
        '<button class="menuBtn" data-react="❤️" data-mid="'+m.id+'">❤️ Сердце</button>'+
        '<button class="menuBtn" data-react="😂" data-mid="'+m.id+'">😂 Смешно</button>'+
+       (!mine?'<button class="menuBtn" data-report-message="'+m.id+'">⚑ Пожаловаться</button>':'')+
        (canEdit?'<div class="menuSep"></div><button class="menuBtn" data-edit-message="'+m.id+'">✎ Редактировать</button><button class="menuBtn" data-photo-add="'+m.id+'">＋ Добавить фото</button>':'')+
        (photoActions?'<div class="menuSep"></div>'+photoActions:'')+
        (editor?'<div class="menuSep"></div><button class="menuBtn" data-evidence="'+m.id+'">'+(m.is_evidence?"★ Убрать из свидетельств":"☆ В свидетельство")+'</button><button class="menuBtn" data-link="'+m.id+'">🔗 Связать с историей</button><button class="menuBtn" data-question="'+m.id+'">? Создать вопрос</button><button class="menuBtn" data-hide="'+m.id+'">'+(m.is_hidden_from_publication?"Вернуть в публикацию":"Не публиковать")+'</button>':'')+
@@ -1220,6 +1313,7 @@ async function loadRoom(){
  $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
  $("messages").querySelectorAll("[data-copy-message]").forEach(b=>b.onclick=async()=>{const m=lastMessages.find(x=>x.id===b.dataset.copyMessage);if(m?.body)await navigator.clipboard.writeText(m.body)});
  $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));
+ $("messages").querySelectorAll("[data-report-message]").forEach(b=>b.onclick=()=>reportContent("message",b.dataset.reportMessage));
  $("messages").querySelectorAll("[data-evidence]").forEach(b=>b.onclick=()=>toggleEditorialFlag(b.dataset.evidence,"is_evidence"));
  $("messages").querySelectorAll("[data-hide]").forEach(b=>b.onclick=()=>toggleEditorialFlag(b.dataset.hide,"is_hidden_from_publication"));
  $("messages").querySelectorAll("[data-link]").forEach(b=>b.onclick=()=>linkStory(b.dataset.link));
@@ -1490,7 +1584,9 @@ function renderClassPhotoPanel(arr){
      const r=regs[p.id]; if(!r)return "";
      const left=(r.x/cp.source_width*100),top=(r.y/cp.source_height*100),w=(r.w/cp.source_width*100),hh=(r.h/cp.source_height*100);
      const active=p.id===selectedPersonId;
-     return '<button class="classHotspot '+(active?"active ":"")+(showClassNumbers?"showNo":"")+'" data-hot-person="'+esc(p.id)+'" title="'+esc(p.canonical_name)+'" style="left:'+left+'%;top:'+top+'%;width:'+w+'%;height:'+hh+'%">'+(showClassNumbers?esc(p.number||""):"")+'</button>';
+     const unknown=(p.identification_status||"")!=="подтверждено" || !p.canonical_name || p.canonical_name==="Не установлено" || p.canonical_name==="Имя не установлено";
+     const label=unknown?"Имя не установлено · нажмите, чтобы подписать":p.canonical_name;
+     return '<button class="classHotspot '+(active?"active ":"")+(showClassNumbers?"showNo ":"")+(unknown?"unknown":"")+'" data-hot-person="'+esc(p.id)+'" data-unknown="'+(unknown?"1":"0")+'" data-person-label="'+esc(label)+'" title="'+esc(label)+'" style="left:'+left+'%;top:'+top+'%;width:'+w+'%;height:'+hh+'%">'+(showClassNumbers?esc(p.number||""):"")+'</button>';
    }).join("");
    stage='<div class="classPhotoStage"><img src="'+url+'" alt="'+esc(cp.title)+'">'+hotspots+'</div>';
  }else{
@@ -1525,11 +1621,29 @@ function renderPeople(){
  $("peopleList").querySelectorAll("[data-pmedia]").forEach(b=>b.onclick=e=>{e.stopPropagation();mediaFocus=b.dataset.pmedia;showView("photos")});
  $("peopleList").querySelectorAll("[data-person-id]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;selectPerson(c.dataset.personId,false)});
  $("peopleList").querySelectorAll("[data-edit-person]").forEach(b=>b.onclick=e=>{e.stopPropagation();editPersonIdentity(b.dataset.editPerson)});
- $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>selectPerson(b.dataset.hotPerson,true));
+ $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>b.dataset.unknown==="1"?suggestPersonIdentity(b.dataset.hotPerson):selectPerson(b.dataset.hotPerson,true));
  if($("toggleClassNumbers"))$("toggleClassNumbers").onclick=()=>{showClassNumbers=!showClassNumbers;renderPeople()};
  if($("editSelectedPersonBtn"))$("editSelectedPersonBtn").onclick=()=>editPersonIdentity(selectedPersonId);
  if($("uploadClassPhotoBtn"))$("uploadClassPhotoBtn").onclick=()=>{$("classPhotoInput").value="";$("classPhotoInput").click()};
 }
+
+function suggestPersonIdentity(id){
+ const p=peopleCache.find(x=>x.id===id);if(!p||!user)return;
+ const classPhotoId=p.group_name==="10А"?"CLASS-10A":"CLASS-10B";
+ openPhotoModal("Кто это? · "+p.group_name+" № "+(p.number??""),
+   '<div class="notice">Предложите имя. Редактор проверит подпись, чтобы случайная ошибка не стала частью архива.</div>'+
+   '<label>Фамилия и имя</label><input id="pfSuggestedName" placeholder="Например: Иванов Сергей">'+
+   '<label>Почему вы уверены?</label><textarea id="pfSuggestedNote" placeholder="Например: сидели за одной партой; подтвердил ещё кто-то"></textarea>',
+   async()=>{
+     const name=$("pfSuggestedName").value.trim();if(name.length<2)throw new Error("Укажите имя.");
+     const {error}=await sb.from("identity_suggestions").insert({class_photo_id:classPhotoId,person_id:id,suggested_name:name,note:$("pfSuggestedNote").value.trim()||null,submitted_by:user.id});
+     if(error)throw error;
+     $("photoModalBody").innerHTML='<div class="notice"><b>Спасибо.</b><br>Подпись «'+esc(name)+'» отправлена редактору на подтверждение.</div>';
+     $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
+   }
+ );
+}
+
 function editPersonIdentity(id){
  const p=peopleCache.find(x=>x.id===id);if(!p)return;
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
@@ -2170,6 +2284,7 @@ async function loadCityEssayComments(essayId){
  const list=rows.length?rows.map(c=>{
    const p=Array.isArray(c.profiles)?c.profiles[0]:c.profiles;
    const name=p?.display_name||"Участник";
+   const reportBtn=c.user_id!==user?.id?'<div class="cityCommentTools"><button class="secondary" type="button" data-report-comment="'+esc(c.id)+'">⚑ Пожаловаться</button></div>':'';
    const tools=editor?'<div class="cityCommentTools">'+
      '<button class="secondary" type="button" data-comment-highlight="'+esc(c.id)+'" data-value="'+(!c.is_highlighted)+'">'+(c.is_highlighted?'Снять отметку':'Ценная деталь')+'</button>'+
      (c.archived_memory_detail_id
@@ -2180,13 +2295,14 @@ async function loadCityEssayComments(essayId){
      '<div class="cityCommentBody">'+literaryHtml(c.body)+'</div>'+
      (c.is_highlighted?'<div class="cityCommentMark">★ Ценная деталь</div>':'')+
      (c.archived_memory_detail_id?'<div class="cityCommentMark">✓ Включено в «Одну исчезнувшую деталь»</div>':'')+
-     tools+'</div>';
+     reportBtn+tools+'</div>';
  }).join(""):'<div class="small">Пока никто не добавил своё воспоминание или уточнение.</div>';
  box.innerHTML='<h3>Воспоминания и уточнения</h3>'+list+
    '<div class="cityCommentForm"><textarea id="cityCommentText" maxlength="2000" placeholder="Напишите своё воспоминание, поправку или деталь…"></textarea>'+
    '<div class="cityCommentHint">До 2000 знаков. Комментарий будет подписан вашим именем.</div>'+
    '<button class="secondary" id="cityCommentSend" type="button">Добавить комментарий</button><div id="cityCommentMsg" class="small" style="margin-top:7px"></div></div>';
  $("cityCommentSend").onclick=()=>submitCityEssayComment(essayId);
+ box.querySelectorAll("[data-report-comment]").forEach(b=>b.onclick=()=>reportContent("city_comment",b.dataset.reportComment));
  box.querySelectorAll("[data-comment-highlight]").forEach(b=>b.onclick=async()=>{
    b.disabled=true;
    const {error}=await sb.rpc("set_city_comment_highlight",{p_comment_id:Number(b.dataset.commentHighlight),p_value:b.dataset.value==="true"});
@@ -2414,6 +2530,52 @@ async function createQuestionFromMessage(mid){
    }
  );
 }
+
+async function loadIdentityReview(){
+ if(!["editor","admin"].includes(profile?.role)||!$("identityReviewList"))return;
+ const {data,error}=await sb.from("identity_suggestions").select("id,person_id,suggested_name,note,submitted_by,created_at,status").eq("status","pending").order("created_at",{ascending:true});
+ if(error){$("identityReviewList").innerHTML='<div class="err">'+esc(error.message)+'</div>';return}
+ const rows=data||[];
+ const userIds=[...new Set(rows.map(x=>x.submitted_by))];
+ const {data:ps}=userIds.length?await sb.from("profiles").select("id,display_name").in("id",userIds):{data:[]};
+ const names=Object.fromEntries((ps||[]).map(x=>[x.id,x.display_name]));
+ $("identityReviewList").className="";
+ $("identityReviewList").innerHTML=rows.map(x=>{
+   const p=peopleCache.find(v=>v.id===x.person_id);
+   return '<div class="reviewCard"><b>'+esc(x.suggested_name)+'</b><div class="small">'+esc((p?.group_name||"")+" № "+(p?.number??"")+" · "+x.person_id)+'</div>'+
+     '<div style="margin-top:6px">'+esc(x.note||"Без комментария")+'</div><div class="small" style="margin-top:5px">Предложил: '+esc(names[x.submitted_by]||"Участник")+'</div>'+
+     '<div class="reviewActions"><button class="secondary" data-accept-identity="'+x.id+'">Подтвердить</button><button class="secondary" data-reject-identity="'+x.id+'">Отклонить</button></div></div>';
+ }).join("")||'<div class="notice">Новых предложений нет.</div>';
+ $("identityReviewList").querySelectorAll("[data-accept-identity]").forEach(b=>b.onclick=async()=>{b.disabled=true;const {error}=await sb.rpc("accept_identity_suggestion",{p_id:Number(b.dataset.acceptIdentity)});if(error){alert(error.message);b.disabled=false;return}peopleCache=[];await loadPeople();await loadIdentityReview()});
+ $("identityReviewList").querySelectorAll("[data-reject-identity]").forEach(b=>b.onclick=async()=>{const {error}=await sb.rpc("reject_identity_suggestion",{p_id:Number(b.dataset.rejectIdentity)});if(error)alert(error.message);else loadIdentityReview()});
+}
+async function loadModerationPanel(){
+ if(!["editor","admin"].includes(profile?.role)||!$("moderationList"))return;
+ const {data,error}=await sb.from("moderation_reports").select("*").eq("status","open").order("created_at",{ascending:true});
+ if(error){$("moderationList").innerHTML='<div class="err">'+esc(error.message)+'</div>';return}
+ const rows=data||[];
+ const reporters=[...new Set(rows.map(x=>x.reporter_id))];
+ const {data:ps}=reporters.length?await sb.from("profiles").select("id,display_name").in("id",reporters):{data:[]};
+ const names=Object.fromEntries((ps||[]).map(x=>[x.id,x.display_name]));
+ const msgIds=rows.filter(x=>x.entity_type==="message").map(x=>x.entity_id);
+ const commentIds=rows.filter(x=>x.entity_type==="city_comment").map(x=>Number(x.entity_id));
+ const {data:msgs}=msgIds.length?await sb.from("messages").select("id,body,author:profiles!messages_author_id_fkey(display_name)").in("id",msgIds):{data:[]};
+ const {data:comments}=commentIds.length?await sb.from("city_essay_comments").select("id,body,profiles(display_name)").in("id",commentIds):{data:[]};
+ const msgMap=Object.fromEntries((msgs||[]).map(x=>[String(x.id),{body:x.body,author:x.author?.display_name}]));
+ const comMap=Object.fromEntries((comments||[]).map(x=>[String(x.id),{body:x.body,author:(Array.isArray(x.profiles)?x.profiles[0]:x.profiles)?.display_name}]));
+ $("moderationList").className="";
+ $("moderationList").innerHTML=rows.map(r=>{
+   const item=r.entity_type==="message"?msgMap[r.entity_id]:comMap[r.entity_id];
+   return '<div class="moderationCard"><b>'+esc(r.entity_type==="message"?"Сообщение в чате":"Комментарий к этюду")+'</b>'+
+    '<div class="small">Жалоба от: '+esc(names[r.reporter_id]||"Участник")+'</div>'+
+    '<div class="notice" style="margin-top:7px"><b>Причина:</b> '+esc(r.reason)+'</div>'+
+    '<div style="margin-top:7px"><b>'+esc(item?.author||"Автор")+'</b><br>'+esc((item?.body||"Материал уже удалён").slice(0,600))+'</div>'+
+    '<div class="moderationActions"><button class="secondary" data-mod-delete="'+r.id+'">Удалить материал</button><button class="secondary" data-mod-reject="'+r.id+'">Отклонить жалобу</button></div></div>';
+ }).join("")||'<div class="notice">Открытых жалоб нет.</div>';
+ $("moderationList").querySelectorAll("[data-mod-delete]").forEach(b=>b.onclick=async()=>{if(!confirm("Удалить этот материал?"))return;b.disabled=true;const {error}=await sb.rpc("resolve_moderation_report",{p_id:Number(b.dataset.modDelete),p_action:"delete"});if(error){alert(error.message);b.disabled=false;return}await loadModerationPanel();if(activeViewId()==="chat")loadRoom()});
+ $("moderationList").querySelectorAll("[data-mod-reject]").forEach(b=>b.onclick=async()=>{const {error}=await sb.rpc("resolve_moderation_report",{p_id:Number(b.dataset.modReject),p_action:"reject"});if(error)alert(error.message);else loadModerationPanel()});
+}
+
 async function loadAdminUsers(){
  if(profile?.role!=="admin"||!$("adminUsersList"))return;
  const {data,error}=await sb.rpc("admin_pending_users");

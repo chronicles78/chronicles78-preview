@@ -268,11 +268,20 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
  .cityGrid{grid-template-columns:1fr!important;gap:10px!important}
  .cityLeadCard{grid-column:auto}
  .cityCardBody h3,.cityLeadCard .cityCardBody h3{font-size:27px}
- .cityExcerpt,.cityLeadCard .cityExcerpt{font-size:16px;line-height:1.55}
+ .cityExcerpt,.cityLeadCard .cityExcerpt{font-size:18px;line-height:1.62}
  .cityMemorySection{margin-top:28px;padding-top:22px}
  .cityMemoryIntro h2{font-size:36px}
  .cityEssayHeader h2{font-size:38px}
  .cityEssayMetaLine{font-size:12px}
+}
+
+@media(max-width:760px){
+ .cityEssayBody,.cityEssayText{font-size:20px;line-height:1.68}
+ .cityEssayLead{font-size:20px;line-height:1.64}
+ .cityCommentBody{font-size:17px;line-height:1.58}
+ .cityCommentHead{font-size:13px}
+ .cityCommentHead b{font-size:15px}
+ .cityInlinePhoto figcaption{font-size:14px;line-height:1.45}
 }
 
 /* Photo album mobile */
@@ -335,12 +344,12 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 @media (max-width:1023px){
   .cityEssayBody,
   .cityEssayText{
-    font-size:18px;
-    line-height:1.55;
+    font-size:19px;
+    line-height:1.66;
   }
   .cityEssayLead{
-    font-size:18px;
-    line-height:1.55;
+    font-size:19px;
+    line-height:1.62;
   }
   .storyIntro{
     font-size:18px;

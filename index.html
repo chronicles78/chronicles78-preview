@@ -148,6 +148,50 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
   }
 }
 
+
+/* Mobile long-form reading */
+@media (max-width:1023px){
+  .cityEssayBody,
+  .cityEssayText{
+    font-size:18px;
+    line-height:1.55;
+  }
+  .cityEssayLead{
+    font-size:18px;
+    line-height:1.55;
+  }
+  .storyIntro{
+    font-size:18px;
+    line-height:1.55;
+  }
+  .storySection,
+  .storyFact,
+  .storyEvidence,
+  .storyQuestion,
+  .claim,
+  .evidence{
+    font-size:17px;
+    line-height:1.5;
+  }
+  .storyFact .small,
+  .participantCard .small,
+  .storySource{
+    font-size:16px;
+    line-height:1.5;
+  }
+  .storyEvidence .quote{
+    font-size:17px;
+    line-height:1.55;
+  }
+  .storyDetailIn{
+    padding-left:12px;
+    padding-right:12px;
+  }
+  .storyHero{
+    padding:16px;
+  }
+}
+
 /* Desktop workspace: same content, expanded composition */
 @media (min-width:1024px){
   :root{--desktop-nav:196px}

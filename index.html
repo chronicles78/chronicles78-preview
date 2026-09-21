@@ -677,7 +677,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <input id="classPhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden></div></section>
 <section id="stories" class="view"><div class="archiveList storyArchivePage">
 <div class="storyArchiveIntro"><div class="memoryEyebrow">УСТНАЯ ИСТОРИЯ · ШКОЛА №78</div><h2>Истории</h2><p>Не каталог дел, а воспоминания класса: то, что помнят по-разному, уточняют вместе и иногда неожиданно подтверждают старой фотографией.</p></div>
-<div class="storiesToolbar"><div class="filterRail"><button class="mini on" data-storyfilter="all">Все</button><button class="mini" data-storyfilter="ready">Готово к чтению</button><button class="mini" data-storyfilter="full">Развёрнутые</button><button class="mini" data-storyfilter="cards">Карточки</button></div><input id="storySearch" placeholder="Поиск по истории, человеку, теме…"></div>
+<div class="storiesToolbar"><div class="filterRail"><button class="mini on" data-storyfilter="all">Все</button><button class="mini" data-storyfilter="ready">Готовые</button><button class="mini" data-storyfilter="working">В работе</button><button class="mini" data-storyfilter="fragments">Фрагменты</button></div><input id="storySearch" placeholder="Поиск по истории, человеку, теме…"></div>
 <div id="storyStats" class="storyArchiveStats"></div>
 <div id="storiesList" class="notice">Войдите, чтобы открыть архив.</div></div></section>
 <div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
@@ -2034,10 +2034,17 @@ function storyPersonName(id){
  const p=peopleCache.find(x=>x.id===id);
  return p?.canonical_name||id;
 }
+function storyState(s){
+ const explicit=s.data?.story_state;
+ if(explicit)return explicit;
+ if(s.data?.catalog_status==="готово к чтению"||s.full_chapter)return "готовая история";
+ return "в работе";
+}
 function storyMatchesFilter(s){
- if(storyFilter==="ready")return s.data?.catalog_status==="готово к чтению";
- if(storyFilter==="full")return !!s.full_chapter;
- if(storyFilter==="cards")return !s.full_chapter;
+ const state=storyState(s);
+ if(storyFilter==="ready")return state==="готовая история";
+ if(storyFilter==="working")return state==="в работе";
+ if(storyFilter==="fragments")return state==="фрагмент памяти";
  return true;
 }
 
@@ -2061,9 +2068,10 @@ function renderStoriesCatalog(){
    const ao=a.data?.catalog_order??99,bo=b.data?.catalog_order??99;
    return ao-bo||a.id.localeCompare(b.id);
  });
- const ready=storyCache.filter(s=>s.data?.catalog_status==="готово к чтению").length;
- const full=storyCache.filter(s=>s.full_chapter).length;
- $("storyStats").innerHTML='<b>'+storyCache.length+'</b> историй · <b>'+ready+'</b> готовы к чтению · <b>'+full+'</b> развёрнуты';
+ const ready=storyCache.filter(s=>storyState(s)==="готовая история").length;
+ const working=storyCache.filter(s=>storyState(s)==="в работе").length;
+ const fragments=storyCache.filter(s=>storyState(s)==="фрагмент памяти").length;
+ $("storyStats").innerHTML='<b>'+storyCache.length+'</b> историй · <b>'+ready+'</b> готово · <b>'+working+'</b> в работе · <b>'+fragments+'</b> фрагментов';
  $("storiesList").className="storyCatalogGrid";
  $("storiesList").innerHTML=arr.map(s=>{
    const people=(s.data?.people||[]).map(storyPersonName).filter(Boolean);
@@ -2072,11 +2080,12 @@ function renderStoriesCatalog(){
    const claims=s.data?.chapter?.claims?.length||0;
    const evidence=s.data?.chapter?.evidence?.length||0;
    const media=(s.data?.media_ids||[]).length;
-   const featured=s.data?.catalog_status==="готово к чтению";
+   const state=storyState(s);
+   const featured=state==="готовая история";
    const room=s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general";
    const cover=storyCoverFor(s);
    const coverUrl=cover?.url||null;
-   const status=featured?"готово к чтению":s.full_chapter?"развёрнутая реконструкция":"архивная карточка";
+   const status=state==="готовая история"?"готовая история":state==="фрагмент памяти"?"фрагмент памяти":"история в работе";
    return '<article class="storyCatalogCard '+(featured?"featured":"")+'">'+
      '<div class="storyCatalogCover" '+(coverUrl?'data-story="'+esc(s.id)+'"':'')+'>'+
        (coverUrl?'<img src="'+coverUrl+'" alt="'+esc(cover.title||s.title)+'">':'<div class="storyCatalogCoverNo">'+esc(s.period||"Из памяти класса")+'</div>')+
@@ -2144,7 +2153,7 @@ async function openStory(id){
    (cover?.url?'<div class="storyHeroCover"><img src="'+cover.url+'" alt="'+esc(cover.title||s.title)+'"></div>':'')+
    '<div class="storyHeroInner"><div class="memoryEyebrow">'+esc(s.period||"ИЗ ПАМЯТИ КЛАССА")+'</div>'+
    '<h2>'+esc(s.title)+'</h2>'+
-   '<div class="storyMeta"><button class="badge tagLink" data-tag="'+esc(s.id)+'">'+esc(s.id)+'</button>'+(s.kind?'<button class="badge tagLink" data-tag="'+esc(s.kind)+'">'+esc(s.kind)+'</button>':'')+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':'')+'</div>';
+   '<div class="storyMeta"><button class="badge tagLink" data-tag="'+esc(s.id)+'">'+esc(s.id)+'</button>'+(s.kind?'<button class="badge tagLink" data-tag="'+esc(s.kind)+'">'+esc(s.kind)+'</button>':'')+'<span class="badge">'+esc(storyState(s))+'</span>'+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':'')+'</div>';
  if(!ch){
    if(s.data?.editorial_summary){
      html+='<div class="storyIntro">'+esc(s.data.editorial_summary)+'</div>';

@@ -28,7 +28,13 @@ button,input,textarea,select{font:inherit;color:var(--ink)}button{color:var(--in
 .classHotspot.unknown{border-color:#b8842f55}
 .reviewCard,.moderationCard{border:1px solid var(--line);border-radius:12px;padding:11px;margin:8px 0;background:var(--paper)}
 .reviewActions,.moderationActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
-.reviewActions button,.moderationActions button{width:auto;margin:0;padding:8px 10px}.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
+.reviewActions button,.moderationActions button{width:auto;margin:0;padding:8px 10px}
+.identitySuggestCrop{width:104px;height:132px;border-radius:12px;border:1px solid var(--line);margin:0 auto 12px;background:var(--soft)}
+.identityReviewTop{display:grid;grid-template-columns:72px 1fr;gap:11px;align-items:start}
+.identityReviewCrop{width:72px;height:92px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
+.identityReviewName{font:700 17px Georgia,serif;margin-bottom:3px}
+@media(max-width:520px){.identityReviewTop{grid-template-columns:62px 1fr}.identityReviewCrop{width:62px;height:80px}}
+.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
 main{max-width:760px;margin:auto}.view{display:none}.view.active{display:block}.pad{padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
 a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10px 0}.hero p{font-size:17px;line-height:1.45;color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.45}
 .bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--nav-bg);border-top:1px solid var(--line);z-index:30}
@@ -1864,11 +1870,18 @@ function cropImageHtml(url,photo,region,className,aspect,padX=0,padY=0,attrs="",
  const top=(-r.y/r.h*100).toFixed(4);
  return '<div class="'+className+' archiveCrop"'+(attrs?' '+attrs:'')+'><img src="'+esc(url)+'" alt="'+esc(alt)+'" style="width:'+width+'%;height:auto;left:'+left+'%;top:'+top+'%"></div>';
 }
+function personIdentityUnknown(p){
+ const name=String(p?.canonical_name||"").trim().toLowerCase();
+ return !p || (p.identification_status||"")!=="подтверждено" || !name || name==="не установлено" || name==="имя не установлено";
+}
+function personDisplayName(p){
+ return personIdentityUnknown(p)?"Имя не установлено · № "+(p?.number??""):p.canonical_name;
+}
 function personThumbHtml(p,className="personPortrait"){
  const r=classPhotoState?.regions?.[p.id],cp=classPhotoState?.photo,url=classPhotoState?.url;
  if(!r||!cp||!url)return "";
  const aspect=className==="classSelectionPortrait"?64/82:4/5;
- const label=p.canonical_name||("Позиция № "+(p.number??""));
+ const label=personDisplayName(p)||("Позиция № "+(p.number??""));
  return cropImageHtml(url,cp,r,className,aspect,0,0,'aria-label="'+esc(label)+'"',label);
 }
 function selectPerson(id,scrollList=true){
@@ -1889,15 +1902,15 @@ function renderClassPhotoPanel(arr){
      const r=regs[p.id]; if(!r)return "";
      const left=(r.x/cp.source_width*100),top=(r.y/cp.source_height*100),w=(r.w/cp.source_width*100),hh=(r.h/cp.source_height*100);
      const active=p.id===selectedPersonId;
-     const unknown=(p.identification_status||"")!=="подтверждено" || !p.canonical_name || p.canonical_name==="Не установлено" || p.canonical_name==="Имя не установлено";
-     const label=unknown?"Имя не установлено · нажмите, чтобы подписать":p.canonical_name;
+     const unknown=personIdentityUnknown(p);
+     const label=unknown?"Имя не установлено · нажмите, чтобы выбрать":p.canonical_name;
      return '<button class="classHotspot '+(active?"active ":"")+(showClassNumbers?"showNo ":"")+(unknown?"unknown":"")+'" data-hot-person="'+esc(p.id)+'" data-unknown="'+(unknown?"1":"0")+'" data-person-label="'+esc(label)+'" title="'+esc(label)+'" style="left:'+left+'%;top:'+top+'%;width:'+w+'%;height:'+hh+'%">'+(showClassNumbers?esc(p.number||""):"")+'</button>';
    }).join("");
    stage='<div class="classPhotoStage" style="aspect-ratio:'+cp.source_width+' / '+cp.source_height+'"><img src="'+url+'" alt="'+esc(cp.title)+'">'+hotspots+'</div>';
  }else{
    stage='<div class="classPhotoStage"><div class="classPhotoMissing"><div><b>Общая фотография '+esc(peopleGroup)+'</b><br>Файл ещё не загружен в закрытый архив.'+(editor?'<br><button class="secondary" id="uploadClassPhotoBtn">Загрузить фотографию</button>':'')+'</div></div></div>';
  }
- return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);return '<div class="classSelection">'+portrait+'<div class="classSelectionText"><b>'+esc(p.canonical_name||("Имя не установлено · № "+(p.number??"")))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div><div class="classSelectionActions">'+((profile?.role==="editor"||profile?.role==="admin")&&p.group_name==="10А"?'<button class="secondary" id="editSelectedPersonBtn">Уточнить имя</button>':'')+'</div></div>'})():'')+'</div>';
+ return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);const unknown=personIdentityUnknown(p);const editor=profile?.role==="editor"||profile?.role==="admin";const action=editor?'<button class="secondary" id="editSelectedPersonBtn">'+(unknown?"Назначить имя":"Исправить подпись")+'</button>':(unknown?'<button class="secondary" id="suggestSelectedPersonBtn">Предложить имя</button>':'');return '<div class="classSelection">'+portrait+'<div class="classSelectionText"><b>'+esc(personDisplayName(p))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(unknown?'<div class="small">Лицо выбрано. Имя пока не подтверждено.</div>':'')+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div><div class="classSelectionActions">'+action+'</div></div>'})():'')+'</div>';
 }
 function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
@@ -1912,15 +1925,15 @@ function renderPeople(){
      :'<div class="personNo">'+esc(p.number??"")+'</div>';
    const editor=profile?.role==="editor"||profile?.role==="admin";
    const status=p.identification_status||"подтверждено";
-   const shownName=p.canonical_name||("Имя не установлено · № "+(p.number??""));
-   const confirmed=status==="подтверждено";
+   const shownName=personDisplayName(p);
+   const confirmed=!personIdentityUnknown(p);
    return '<article class="personCard '+(p.id===selectedPersonId?"selected":"")+'" data-person-id="'+esc(p.id)+'">'+thumb+'<div class="personMeta"><h3>'+esc(shownName)+'</h3>'+
      '<div class="personAlbumSub">'+esc(p.group_name||"")+' · № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+
      (!confirmed?'<span class="badge">имя уточняется</span>':'')+
      (p.identification_note&&!confirmed?'<div class="small" style="margin-top:5px">'+esc(p.identification_note)+'</div>':'')+
      ((stories||media)?'<div class="personLinks">'+stories+media+'</div>':'')+
      (editor?'<div class="personTech">'+esc(p.id)+' · '+esc(status)+(p.aliases?.length?" · в чате: "+esc(p.aliases.join(", ")):"")+'</div>':'')+
-     (editor&&p.group_name==="10А"?'<div class="personLinks"><button class="mini" data-edit-person="'+esc(p.id)+'">Уточнить имя</button></div>':'')+
+     (editor?'<div class="personLinks"><button class="mini" data-edit-person="'+esc(p.id)+'">'+(confirmed?"Исправить подпись":"Назначить имя")+'</button></div>':'')+
    '</div></article>';
  }).join("")||'<div class="notice">Ничего не найдено.</div>';
  if(["10А","10Б"].includes(peopleGroup)){
@@ -1934,8 +1947,9 @@ function renderPeople(){
  $("peopleList").querySelectorAll("[data-pmedia]").forEach(b=>b.onclick=e=>{e.stopPropagation();mediaFocus=b.dataset.pmedia;showView("photos")});
  $("peopleList").querySelectorAll("[data-person-id]").forEach(c=>c.onclick=e=>{if(e.target.closest("button"))return;selectPerson(c.dataset.personId,false)});
  $("peopleList").querySelectorAll("[data-edit-person]").forEach(b=>b.onclick=e=>{e.stopPropagation();editPersonIdentity(b.dataset.editPerson)});
- $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>b.dataset.unknown==="1"?suggestPersonIdentity(b.dataset.hotPerson):selectPerson(b.dataset.hotPerson,true));
+ $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>selectPerson(b.dataset.hotPerson,false));
  if($("toggleClassNumbers"))$("toggleClassNumbers").onclick=()=>{showClassNumbers=!showClassNumbers;renderPeople()};
+ if($("suggestSelectedPersonBtn"))$("suggestSelectedPersonBtn").onclick=()=>suggestPersonIdentity(selectedPersonId);
  if($("editSelectedPersonBtn"))$("editSelectedPersonBtn").onclick=()=>editPersonIdentity(selectedPersonId);
  if($("uploadClassPhotoBtn"))$("uploadClassPhotoBtn").onclick=()=>{$("classPhotoInput").value="";$("classPhotoInput").click()};
 }
@@ -1943,8 +1957,10 @@ function renderPeople(){
 function suggestPersonIdentity(id){
  const p=peopleCache.find(x=>x.id===id);if(!p||!user)return;
  const classPhotoId=p.group_name==="10А"?"CLASS-10A":"CLASS-10B";
+ const crop=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
  openPhotoModal("Кто это? · "+p.group_name+" № "+(p.number??""),
-   '<div class="notice">Предложите имя. Редактор проверит подпись, чтобы случайная ошибка не стала частью архива.</div>'+
+   crop+
+   '<div class="notice">Вы подписываете именно выбранное лицо — позицию № '+esc(p.number??"")+'. Предложите имя; редактор сверит фотографию и подтверждение.</div>'+
    '<label>Фамилия и имя</label><input id="pfSuggestedName" placeholder="Например: Иванов Сергей">'+
    '<label>Почему вы уверены?</label><textarea id="pfSuggestedNote" placeholder="Например: сидели за одной партой; подтвердил ещё кто-то"></textarea>',
    async()=>{
@@ -1960,32 +1976,28 @@ function suggestPersonIdentity(id){
 function editPersonIdentity(id){
  const p=peopleCache.find(x=>x.id===id);if(!p)return;
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
- const currentName=(p.canonical_name||"").startsWith("Имя не установлено")?"":(p.canonical_name||"");
+ const currentName=personIdentityUnknown(p)?"":(p.canonical_name||"");
  const currentStatus=p.identification_status||"не установлено";
+ const crop=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
  openPhotoModal("Идентификация · "+(p.group_name||"")+" № "+(p.number??""),
+   crop+
+   '<div class="notice">Редактируется выбранная позиция на общей фотографии: <b>'+esc(p.id)+'</b>. При статусе «не установлено» имя не сохраняется.</div>'+
    '<label>Фамилия и имя</label><input id="pfPersonName" value="'+esc(currentName)+'" placeholder="Например: Иванова Елена">'+
    '<label>Статус</label><select id="pfPersonStatus">'+
      ['не установлено','предположительно','подтверждено'].map(x=>'<option '+(x===currentStatus?"selected":"")+'>'+x+'</option>').join("")+
    '</select>'+
    '<label>Комментарий / кто подтвердил</label><textarea id="pfPersonNote" placeholder="Например: имя подтвердили Марина и Татьяна">'+esc(p.identification_note||"")+'</textarea>'+
-   '<div class="formHint">Позиция '+esc(p.id)+' сохраняется. Меняется имя и статус идентификации.</div>',
+   '<div class="formHint">Если имя уже подтверждено на другой позиции этого класса, сохранение будет остановлено.</div>',
    async()=>{
      const name=$("pfPersonName").value.trim();
      const status=$("pfPersonStatus").value;
      const note=$("pfPersonNote").value.trim();
-     if(status!=="не установлено"&&!name)throw new Error("Укажите имя.");
-     const canonical=status==="не установлено"?(name||"Имя не установлено"):name;
-     const {error}=await sb.from("archive_people").update({
-       canonical_name:canonical,
-       identification_status:status,
-       identification_note:note||null,
-       updated_at:new Date().toISOString()
-     }).eq("id",id);
+     if(status!=="не установлено"&&(!name||["не установлено","имя не установлено"].includes(name.toLowerCase())))throw new Error("Укажите реальное имя.");
+     const {error}=await sb.rpc("set_person_identity",{p_person_id:id,p_name:name,p_status:status,p_note:note||null});
      if(error)throw error;
-     const idx=peopleCache.findIndex(x=>x.id===id);
-     if(idx>=0)peopleCache[idx]={...peopleCache[idx],canonical_name:canonical,identification_status:status,identification_note:note||null};
-     renderPeople();
-     if(status==="подтверждено")setTimeout(()=>alert("Имя подтверждено. Связанный вопрос 10А автоматически отмечен решённым."),50);
+     peopleCache=[];
+     await loadPeople();
+     if(status==="подтверждено"&&p.group_name==="10А")setTimeout(()=>alert("Имя подтверждено. Связанный вопрос 10А автоматически отмечен решённым."),50);
    }
  );
 }

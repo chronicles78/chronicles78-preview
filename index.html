@@ -1233,10 +1233,23 @@ async function activateTag(tag){
    return;
  }
  if(/^10[ABАБ]-\d+$/i.test(tag)){
-   const p=peopleCache.find(x=>x.id.toLowerCase()===tag.toLowerCase());
-   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:p?.group_name||peopleGroup,selectedPersonId:p?.id||tag},()=>{
+   let p=peopleCache.find(x=>x.id.toLowerCase()===tag.toLowerCase());
+   if(!p){
+     const {data}=await sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data,identification_status,identification_note").eq("id",tag).maybeSingle();
+     p=data||null;
+   }
+   const inferred=/^10A-/i.test(tag)?"10А":/^10B-/i.test(tag)?"10Б":null;
+   const targetGroup=p?.group_name||inferred||peopleGroup;
+   const targetId=p?.id||tag;
+   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:targetGroup,selectedPersonId:targetId},async()=>{
+     peopleGroup=targetGroup;
+     selectedPersonId=targetId;
+     showClassNumbers=false;
+     document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===targetGroup));
      showView("people");
-     if(p){peopleGroup=p.group_name;selectedPersonId=p.id;renderPeople();setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(p.id)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80)}
+     await loadClassPhoto();
+     renderPeople();
+     setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(targetId)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80);
    });
    return;
  }
@@ -1285,9 +1298,24 @@ async function activateTag(tag){
    const id=b.dataset.tagMedia;closePhotoModal();
    navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:id},()=>{mediaFocus=id;showView("photos");setTimeout(()=>openArchivePhoto(id),120)});
  });
- document.querySelectorAll("[data-tag-person]").forEach(b=>b.onclick=()=>{
-   const p=peopleCache.find(x=>x.id===b.dataset.tagPerson);closePhotoModal();
-   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:p?.group_name||peopleGroup,selectedPersonId:p?.id||null},()=>{showView("people");if(p){peopleGroup=p.group_name;selectedPersonId=p.id;renderPeople()}});
+ document.querySelectorAll("[data-tag-person]").forEach(b=>b.onclick=async()=>{
+   const id=b.dataset.tagPerson;
+   let p=peopleCache.find(x=>x.id===id);
+   if(!p){
+     const {data}=await sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data,identification_status,identification_note").eq("id",id).maybeSingle();
+     p=data||null;
+   }
+   closePhotoModal();
+   const targetGroup=p?.group_name||peopleGroup;
+   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:targetGroup,selectedPersonId:p?.id||id},async()=>{
+     peopleGroup=targetGroup;
+     selectedPersonId=p?.id||id;
+     showClassNumbers=false;
+     document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===targetGroup));
+     showView("people");
+     await loadClassPhoto();
+     renderPeople();
+   });
  });
  document.querySelectorAll("[data-tag-question]").forEach(b=>b.onclick=()=>{
    const label=b.textContent.trim();closePhotoModal();

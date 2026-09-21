@@ -1633,9 +1633,7 @@ async function loadRoom(){
  if(seq!==chatLoadSeq||room!==currentRoom)return;
 
  const allAttachments=lastMessages.flatMap(m=>(m.attachments||[]).filter(x=>!x.is_removed));
- const signedByPath=await signedChatImages(allAttachments.map(a=>a.current_storage_path));
- if(seq!==chatLoadSeq||room!==currentRoom)return;
- const signed=Object.fromEntries(allAttachments.map(a=>[a.id,signedByPath[a.current_storage_path]||null]));
+ const signedPromise=signedChatImages(allAttachments.map(a=>a.current_storage_path));
  const messageById=new Map(lastMessages.map(m=>[m.id,m]));
  const readCountByMessage=new Map();
  readRows.forEach(r=>{
@@ -1665,7 +1663,8 @@ async function loadRoom(){
    const liveAttachments=(m.attachments||[]).filter(a=>!a.is_removed);
    const photos=liveAttachments.map(a=>
      '<div class="attachmentWrap">'+
-       (signed[a.id]?'<img class="attachment" src="'+signed[a.id]+'" alt="'+esc(a.current_file_name||"Фото")+'">':'<div class="notice">Фото недоступно.</div>')+
+       '<div class="notice" data-chat-photo-wait="'+a.id+'">Фото загружается…</div>'+
+       '<img class="attachment" data-chat-photo="'+a.id+'" alt="'+esc(a.current_file_name||"Фото")+'" style="display:none">'+
        (a.caption?'<div class="caption">'+esc(a.caption)+'</div>':'')+
      '</div>'
    ).join("");
@@ -1770,6 +1769,22 @@ async function loadRoom(){
  $("messages").querySelectorAll("[data-photo-remove]").forEach(b=>b.onclick=()=>removePhotoAttachment(b.dataset.photoRemove));
  $("messages").querySelectorAll("[data-photo-history]").forEach(b=>b.onclick=()=>showPhotoVersions(b.dataset.photoHistory));
  $("messages").querySelectorAll("[data-photo-archive]").forEach(b=>b.onclick=()=>archivePhotoFromChat(b.dataset.photoArchive,b.dataset.mid));
+
+ signedPromise.then(signedByPath=>{
+   if(seq!==chatLoadSeq||room!==currentRoom)return;
+   allAttachments.forEach(a=>{
+     const img=$("messages").querySelector('[data-chat-photo="'+CSS.escape(String(a.id))+'"]');
+     const wait=$("messages").querySelector('[data-chat-photo-wait="'+CSS.escape(String(a.id))+'"]');
+     const url=signedByPath[a.current_storage_path]||null;
+     if(url&&img){
+       img.src=url;
+       img.style.display="";
+       wait?.remove();
+     }else if(wait){
+       wait.textContent="Фото недоступно.";
+     }
+   });
+ }).catch(()=>{});
 
  requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);
 }

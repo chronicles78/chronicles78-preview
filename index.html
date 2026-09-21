@@ -13,7 +13,7 @@ html[data-theme="dark"]{--bg:#171512;--paper:#211e1a;--paper-2:#26221d;--ink:#ee
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 body{min-height:100dvh;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))}
 button,input,textarea,select{font:inherit;color:var(--ink)}button{color:var(--ink)}.top{height:58px;position:sticky;top:0;z-index:20;background:var(--header);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px}
-.brand{font:700 21px Georgia,serif}.topRight{display:flex;align-items:center;gap:7px}.themeBtn{border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;width:34px;height:34px;font-size:16px;display:grid;place-items:center}.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
+.topLeft{display:flex;align-items:center;gap:10px}.brand{font:700 21px Georgia,serif}.contextBackBtn{display:none;border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;padding:7px 10px;font-size:12px;font-weight:700}.contextBackBtn.show{display:inline-flex;align-items:center;gap:4px}.topRight{display:flex;align-items:center;gap:7px}.themeBtn{border:1px solid var(--line);background:var(--input);color:var(--ink);border-radius:99px;width:34px;height:34px;font-size:16px;display:grid;place-items:center}.status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
 main{max-width:760px;margin:auto}.view{display:none}.view.active{display:block}.pad{padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
 a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10px 0}.hero p{font-size:17px;line-height:1.45;color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.45}
 .bottom{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--nav-bg);border-top:1px solid var(--line);z-index:30}
@@ -440,7 +440,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 </style>
 </head>
 <body>
-<header class="top"><div class="brand">Хроники-78</div><div class="topRight"><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">Хроники-78</div></div><div class="topRight"><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active"><div class="pad"><div class="homeWrap"><div class="homeIntro"><div class="small">ХРОНИКИ 78-Й</div><h1>Книга, которую можно читать.<br>Память, по которой можно ходить.</h1><p>Школа №78 · Куйбышев · выпуск 1983 года. Истории, лица, фотографии и воспоминания, которые мы собираем вместе.</p></div><div id="homeState" class="notice">Проверяю общую базу…</div><div id="homeDashboard"></div></div></div></section>
 
@@ -560,7 +560,7 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
+let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,unsubRead=null,replyTo=null,pendingFiles=[],photoAction=null,archiveReplaceId=null,photoModalSubmit=null,cityPhotoCursor=null,openStoryId=null,lastMessages=[],reactionRows=[],peopleCache=[],peopleGroup="10Б",storyIndex=[],classPhotoState=null,selectedPersonId=null,showClassNumbers=false,questionCache=[],questionPriority="all",questionStatus="open",questionDiscussion=null,question10AVisual=null,mediaFocus=null,mediaCache=[],mediaSigned={},photoFilter="all",storyCache=[],storyFilter="all",cityCache=[],cityTheme="all";
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
@@ -762,10 +762,66 @@ function openMoreNav(){
  $("moreNavShade")?.setAttribute("aria-hidden","false");
  $("mobileMoreBtn")?.setAttribute("aria-expanded","true");
 }
+function activeViewId(){
+ return document.querySelector(".view.active")?.id||"home";
+}
+function captureNavState(){
+ return {
+   view:activeViewId(),
+   scrollY:window.scrollY||0,
+   storyOpen:$("storyDetail")?.classList.contains("open")||false,
+   storyId:openStoryId,
+   storyScroll:$("storyDetail")?.scrollTop||0,
+   peopleGroup,selectedPersonId,storyFilter,photoFilter,mediaFocus,cityTheme,
+   questionPriority,questionStatus
+ };
+}
+function syncHistoryEntry(){
+ try{history.replaceState({chronicles78:true,nav:captureNavState()},document.title,location.href)}catch(e){}
+}
+function updateContextBack(){
+ const tagged=!!history.state?.chronicles78Tag;
+ $("contextBackBtn")?.classList.toggle("show",tagged);
+}
+function navigateFromTag(targetState,runner){
+ syncHistoryEntry();
+ try{
+   history.pushState({chronicles78:true,chronicles78Tag:true,nav:targetState},document.title,location.href);
+ }catch(e){}
+ updateContextBack();
+ runner();
+}
+async function restoreNavState(state){
+ if(!state)return;
+ peopleGroup=state.peopleGroup||peopleGroup;
+ selectedPersonId=state.selectedPersonId??null;
+ storyFilter=state.storyFilter||storyFilter;
+ photoFilter=state.photoFilter||photoFilter;
+ mediaFocus=state.mediaFocus??null;
+ cityTheme=state.cityTheme||cityTheme;
+ questionPriority=state.questionPriority||questionPriority;
+ questionStatus=state.questionStatus||questionStatus;
+ showView(state.view||"home");
+ await new Promise(r=>setTimeout(r,180));
+ if(state.storyOpen&&state.storyId){
+   await openStory(state.storyId);
+   await new Promise(r=>setTimeout(r,60));
+   if($("storyDetail"))$("storyDetail").scrollTop=state.storyScroll||0;
+ }else{
+   window.scrollTo({top:state.scrollY||0,left:0,behavior:"auto"});
+ }
+}
+window.addEventListener("popstate",async e=>{
+ closePhotoModal();
+ closeMoreNav();
+ await restoreNavState(e.state?.nav||{view:"home",scrollY:0});
+ updateContextBack();
+});
+setTimeout(()=>{syncHistoryEntry();updateContextBack()},0);
 function showView(v){
  if(!v)return;
  closeMoreNav();
- if($("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open");
+ if($("storyDetail")?.classList.contains("open")){$("storyDetail").classList.remove("open");openStoryId=null;}
  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));
  document.querySelectorAll(".nav[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  const secondary=["photos","city","questions","profile"].includes(v);
@@ -786,6 +842,7 @@ $("mobileMoreBtn").onclick=()=>{
 $("moreNavClose").onclick=closeMoreNav;
 $("moreNavShade").onclick=closeMoreNav;
 document.querySelectorAll("[data-more-view]").forEach(b=>b.onclick=()=>showView(b.dataset.moreView));
+$("contextBackBtn").onclick=()=>history.back();
 function closeChatMenus(){
  document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
 }
@@ -796,27 +853,35 @@ async function activateTag(tag){
 
  // Direct entity links.
  if(/^S-\d+$/i.test(tag)){
-   showView("stories");
-   setTimeout(()=>openStory(tag),0);
+   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:tag,storyScroll:0},()=>{
+     showView("stories");
+     setTimeout(()=>openStory(tag),0);
+   });
    return;
  }
  if(/^MEDIA-\d+$/i.test(tag)){
-   mediaFocus=tag;
-   showView("photos");
-   setTimeout(()=>openArchivePhoto(tag),120);
+   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:tag},()=>{
+     mediaFocus=tag;
+     showView("photos");
+     setTimeout(()=>openArchivePhoto(tag),120);
+   });
    return;
  }
  if(/^10[ABАБ]-\d+$/i.test(tag)){
-   showView("people");
    const p=peopleCache.find(x=>x.id.toLowerCase()===tag.toLowerCase());
-   if(p){peopleGroup=p.group_name;selectedPersonId=p.id;renderPeople();setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(p.id)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80)}
+   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:p?.group_name||peopleGroup,selectedPersonId:p?.id||tag},()=>{
+     showView("people");
+     if(p){peopleGroup=p.group_name;selectedPersonId=p.id;renderPeople();setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(p.id)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80)}
+   });
    return;
  }
  if(tag==="10А"||tag==="10Б"){
-   peopleGroup=tag;selectedPersonId=null;
-   showView("people");
-   document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===tag));
-   await loadClassPhoto();renderPeople();
+   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:tag,selectedPersonId:null},async()=>{
+     peopleGroup=tag;selectedPersonId=null;
+     showView("people");
+     document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===tag));
+     await loadClassPhoto();renderPeople();
+   });
    return;
  }
 
@@ -847,10 +912,22 @@ async function activateTag(tag){
  $("photoModalSave").textContent="Закрыть";
  photoModalSubmit=async()=>closePhotoModal();
 
- document.querySelectorAll("[data-tag-story]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.tagStory)});
- document.querySelectorAll("[data-tag-media]").forEach(b=>b.onclick=()=>{closePhotoModal();mediaFocus=b.dataset.tagMedia;showView("photos")});
- document.querySelectorAll("[data-tag-person]").forEach(b=>b.onclick=()=>{const p=peopleCache.find(x=>x.id===b.dataset.tagPerson);closePhotoModal();showView("people");if(p){peopleGroup=p.group_name;selectedPersonId=p.id;renderPeople()}});
- document.querySelectorAll("[data-tag-question]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("questions");setTimeout(()=>{const card=[...document.querySelectorAll("#questionsList .archiveCard")].find(x=>x.textContent.includes(b.textContent.trim()));card?.scrollIntoView({behavior:"smooth",block:"center"})},150)});
+ document.querySelectorAll("[data-tag-story]").forEach(b=>b.onclick=()=>{
+   const id=b.dataset.tagStory;closePhotoModal();
+   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:id,storyScroll:0},()=>{showView("stories");openStory(id)});
+ });
+ document.querySelectorAll("[data-tag-media]").forEach(b=>b.onclick=()=>{
+   const id=b.dataset.tagMedia;closePhotoModal();
+   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:id},()=>{mediaFocus=id;showView("photos");setTimeout(()=>openArchivePhoto(id),120)});
+ });
+ document.querySelectorAll("[data-tag-person]").forEach(b=>b.onclick=()=>{
+   const p=peopleCache.find(x=>x.id===b.dataset.tagPerson);closePhotoModal();
+   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:p?.group_name||peopleGroup,selectedPersonId:p?.id||null},()=>{showView("people");if(p){peopleGroup=p.group_name;selectedPersonId=p.id;renderPeople()}});
+ });
+ document.querySelectorAll("[data-tag-question]").forEach(b=>b.onclick=()=>{
+   const label=b.textContent.trim();closePhotoModal();
+   navigateFromTag({view:"questions",scrollY:0,storyOpen:false},()=>{showView("questions");setTimeout(()=>{const card=[...document.querySelectorAll("#questionsList .archiveCard")].find(x=>x.textContent.includes(label));card?.scrollIntoView({behavior:"smooth",block:"center"})},180)});
+ });
 }
 document.addEventListener("click",e=>{
  const t=e.target.closest("[data-tag]");
@@ -1573,6 +1650,7 @@ function personGroupHtml(title,arr){
  '</div></section>';
 }
 async function openStory(id){
+ openStoryId=id;
  const {data:s,error}=await sb.from("archive_stories").select("*").eq("id",id).maybeSingle();
  if(error||!s){alert(error?.message||"История не найдена");return}
  const ch=s.data?.chapter;
@@ -1619,7 +1697,10 @@ async function openStory(id){
  $("storyDetail").classList.add("open");
  $("storyDetail").scrollTop=0;
 }
-$("closeStory").onclick=()=>$("storyDetail").classList.remove("open");
+$("closeStory").onclick=()=>{
+ if(history.state?.chronicles78Tag){history.back();return}
+ $("storyDetail").classList.remove("open");openStoryId=null;
+};
 document.addEventListener("keydown",e=>{
  if(e.key==="Escape"){
    document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));

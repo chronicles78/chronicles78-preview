@@ -62,7 +62,7 @@ async function uploadToDrive(args: {
     closeDelimiter,
   ]);
   const driveRes = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,mimeType,webViewLink,createdTime",
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,mimeType,md5Checksum,webViewLink,createdTime,trashed,parents",
     {
       method: "POST",
       headers: {
@@ -79,6 +79,43 @@ async function uploadToDrive(args: {
   return driveJson;
 }
 
+async function getDriveFile(accessToken: string, fileId: string) {
+  const res = await fetch(
+    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(fileId) +
+      "?fields=id,name,size,mimeType,md5Checksum,webViewLink,createdTime,trashed,parents",
+    { headers: { Authorization: "Bearer " + accessToken } },
+  );
+  if (res.status === 404) return null;
+  const json = await res.json();
+  if (!res.ok) throw new Error("google_drive_verify_failed: " + JSON.stringify(json));
+  return json;
+}
+
+async function findDriveFile(accessToken: string, folderId: string, objectId: string) {
+  const escaped = objectId.replaceAll("'", "\\'");
+  const q = [
+    "trashed = false",
+    "'" + folderId.replaceAll("'", "\\'") + "' in parents",
+    "appProperties has { key='chronicles78_object_id' and value='" + escaped + "' }",
+  ].join(" and ");
+  const url = "https://www.googleapis.com/drive/v3/files?q=" + encodeURIComponent(q) +
+    "&pageSize=2&fields=files(id,name,size,mimeType,md5Checksum,webViewLink,createdTime,trashed,parents)";
+  const res = await fetch(url, { headers: { Authorization: "Bearer " + accessToken } });
+  const json = await res.json();
+  if (!res.ok) throw new Error("google_drive_lookup_failed: " + JSON.stringify(json));
+  return json?.files?.[0] || null;
+}
+
+function verifyDriveFile(file: any, expectedSize: number, folderId: string) {
+  if (!file?.id || file.trashed === true) throw new Error("google_drive_file_missing");
+  if (!Array.isArray(file.parents) || !file.parents.includes(folderId)) {
+    throw new Error("google_drive_parent_mismatch");
+  }
+  if (Number(file.size) !== Number(expectedSize)) {
+    throw new Error("google_drive_size_mismatch: expected=" + expectedSize + " actual=" + file.size);
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return response({ error: "method_not_allowed" }, 405);
@@ -91,27 +128,31 @@ Deno.serve(async (req: Request) => {
 
   const authorization = req.headers.get("Authorization") || "";
   const jwt = authorization.replace(/^Bearer\s+/i, "").trim();
-  if (!jwt) return response({ error: "authentication_required" }, 401);
+  const workerSecret = Deno.env.get("GOOGLE_DRIVE_CRON_SECRET") || "";
+  const suppliedWorkerSecret = req.headers.get("x-chronicles-cron-secret") || "";
+  const isWorker = !!workerSecret && suppliedWorkerSecret === workerSecret;
+  if (!jwt && !isWorker) return response({ error: "authentication_required" }, 401);
 
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data: authData, error: authError } = await admin.auth.getUser(jwt);
-  const user = authData?.user;
-  if (authError || !user) return response({ error: "invalid_session" }, 401);
+  let callerRole = isWorker ? "worker" : "";
+  if (!isWorker) {
+    const { data: authData, error: authError } = await admin.auth.getUser(jwt);
+    const user = authData?.user;
+    if (authError || !user) return response({ error: "invalid_session" }, 401);
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("role,is_active")
-    .eq("id", user.id)
-    .maybeSingle();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role,is_active")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  if (
-    !profile?.is_active ||
-    !["editor", "admin"].includes(String(profile.role))
-  ) {
-    return response({ error: "not_allowed" }, 403);
+    if (!profile?.is_active || !["editor", "admin"].includes(String(profile.role))) {
+      return response({ error: "not_allowed" }, 403);
+    }
+    callerRole = String(profile.role);
   }
 
   let input: {
@@ -126,7 +167,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const releaseSupabase = input.releaseSupabase === true;
-  if (releaseSupabase && profile.role !== "admin") {
+  if (releaseSupabase && !["admin", "worker"].includes(callerRole)) {
     return response({ error: "admin_required_to_release_supabase_copy" }, 403);
   }
 
@@ -149,12 +190,13 @@ Deno.serve(async (req: Request) => {
   if (!backend.originals_folder_id) {
     return response({ error: "google_drive_folder_missing" }, 503);
   }
+  const deletionEnabled = backend.config?.delete_supabase_after_mirror === true;
 
   let query = admin
     .from("archive_original_objects")
     .select("*")
     .is("source_deleted_at", null)
-    .in("mirror_status", ["pending", "failed"])
+    .in("mirror_status", releaseSupabase ? ["pending", "failed", "mirrored"] : ["pending", "failed"])
     .order("created_at", { ascending: true });
 
   const objectId = String(input.objectId || "").trim();
@@ -195,14 +237,23 @@ Deno.serve(async (req: Request) => {
         throw new Error("source_download_failed: " + (downloadError?.message || ""));
       }
 
-      const driveFile = await uploadToDrive({
-        accessToken,
-        folderId: backend.originals_folder_id,
-        objectId: obj.id,
-        fileName: obj.file_name || obj.source_path.split("/").pop() || "photo",
-        mimeType: obj.mime_type || blob.type || "application/octet-stream",
-        blob,
-      });
+      let driveFile = obj.external_file_id
+        ? await getDriveFile(accessToken, obj.external_file_id)
+        : null;
+      if (!driveFile) {
+        driveFile = await findDriveFile(accessToken, backend.originals_folder_id, obj.id);
+      }
+      if (!driveFile) {
+        driveFile = await uploadToDrive({
+          accessToken,
+          folderId: backend.originals_folder_id,
+          objectId: obj.id,
+          fileName: obj.file_name || obj.source_path.split("/").pop() || "photo",
+          mimeType: obj.mime_type || blob.type || "application/octet-stream",
+          blob,
+        });
+      }
+      verifyDriveFile(driveFile, Number(obj.file_size || blob.size), backend.originals_folder_id);
 
       const now = new Date().toISOString();
       const patch: Record<string, unknown> = {
@@ -216,7 +267,7 @@ Deno.serve(async (req: Request) => {
         updated_at: now,
       };
 
-      if (releaseSupabase) {
+      if (releaseSupabase && deletionEnabled) {
         const { error: removeError } = await admin.storage
           .from(obj.source_bucket)
           .remove([obj.source_path]);
@@ -233,7 +284,8 @@ Deno.serve(async (req: Request) => {
         id: obj.id,
         ok: true,
         driveFileId: driveFile.id,
-        released: releaseSupabase && !!patch.source_deleted_at,
+        verified: true,
+        released: releaseSupabase && deletionEnabled && !!patch.source_deleted_at,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -253,6 +305,7 @@ Deno.serve(async (req: Request) => {
     ok: true,
     processed: items.length,
     releaseSupabase,
+    deletionEnabled,
     items,
   });
 });

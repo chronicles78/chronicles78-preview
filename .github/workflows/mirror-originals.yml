@@ -1,0 +1,50 @@
+name: Chronicles-78 mirror originals
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      release_supabase:
+        description: "Release verified Supabase originals when backend policy allows it"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate worker secret
+        shell: bash
+        env:
+          ARCHIVE_WORKER_SECRET: ${{ secrets.ARCHIVE_WORKER_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "${ARCHIVE_WORKER_SECRET:-}" || {
+            echo "::error::Missing GitHub Actions secret: ARCHIVE_WORKER_SECRET"
+            exit 1
+          }
+
+      - name: Mirror pending originals to Google Drive
+        shell: bash
+        env:
+          ARCHIVE_WORKER_SECRET: ${{ secrets.ARCHIVE_WORKER_SECRET }}
+          MANUAL_RELEASE: ${{ inputs.release_supabase || 'false' }}
+        run: |
+          set -euo pipefail
+          body='{"limit":10,"releaseSupabase":true}'
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ "${MANUAL_RELEASE}" != "true" ]; then
+            body='{"limit":10,"releaseSupabase":false}'
+          fi
+          response="$(curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "x-chronicles-cron-secret: ${ARCHIVE_WORKER_SECRET}" \
+            --data "${body}" \
+            "https://fnwpkmjjdhflnqghnogj.supabase.co/functions/v1/mirror-original-to-drive")"
+          printf '%s\n' "$response"

@@ -44,9 +44,10 @@ Supabase:
 Edge Function `mirror-original-to-drive` умеет:
 - выбрать pending/failed оригиналы;
 - скачать исходник из `archive-originals`;
-- загрузить его в Google Drive;
+- найти уже загруженный файл по служебному ID либо загрузить его в Google Drive без создания дубля;
+- повторно прочитать метаданные Drive и сверить папку и размер файла;
 - сохранить Drive file ID/URL в `archive_original_objects`;
-- после успешного зеркалирования, только по отдельной административной команде, удалить исходник из Supabase.
+- после успешного зеркалирования, только по отдельной административной команде и при включённой политике удаления, удалить исходник из Supabase.
 
 По умолчанию удаление из Supabase **выключено**.
 
@@ -56,8 +57,16 @@ Edge Function `mirror-original-to-drive` умеет:
 - `GOOGLE_DRIVE_CLIENT_ID`
 - `GOOGLE_DRIVE_CLIENT_SECRET`
 - `GOOGLE_DRIVE_REFRESH_TOKEN`
+- `GOOGLE_DRIVE_CRON_SECRET` — случайная строка для фонового задания.
 
 OAuth должен иметь право записи в Drive пользователя. После проверки секретов `archive_storage_backends.enabled` для `google_drive` переводится в `true`.
+
+GitHub Actions workflow `.github/workflows/mirror-originals.yml` запускается каждые 6 часов. В GitHub secret `ARCHIVE_WORKER_SECRET` должна находиться та же строка, что и в Supabase secret `GOOGLE_DRIVE_CRON_SECRET`. Плановый запуск запрашивает зеркалирование и освобождение Supabase, однако удаление срабатывает лишь при одновременном выполнении двух условий:
+
+1. фоновое задание передало `releaseSupabase=true` (для ручного запуска этот параметр можно выключить);
+2. в `archive_storage_backends.config` установлено `delete_supabase_after_mirror=true`.
+
+До отдельного включения политики `delete_supabase_after_mirror` плановый запуск не может удалить исходник. После испытательного периода эта политика включает полностью автоматическое освобождение места. Перед каждым удалением функция повторно проверяет существование файла, принадлежность папке «Оригиналы фотографий» и совпадение размера.
 
 Важно: подключение Google Drive к ChatGPT и OAuth сайта — разные контуры. Токен коннектора ChatGPT нельзя и не следует переносить в приложение.
 

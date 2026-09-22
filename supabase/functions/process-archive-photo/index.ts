@@ -296,7 +296,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (mode === "submission") {
-    const submissionId = crypto.randomUUID();
+    const submissionId = String(input.submissionId || "").trim() || crypto.randomUUID();
     const pendingPath = user.id + "/" + submissionId + "/preview.webp";
     const { error: pendingUploadError } = await admin.storage
       .from(PENDING_BUCKET)

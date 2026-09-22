@@ -879,7 +879,9 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSe
 const PASSWORD_RESET_REDIRECT=SITE_URL;
 const CONSENT_CODE="archive_personal_data";
 const CONSENT_VERSION="2026-09-22-v1";
-const OPEN_LOGIN_ON_START=new URLSearchParams(location.search).get("login")==="1";
+const START_PARAMS=new URLSearchParams(location.search);
+const OPEN_LOGIN_ON_START=START_PARAMS.get("login")==="1";
+const OPEN_REGISTER_ON_START=START_PARAMS.get("register")==="1";
 
 function openForgotPassword(){
  const current=($("email")?.value||"").trim();
@@ -1681,7 +1683,8 @@ async function init(){
  renderRooms();renderProfile();
  if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
  if(profile){subscribe();subscribeNotifications();setTimeout(prefetchClassPhotoUrls,0);}
- if(OPEN_LOGIN_ON_START&&!profile)showView("profile");
+ if(!user||OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)showView("profile");
+ if(OPEN_REGISTER_ON_START&&!user)setTimeout(openQuickRegistration,120);
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
 }
 async function login(){
@@ -1700,7 +1703,49 @@ async function login(){
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
 $("forgotPasswordBtn").onclick=openForgotPassword;
-$("goRegisterBtn").onclick=()=>{location.href="register.html"};
+
+function openQuickRegistration(){
+ openPhotoModal("Создать доступ",
+   '<div class="notice"><b>Три поля — и всё.</b><br>После регистрации сайт запомнит вход на этом устройстве.</div>'+
+   '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
+   '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
+   '<label>Пароль</label><input id="pfRegPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Не менее 6 символов">'+
+   '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на использование моих ФИО, изображения на архивных фотографиях, сведений профиля и размещённых мной материалов внутри закрытого архива «Хроники-78». <a href="consent.html" target="_blank" rel="noopener">Подробнее</a></span></label>'+
+   '<div class="formHint" style="margin-top:9px">Согласие не распространяется на открытую публикацию в интернете и рекламу.</div>',
+   async()=>{
+     const display_name=$("pfRegName").value.trim();
+     const email=$("pfRegEmail").value.trim();
+     const password=$("pfRegPassword").value;
+     if(!display_name||!email||!password)throw new Error("Введите имя, e-mail и пароль.");
+     if(password.length<6)throw new Error("Пароль должен содержать не менее 6 символов.");
+     if(!$("pfRegConsent").checked)throw new Error("Нужно подтвердить согласие для закрытого архива.");
+     $("photoModalMsg").textContent="Создаю доступ…";
+     const {data,error}=await sb.auth.signUp({
+       email,password,
+       options:{
+         data:{display_name,consent_personal_data:true,consent_version:CONSENT_VERSION},
+         emailRedirectTo:SITE_URL
+       }
+     });
+     if(error)throw error;
+     if(data.session){
+       await hydrateProfileFromSession(data.session,{render:false});
+       renderProfile();
+       if(profile){subscribe();subscribeNotifications()}
+       closePhotoModal();showView(profile?"home":"profile");
+       if(profile)await loadHome();
+       return;
+     }
+     $("photoModalBody").innerHTML=
+       '<div class="notice"><b>Почти готово.</b><br>На '+esc(email)+' отправлено письмо. Один раз нажмите в нём ссылку подтверждения — после этого вход откроется автоматически.</div>'+
+       '<div class="formHint">Никакого дополнительного одобрения администратора не требуется.</div>';
+     $("photoModalSave").textContent="Понятно";
+     photoModalSubmit=async()=>{closePhotoModal();showView("profile")};
+   }
+ );
+ $("photoModalSave").textContent="Создать доступ";
+}
+$("goRegisterBtn").onclick=openQuickRegistration;
 
 async function acceptCurrentConsent(){
  if(!user)return;

@@ -2692,7 +2692,7 @@ function renderPhotoGallery(){
    const lead=!mediaFocus&&photoFilter==="all"&&!q&&idx===0&&!!mediaSigned[m.id];
    return '<article class="photoTile contextObject '+(lead?"photoAlbumLead":"")+'" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
      '<div class="photoTileImage">'+
-       (mediaSigned[m.id]?'<img src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография ещё не загружена</div>')+
+       (mediaSigned[m.id]?'<img '+(lead?'loading="eager" fetchpriority="high"':'loading="lazy" fetchpriority="low"')+' decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография ещё не загружена</div>')+
      '</div>'+
      '<div class="photoTileBody"><div class="photoTileCaption">'+esc(readerCaption)+'</div><h3>'+esc(m.title)+'</h3>'+
        (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+

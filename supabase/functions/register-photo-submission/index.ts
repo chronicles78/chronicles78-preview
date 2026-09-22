@@ -117,6 +117,19 @@ Deno.serve(async (req: Request) => {
     return response({error:"submission_create_failed",detail:insertError.message},422);
   }
 
+  await admin.from("archive_original_objects").upsert({
+    owner_user_id:user.id,
+    submission_id:submissionId,
+    source_bucket:"archive-originals",
+    source_path:originalPath,
+    file_name:fileName,
+    mime_type:null,
+    file_size:Number(input.originalFileSize)||null,
+    storage_backend:"supabase",
+    mirror_status:"pending",
+    updated_at:new Date().toISOString(),
+  },{onConflict:"source_bucket,source_path"});
+
   const {data:moderators}=await admin.from("profiles")
     .select("id").eq("is_active",true).in("role",["editor","admin"]);
   if(moderators?.length){

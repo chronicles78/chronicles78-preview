@@ -7,10 +7,7 @@ import {
 } from "npm:@imagemagick/magick-wasm@0.0.43";
 
 const wasmBytes = await Deno.readFile(
-  new URL(
-    "magick.wasm",
-    import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.43"),
-  ),
+  new URL("magick.wasm", import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.43")),
 );
 await initializeImageMagick(wasmBytes);
 
@@ -18,6 +15,7 @@ const MAX_SIDE = 1920;
 const QUALITY = 82;
 const SOURCE_BUCKET = "archive-originals";
 const WORK_BUCKET = "archive-media";
+const PENDING_BUCKET = "archive-pending";
 
 function response(body: unknown, status = 200) {
   return Response.json(body, {
@@ -62,24 +60,36 @@ Deno.serve(async (req: Request) => {
 
   const { data: profile, error: profileError } = await admin
     .from("profiles")
-    .select("role,is_active")
+    .select("role,is_active,display_name")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError || !profile?.is_active) {
     return response({ error: "inactive_profile" }, 403);
   }
-  if (!["editor", "admin"].includes(String(profile.role))) {
-    return response({ error: "not_allowed" }, 403);
-  }
 
   let input: {
+    mode?: "archive" | "submission" | "submission_ready";
+    submissionId?: string;
     mediaId?: string;
     originalPath?: string;
+    previewPath?: string;
     fileName?: string;
     versionType?: string;
     reason?: string | null;
     sourceNote?: string | null;
+    title?: string;
+    description?: string | null;
+    approxDate?: string | null;
+    location?: string | null;
+    peopleNote?: string | null;
+    permissionConfirmed?: boolean;
+    originalFileSize?: number | null;
+    sourceWidth?: number | null;
+    sourceHeight?: number | null;
+    previewWidth?: number | null;
+    previewHeight?: number | null;
+    previewFormat?: string | null;
   };
   try {
     input = await req.json();
@@ -87,23 +97,155 @@ Deno.serve(async (req: Request) => {
     return response({ error: "invalid_json" }, 400);
   }
 
+  const mode =
+    input.mode === "submission_ready"
+      ? "submission_ready"
+      : input.mode === "submission"
+        ? "submission"
+        : "archive";
+
+  if (
+    mode === "archive" &&
+    !["editor", "admin"].includes(String(profile.role))
+  ) {
+    return response({ error: "not_allowed" }, 403);
+  }
+
   const mediaId = String(input.mediaId || "").trim();
   const originalPath = String(input.originalPath || "").trim();
   const fileName = String(input.fileName || "photo.jpg").trim();
   const versionType = String(input.versionType || "копия").trim();
-  if (!mediaId || !originalPath) {
-    return response({ error: "media_id_and_original_path_required" }, 400);
-  }
+  const title = String(input.title || "").trim();
+
+  if (!originalPath) return response({ error: "original_path_required" }, 400);
   if (!originalPath.startsWith(user.id + "/")) {
     return response({ error: "original_path_not_owned_by_user" }, 403);
   }
+  if (mode === "archive" && !mediaId) {
+    return response({ error: "media_id_required" }, 400);
+  }
+  if (mode !== "archive") {
+    if (!title) return response({ error: "title_required" }, 400);
+    if (input.permissionConfirmed !== true) {
+      return response({ error: "permission_confirmation_required" }, 400);
+    }
+  }
 
-  const { data: media, error: mediaError } = await admin
-    .from("archive_media")
-    .select("id,data")
-    .eq("id", mediaId)
-    .maybeSingle();
-  if (mediaError || !media) return response({ error: "media_not_found" }, 404);
+  const createSubmission = async (args: {
+    id?: string;
+    previewPath: string;
+    originalBytes: number | null;
+    sourceWidth: number | null;
+    sourceHeight: number | null;
+    previewWidth: number | null;
+    previewHeight: number | null;
+    previewBytes: number | null;
+    previewFormat: string;
+  }) => {
+    const submissionId = args.id || crypto.randomUUID();
+    const { error: submissionError } = await admin
+      .from("photo_submissions")
+      .insert({
+        id: submissionId,
+        submitted_by: user.id,
+        title,
+        description: String(input.description || "").trim() || null,
+        approx_date_text: String(input.approxDate || "").trim() || null,
+        location_text: String(input.location || "").trim() || null,
+        people_note: String(input.peopleNote || "").trim() || null,
+        source_note: String(input.sourceNote || "").trim() || null,
+        permission_confirmed: true,
+        original_storage_path: originalPath,
+        preview_storage_path: args.previewPath,
+        original_file_name: fileName,
+        original_file_size: args.originalBytes,
+        source_width: args.sourceWidth,
+        source_height: args.sourceHeight,
+        preview_width: args.previewWidth,
+        preview_height: args.previewHeight,
+        preview_file_size: args.previewBytes,
+        preview_format: args.previewFormat,
+        status: "pending",
+      });
+
+    if (submissionError) {
+      return { error: submissionError, submissionId };
+    }
+
+    const { data: moderators } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("is_active", true)
+      .in("role", ["editor", "admin"]);
+
+    if (moderators?.length) {
+      await admin.from("notifications").insert(
+        moderators.map((m) => ({
+          user_id: m.id,
+          kind: "photo_submission",
+          title: "Новое фото на проверку",
+          body:
+            String(profile.display_name || "Участник") +
+            ": " +
+            title,
+          entity_type: "photo_submission",
+          entity_id: submissionId,
+        })),
+      );
+    }
+    return { error: null, submissionId };
+  };
+
+  if (mode === "submission_ready") {
+    const submissionId = String(input.submissionId || "").trim();
+    const previewPath = String(input.previewPath || "").trim();
+    if (!submissionId || !previewPath) {
+      return response({ error: "submission_id_and_preview_path_required" }, 400);
+    }
+    if (!previewPath.startsWith(user.id + "/" + submissionId + "/")) {
+      return response({ error: "preview_path_not_owned_by_submission" }, 403);
+    }
+
+    const { data: previewBlob, error: previewError } = await admin.storage
+      .from(PENDING_BUCKET)
+      .download(previewPath);
+    if (previewError || !previewBlob) {
+      return response({ error: "preview_not_found", detail: previewError?.message }, 422);
+    }
+
+    const made = await createSubmission({
+      id: submissionId,
+      previewPath,
+      originalBytes: Number(input.originalFileSize) || null,
+      sourceWidth: Number(input.sourceWidth) || null,
+      sourceHeight: Number(input.sourceHeight) || null,
+      previewWidth: Number(input.previewWidth) || null,
+      previewHeight: Number(input.previewHeight) || null,
+      previewBytes: previewBlob.size,
+      previewFormat: String(input.previewFormat || "webp"),
+    });
+    if (made.error) {
+      return response({ error: "submission_create_failed", detail: made.error.message }, 422);
+    }
+    return response({
+      ok: true,
+      mode: "submission_ready",
+      submissionId: made.submissionId,
+      originalPath,
+      previewPath,
+    });
+  }
+
+  let media: { id: string; data: Record<string, unknown> } | null = null;
+  if (mode === "archive") {
+    const { data, error } = await admin
+      .from("archive_media")
+      .select("id,data")
+      .eq("id", mediaId)
+      .maybeSingle();
+    if (error || !data) return response({ error: "media_not_found" }, 404);
+    media = data;
+  }
 
   const { data: sourceBlob, error: downloadError } = await admin.storage
     .from(SOURCE_BUCKET)
@@ -113,6 +255,9 @@ Deno.serve(async (req: Request) => {
       { error: "original_download_failed", detail: downloadError?.message },
       422,
     );
+  }
+  if (sourceBlob.size > 25 * 1024 * 1024) {
+    return response({ error: "original_too_large" }, 413);
   }
 
   const inputBytes = new Uint8Array(await sourceBlob.arrayBuffer());
@@ -151,6 +296,59 @@ Deno.serve(async (req: Request) => {
       },
       422,
     );
+  }
+
+  if (mode === "submission") {
+    const submissionId = crypto.randomUUID();
+    const pendingPath = user.id + "/" + submissionId + "/preview.webp";
+    const { error: pendingUploadError } = await admin.storage
+      .from(PENDING_BUCKET)
+      .upload(pendingPath, optimized, {
+        contentType: "image/webp",
+        cacheControl: "31536000",
+        upsert: false,
+      });
+    if (pendingUploadError) {
+      return response(
+        { error: "pending_upload_failed", detail: pendingUploadError.message },
+        422,
+      );
+    }
+
+    const made = await createSubmission({
+      id: submissionId,
+      previewPath: pendingPath,
+      originalBytes: inputBytes.byteLength,
+      sourceWidth,
+      sourceHeight,
+      previewWidth: width,
+      previewHeight: height,
+      previewBytes: optimized.byteLength,
+      previewFormat: "webp",
+    });
+    if (made.error) {
+      await admin.storage.from(PENDING_BUCKET).remove([pendingPath]);
+      return response(
+        { error: "submission_create_failed", detail: made.error.message },
+        422,
+      );
+    }
+
+    return response({
+      ok: true,
+      mode: "submission",
+      submissionId,
+      originalPath,
+      previewPath: pendingPath,
+      sourceWidth,
+      sourceHeight,
+      width,
+      height,
+      originalBytes: inputBytes.byteLength,
+      previewBytes: optimized.byteLength,
+      format: "webp",
+      quality: QUALITY,
+    });
   }
 
   const stamp = Date.now();
@@ -209,9 +407,9 @@ Deno.serve(async (req: Request) => {
     .select("data")
     .eq("id", mediaId)
     .maybeSingle();
-  const baseData = committedMedia?.data || media.data || {};
-  const history = Array.isArray(baseData.original_history)
-    ? baseData.original_history
+  const baseData = committedMedia?.data || media?.data || {};
+  const history = Array.isArray((baseData as any).original_history)
+    ? (baseData as any).original_history
     : [];
   const nextData = {
     ...baseData,
@@ -249,6 +447,7 @@ Deno.serve(async (req: Request) => {
 
   return response({
     ok: true,
+    mode: "archive",
     mediaId,
     originalPath,
     workingPath,

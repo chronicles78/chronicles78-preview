@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#2b2722">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Хроники-78 · Редколлегия</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
 <style>
 :root{--bg:#f3eee6;--paper:#fffdf9;--paper-2:#fffaf3;--ink:#2b2722;--muted:#746d64;--line:#ddd2c5;--soft:#eee4d7;--soft-2:#f5efe7;--mine:#e9dfd2;--image-bg:#eee7dd;--header:#fffdf9f2;--nav-bg:#fffdf9f5;--input:#fff;--shadow:#0003;--primary-bg:#2b2722;--primary-ink:#fffdf9;--selected-bg:#3a342e;--selected-ink:#fffdf9;--focus:#8f7556;--nav:68px;color-scheme:light}
 html[data-theme="dark"]{--bg:#171512;--paper:#211e1a;--paper-2:#26221d;--ink:#eee5d8;--muted:#b2a595;--line:#423a32;--soft:#2e2923;--soft-2:#29251f;--mine:#332d26;--image-bg:#0e0d0b;--header:#211e1af2;--nav-bg:#211e1af5;--input:#191714;--shadow:#0009;--primary-bg:#d4b483;--primary-ink:#1b1712;--selected-bg:#c7a46f;--selected-ink:#18140f;--focus:#d4b483;color-scheme:dark}
@@ -2833,8 +2833,8 @@ async function submitParticipantPhoto(file,meta){
  const previewPath=user.id+"/"+submissionId+"/preview."+f.ext;
  const {error:pe}=await sb.storage.from("archive-pending").upload(previewPath,f.blob,{contentType:f.outMime,upsert:false,cacheControl:"31536000"});
  if(pe)throw new Error("Не удалось подготовить копию для редакции: "+pe.message);
- const {data:ready,error:re}=await sb.functions.invoke("process-archive-photo",{body:{
-   mode:"submission_ready",submissionId,originalPath,previewPath,fileName:file.name,
+ const {data:ready,error:re}=await sb.functions.invoke("register-photo-submission",{body:{
+   submissionId,originalPath,previewPath,fileName:file.name,
    title:meta.title,description:meta.description,approxDate:meta.approxDate,location:meta.location,
    peopleNote:meta.peopleNote,sourceNote:meta.sourceNote,permissionConfirmed:true,
    originalFileSize:file.size,sourceWidth:f.sourceWidth,sourceHeight:f.sourceHeight,

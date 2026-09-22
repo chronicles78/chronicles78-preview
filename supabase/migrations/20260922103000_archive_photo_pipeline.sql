@@ -187,3 +187,104 @@ using (
     where ps.preview_storage_path=storage.objects.name
   )
 );
+
+
+-- External / deep archive storage backend.
+create table if not exists public.archive_storage_backends (
+  code text primary key,
+  provider text not null,
+  display_name text not null,
+  enabled boolean not null default false,
+  root_folder_id text,
+  originals_folder_id text,
+  backups_folder_id text,
+  config jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.archive_storage_backends enable row level security;
+revoke all on public.archive_storage_backends from anon;
+revoke insert,update,delete on public.archive_storage_backends from authenticated;
+grant select on public.archive_storage_backends to authenticated;
+
+drop policy if exists archive_storage_backends_read_editors on public.archive_storage_backends;
+create policy archive_storage_backends_read_editors
+on public.archive_storage_backends for select
+to authenticated
+using (
+  private.is_active_user()
+  and private.current_role() in ('editor','admin')
+);
+
+insert into public.archive_storage_backends(
+  code,provider,display_name,enabled,root_folder_id,originals_folder_id,backups_folder_id,config
+)
+values(
+  'google_drive','google_drive','Google Drive · глубокий архив',false,
+  '1u79Su34v76-vQK8gEoS8C9JS90IqIiqh',
+  '1tWqqHJTGwGeJ8YMklTxCzAPMVZJFnLD9',
+  '1P0bUH5UY-s8tukfj49dQ0mvUxSHId-Uj',
+  jsonb_build_object(
+    'mode','mirror',
+    'delete_supabase_after_mirror',false,
+    'note','Enable after Google OAuth secrets are configured for Edge Functions.'
+  )
+)
+on conflict(code) do update
+set provider=excluded.provider,
+    display_name=excluded.display_name,
+    root_folder_id=excluded.root_folder_id,
+    originals_folder_id=excluded.originals_folder_id,
+    backups_folder_id=excluded.backups_folder_id,
+    config=excluded.config,
+    updated_at=now();
+
+create table if not exists public.archive_original_objects (
+  id uuid primary key default gen_random_uuid(),
+  owner_user_id uuid references public.profiles(id) on delete set null,
+  media_id text references public.archive_media(id) on delete set null,
+  submission_id uuid references public.photo_submissions(id) on delete set null,
+  source_bucket text not null default 'archive-originals',
+  source_path text not null,
+  file_name text,
+  mime_type text,
+  file_size bigint,
+  storage_backend text not null default 'supabase',
+  external_provider text,
+  external_file_id text,
+  external_folder_id text,
+  external_url text,
+  mirror_status text not null default 'pending'
+    check (mirror_status in ('pending','mirroring','mirrored','failed','discarded')),
+  last_error text,
+  mirrored_at timestamptz,
+  source_deleted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(source_bucket,source_path)
+);
+
+alter table public.archive_original_objects enable row level security;
+revoke all on public.archive_original_objects from anon;
+revoke insert,update,delete on public.archive_original_objects from authenticated;
+grant select on public.archive_original_objects to authenticated;
+
+drop policy if exists archive_original_objects_read_own_or_editors on public.archive_original_objects;
+create policy archive_original_objects_read_own_or_editors
+on public.archive_original_objects for select
+to authenticated
+using (
+  private.is_active_user()
+  and (
+    owner_user_id=(select auth.uid())
+    or private.current_role() in ('editor','admin')
+  )
+);
+
+create index if not exists archive_original_objects_mirror_status_idx
+  on public.archive_original_objects(mirror_status,created_at);
+create index if not exists archive_original_objects_media_idx
+  on public.archive_original_objects(media_id);
+create index if not exists archive_original_objects_submission_idx
+  on public.archive_original_objects(submission_id);

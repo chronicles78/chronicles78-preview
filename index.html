@@ -787,14 +787,28 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="questionsList"></div></div></section>
 <section id="profile" class="view"><div class="pad">
 <div class="card"><h2>Профиль</h2><div id="profileBox"></div></div>
+<div class="card form" id="consentGateBox" style="display:none">
+  <h2 style="margin-top:0">Один раз — и готово</h2>
+  <div class="notice">В архиве есть имена, старые фотографии и личные воспоминания. Поэтому нам нужно ваше явное согласие на использование этих данных внутри закрытого круга участников.</div>
+  <p class="small">Это согласие <b>не даёт</b> права публиковать ваши ФИО и фотографии в открытом интернете. Для этого потребуется отдельное разрешение.</p>
+  <p><a href="consent.html" target="_blank" rel="noopener">Прочитать согласие полностью</a></p>
+  <button class="primary" id="acceptConsentBtn">Согласен(на) · продолжить в архив</button>
+  <div id="consentGateMsg" class="small"></div>
+</div>
 <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
+<div class="card form" id="privacyBox" style="display:none">
+  <b>Приватность</b>
+  <div id="privacyConsentState" class="small" style="margin-top:7px"></div>
+  <p class="small"><a href="consent.html" target="_blank" rel="noopener">Текст действующего согласия</a></p>
+  <button class="secondary" id="privacyRequestBtn" type="button">Отозвать согласие / изменить использование данных</button>
+</div>
 <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
-<div class="card" id="adminUsersBox" style="display:none"><h2>Заявки на доступ</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
+<div class="card" id="adminUsersBox" style="display:none"><h2>Участники</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
 <div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
 <div class="card" id="photoSubmissionReviewBox" style="display:none"><h2>Фотографии на проверке</h2><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="identityReviewBox" style="display:none"><h2>Подписи к фотографиям</h2><div id="identityReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="moderationBox" style="display:none"><h2>Жалобы и модерация</h2><div id="moderationList" class="notice">Загрузка…</div></div>
-<div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button><p class="small" style="margin-top:12px">Впервые на сайте? Сначала зарегистрируйтесь.</p><p><a href="register.html">Зарегистрироваться</a></p><div id="loginError"></div></div>
+<div class="card form" id="loginBox"><b>Вход в архив</b><div class="small" style="margin-top:7px">Если вы уже регистрировались — просто введите e-mail и пароль. На этом устройстве сайт запомнит вход.</div><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button><div class="notice" style="margin-top:14px"><b>Впервые здесь?</b><br>Регистрация теперь без одобрения администратора.</div><button class="secondary" id="goRegisterBtn" type="button">Я здесь впервые · создать доступ</button><div id="loginError"></div></div>
 </div></section>
 </main>
 <div id="contextShade" class="contextShade" aria-hidden="true">
@@ -863,6 +877,9 @@ const authReturn=(()=>{
 })();
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const PASSWORD_RESET_REDIRECT=SITE_URL;
+const CONSENT_CODE="archive_personal_data";
+const CONSENT_VERSION="2026-09-22-v1";
+const OPEN_LOGIN_ON_START=new URLSearchParams(location.search).get("login")==="1";
 
 function openForgotPassword(){
  const current=($("email")?.value||"").trim();
@@ -930,10 +947,10 @@ function showSignupConfirmationState(){
    photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("home")};
  }else if(user){
    openPhotoModal("E-mail подтверждён",
-     '<div class="notice"><b>Адрес подтверждён.</b><br>Теперь редактор должен активировать доступ к закрытому архиву. Повторно регистрироваться не нужно.</div>',
+     '<div class="notice"><b>Адрес подтверждён.</b><br>Ручное одобрение редактора больше не требуется. Если появится экран согласия — подтвердите его один раз, и архив откроется.</div>',
      async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
    );
-   $("photoModalSave").textContent="Понятно";
+   $("photoModalSave").textContent="Продолжить";
    photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
  }else{
    openPhotoModal("E-mail подтверждён",
@@ -945,14 +962,27 @@ function showSignupConfirmationState(){
  }
 }
 let authSyncPromise=null;
+let pendingProfile=null,consentRequired=false;
 async function hydrateProfileFromSession(session,{render=true}={}){
  const nextUser=session?.user||null;
  user=nextUser;
  profile=null;
+ pendingProfile=null;
+ consentRequired=false;
  if(session?.access_token)sb.realtime.setAuth(session.access_token);
  if(nextUser){
-   const {data:p,error}=await sb.from("profiles").select("display_name,role,is_active").eq("id",nextUser.id).maybeSingle();
-   if(!error&&p?.is_active)profile=p;
+   const [{data:p,error:pe},{data:consent,error:ce}]=await Promise.all([
+     sb.from("profiles").select("display_name,role,is_active,access_blocked").eq("id",nextUser.id).maybeSingle(),
+     sb.from("user_consents").select("accepted_at,withdrawn_at,consent_version").eq("user_id",nextUser.id).eq("consent_code",CONSENT_CODE).eq("consent_version",CONSENT_VERSION).maybeSingle()
+   ]);
+   if(!pe&&p){
+     pendingProfile=p;
+     const hasConsent=!ce&&!!consent&&!consent.withdrawn_at;
+     consentRequired=!hasConsent;
+     if(hasConsent&&p.is_active&&!p.access_blocked){
+       profile={...p,consentAcceptedAt:consent.accepted_at};
+     }
+   }
  }
  if(render){
    renderProfile();
@@ -1598,9 +1628,32 @@ async function loadHome(){
  bindHome();
 }
 function renderProfile(){
+ if(user&&pendingProfile&&!profile){
+   $("profileBox").innerHTML='<b>'+esc(pendingProfile.display_name||"Участник")+'</b><br>'+
+     '<span class="small">'+(consentRequired?"Нужно один раз подтвердить согласие на использование данных внутри закрытого архива.":(pendingProfile.access_blocked?"Доступ временно отключён администратором.":"Доступ пока недоступен."))+'</span>'+
+     '<button class="secondary" id="logoutPendingBtn">Выйти</button>';
+   $("logoutPendingBtn").onclick=logout;
+   $("loginBox").style.display="none";
+   $("nameBox").style.display="none";
+   $("privacyBox").style.display="none";
+   $("consentGateBox").style.display=consentRequired?"block":"none";
+   $("composerWrap").style.display="none";
+   if($("photoContributeBox"))$("photoContributeBox").style.display="none";
+   if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
+   if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
+   if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
+   if($("adminUsersBox"))$("adminUsersBox").style.display="none";
+   if($("identityReviewBox"))$("identityReviewBox").style.display="none";
+   if($("moderationBox"))$("moderationBox").style.display="none";
+   if($("notifyBtn"))$("notifyBtn").style.display="none";
+   setStatus(consentRequired?"Нужно согласие":"Доступ ограничен");
+   return;
+ }
  if(user&&profile){
    $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
-   $("loginBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
+   $("loginBox").style.display="none";$("consentGateBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
+   $("privacyBox").style.display="block";
+   $("privacyConsentState").textContent="Согласие принято "+(profile.consentAcceptedAt?new Date(profile.consentAcceptedAt).toLocaleString("ru-RU"):"ранее")+". Действует только для закрытого архива.";
    $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";
    if($("photoContributeBox"))$("photoContributeBox").style.display="block";
    if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";
@@ -1615,7 +1668,7 @@ function renderProfile(){
    if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
    subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("consentGateBox").style.display="none";$("nameBox").style.display="none";$("privacyBox").style.display="none";$("composerWrap").style.display="none";
    if($("photoContributeBox"))$("photoContributeBox").style.display="none";
    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
@@ -1628,20 +1681,64 @@ async function init(){
  renderRooms();renderProfile();
  if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
  if(profile){subscribe();subscribeNotifications();setTimeout(prefetchClassPhotoUrls,0);}
+ if(OPEN_LOGIN_ON_START&&!profile)showView("profile");
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
 }
 async function login(){
  $("loginError").textContent="";
  try{
   const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;
-  const ok=await hydrateProfileFromSession(data.session,{render:false});
-  if(!ok)throw new Error("Учётная запись ещё не активирована редакцией.");
-  renderProfile();subscribe();subscribeNotifications();showView("home");await loadHome();
+  await hydrateProfileFromSession(data.session,{render:false});
+  renderProfile();
+  if(profile){
+    subscribe();subscribeNotifications();showView("home");await loadHome();return;
+  }
+  if(pendingProfile){showView("profile");return}
+  throw new Error("Не удалось открыть профиль.");
  }catch(e){$("loginError").textContent=e.message||String(e)}
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;renderProfile();showView("home")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
 $("forgotPasswordBtn").onclick=openForgotPassword;
+$("goRegisterBtn").onclick=()=>{location.href="register.html"};
+
+async function acceptCurrentConsent(){
+ if(!user)return;
+ $("acceptConsentBtn").disabled=true;
+ $("consentGateMsg").textContent="Сохраняю согласие…";
+ try{
+   const {error}=await sb.rpc("accept_archive_personal_data_consent");
+   if(error)throw error;
+   const {data:{session}}=await sb.auth.getSession();
+   await hydrateProfileFromSession(session,{render:false});
+   renderProfile();
+   if(profile){subscribe();subscribeNotifications();showView("home");await loadHome()}
+ }catch(e){
+   $("consentGateMsg").className="err";
+   $("consentGateMsg").textContent=e.message||String(e);
+ }finally{$("acceptConsentBtn").disabled=false}
+}
+$("acceptConsentBtn").onclick=acceptCurrentConsent;
+
+function openPrivacyRequest(){
+ openPhotoModal("Приватность",
+   '<div class="notice">Можно попросить убрать или исправить ваши данные, ограничить использование фотографии либо отозвать согласие. Запрос увидит администратор проекта.</div>'+
+   '<label>Что нужно сделать</label><select id="pfPrivacyType"><option value="withdraw_consent">Отозвать согласие</option><option value="restrict_photo">Ограничить использование фотографии</option><option value="correct_data">Исправить мои данные</option><option value="delete_data">Удалить мои данные</option><option value="other">Другое</option></select>'+
+   '<label>Комментарий</label><textarea id="pfPrivacyNote" placeholder="Напишите, что именно нужно изменить или убрать"></textarea>',
+   async()=>{
+     const {error}=await sb.from("privacy_requests").insert({
+       user_id:user.id,
+       request_type:$("pfPrivacyType").value,
+       note:$("pfPrivacyNote").value.trim()||null
+     });
+     if(error)throw error;
+     $("photoModalBody").innerHTML='<div class="notice"><b>Запрос отправлен.</b><br>Редакция увидит его и свяжется с вами при необходимости.</div>';
+     $("photoModalSave").textContent="Закрыть";
+     photoModalSubmit=async()=>closePhotoModal();
+   }
+ );
+}
+$("privacyRequestBtn").onclick=openPrivacyRequest;
 
 async function saveName(){
  const name=$("displayName").value.trim();$("nameMsg").textContent="";
@@ -3756,13 +3853,17 @@ async function loadAdminUsers(){
    const confirmed=!!u.email_confirmed_at;
    return '<div class="archiveCard"><h3>'+esc(u.display_name||"Без имени")+'</h3>'+
     '<div class="small">'+esc(u.email||"")+'</div>'+
-    '<div style="margin-top:6px"><span class="badge">'+(confirmed?"e-mail подтверждён":"e-mail НЕ подтверждён")+'</span><span class="badge">'+(u.is_active?"доступ активен":"ожидает активации")+'</span></div>'+
+    '<div style="margin-top:6px">'+
+      '<span class="badge">'+(confirmed?"e-mail подтверждён":"ждёт подтверждения e-mail")+'</span>'+
+      '<span class="badge">'+(u.has_consent?"согласие есть":"согласие не принято")+'</span>'+
+      '<span class="badge">'+(u.access_blocked?"доступ отключён":(u.is_active?"доступ активен":"доступ не активен"))+'</span>'+
+    '</div>'+
     '<div class="small" style="margin-top:6px">Регистрация: '+new Date(u.created_at).toLocaleString("ru-RU")+'</div>'+
-    (!u.is_active&&confirmed?'<button class="secondary" data-admin-activate="'+u.user_id+'">Активировать доступ</button>':'')+
-    (u.is_active?'<button class="secondary" data-admin-disable="'+u.user_id+'">Отключить доступ</button>':'')+
-    (!confirmed?'<div class="notice" style="margin-top:8px">Пользователь должен подтвердить e-mail. На странице регистрации есть кнопка повторной отправки письма.</div>':'')+
+    (u.access_blocked&&confirmed?'<button class="secondary" data-admin-activate="'+u.user_id+'">Включить доступ</button>':'')+
+    (!u.access_blocked&&u.is_active?'<button class="secondary" data-admin-disable="'+u.user_id+'">Отключить доступ</button>':'')+
+    (!confirmed?'<div class="notice" style="margin-top:8px">Остался только переход по ссылке из письма. Ручная активация администратором не нужна.</div>':'')+
     '</div>';
- }).join("")||'<div class="notice">Заявок нет.</div>';
+ }).join("")||'<div class="notice">Участников пока нет.</div>';
  $("adminUsersList").querySelectorAll("[data-admin-activate]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminActivate,true));
  $("adminUsersList").querySelectorAll("[data-admin-disable]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminDisable,false));
 }

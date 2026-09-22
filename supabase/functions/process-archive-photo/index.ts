@@ -169,6 +169,19 @@ Deno.serve(async (req: Request) => {
       return { error: submissionError, submissionId };
     }
 
+    await admin.from("archive_original_objects").upsert({
+      owner_user_id: user.id,
+      submission_id: submissionId,
+      source_bucket: SOURCE_BUCKET,
+      source_path: originalPath,
+      file_name: fileName,
+      mime_type: null,
+      file_size: args.originalBytes,
+      storage_backend: "supabase",
+      mirror_status: "pending",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "source_bucket,source_path" });
+
     const { data: moderators } = await admin
       .from("profiles")
       .select("id")
@@ -255,6 +268,21 @@ Deno.serve(async (req: Request) => {
   }
   if (sourceBlob.size > 25 * 1024 * 1024) {
     return response({ error: "original_too_large" }, 413);
+  }
+
+  if (mode === "archive") {
+    await admin.from("archive_original_objects").upsert({
+      owner_user_id: user.id,
+      media_id: mediaId,
+      source_bucket: SOURCE_BUCKET,
+      source_path: originalPath,
+      file_name: fileName,
+      mime_type: sourceBlob.type || null,
+      file_size: sourceBlob.size,
+      storage_backend: "supabase",
+      mirror_status: "pending",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "source_bucket,source_path" });
   }
 
   const inputBytes = new Uint8Array(await sourceBlob.arrayBuffer());

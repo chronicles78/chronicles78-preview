@@ -733,6 +733,7 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div id="photoStats" class="photoArchiveStats"></div>
 <div id="archiveUploadBox" class="uploadBox" style="display:none">
 <b>Работа с фотоархивом</b>
+<div class="small" style="margin:6px 0 10px">Исходник сохраняется отдельно в глубоком архиве. Для сайта автоматически создаётся WebP-копия не более 1920 px по большой стороне.</div>
 <button class="secondary" id="newArchivePhotoBtn">＋ Новое фото в архив</button>
 <input id="newArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
 <input id="replaceArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
@@ -1904,6 +1905,39 @@ function ensureImageFile(file){
  if(!mime)throw new Error("Выбран не файл изображения. Нужен JPG, JPEG, PNG или WEBP.");
  return mime;
 }
+const ARCHIVE_ORIGINAL_MAX_BYTES=25*1024*1024;
+const ARCHIVE_MAX_SIDE=1920;
+const ARCHIVE_WEBP_QUALITY=.82;
+async function compressArchiveImageFallback(file){
+ const mime=ensureImageFile(file);
+ const url=URL.createObjectURL(file);
+ try{
+   const img=new Image();
+   img.decoding="async";
+   await new Promise((resolve,reject)=>{
+     img.onload=resolve;
+     img.onerror=()=>reject(new Error("Не удалось прочитать изображение в браузере."));
+     img.src=url;
+   });
+   const sourceWidth=img.naturalWidth||img.width,sourceHeight=img.naturalHeight||img.height;
+   if(!(sourceWidth>0&&sourceHeight>0))throw new Error("Не удалось определить размер изображения.");
+   const scale=Math.min(1,ARCHIVE_MAX_SIDE/Math.max(sourceWidth,sourceHeight));
+   const width=Math.max(1,Math.round(sourceWidth*scale)),height=Math.max(1,Math.round(sourceHeight*scale));
+   const canvas=document.createElement("canvas");
+   canvas.width=width;canvas.height=height;
+   const ctx=canvas.getContext("2d",{alpha:false});
+   if(!ctx)throw new Error("Браузер не может подготовить рабочую копию.");
+   ctx.drawImage(img,0,0,width,height);
+   let blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",ARCHIVE_WEBP_QUALITY));
+   let outMime="image/webp",ext="webp";
+   if(!blob||blob.type!=="image/webp"){
+     blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",.84));
+     outMime="image/jpeg";ext="jpg";
+   }
+   if(!blob)throw new Error("Не удалось сжать изображение.");
+   return {blob,outMime,ext,width,height,sourceWidth,sourceHeight,inputMime:mime};
+ }finally{URL.revokeObjectURL(url)}
+}
 async function uploadChatFile(file){
  const mime=ensureImageFile(file);
  const path=user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
@@ -2036,15 +2070,13 @@ async function archivePhotoFromChat(attachmentId,messageId){
        if(error)throw error;
      }else if(!mediaId)throw new Error("Выберите существующую карточку.");
      const {data:blob,error:de}=await sb.storage.from("chat-media").download(a.current_storage_path);if(de)throw de;
-     const path=mediaId+"/v-"+Date.now()+"-"+safeName(a.current_file_name||"photo.jpg");
-     const mime=imageMimeFromFile({name:a.current_file_name})||"image/jpeg";
-     const {error:ue}=await sb.storage.from("archive-media").upload(path,blob,{contentType:mime,upsert:false});if(ue)throw ue;
-     const {error:re}=await sb.rpc("replace_archive_media_version",{
-       p_media_id:mediaId,p_storage_path:path,p_file_name:a.current_file_name,p_version_type:$("pfQuality").value,
-       p_reason:$("pfReason").value.trim()||"Перенесено из чата",p_source_note:$("pfSource").value.trim()||null,
-       p_width:null,p_height:null,p_file_size:blob.size
-     });
-     if(re)throw re;
+     const mime=imageMimeFromFile({name:a.current_file_name})||blob.type||"image/jpeg";
+     const chatFile=new File([blob],a.current_file_name||"photo.jpg",{type:mime});
+     await uploadArchiveVersion(
+       mediaId,chatFile,$("pfQuality").value,
+       $("pfReason").value.trim()||"Перенесено из чата",
+       $("pfSource").value.trim()||null
+     );
      if(mode==="version"){
        const {data:row}=await sb.from("archive_media").select("data,linked_story").eq("id",mediaId).maybeSingle();
        const next={...(row?.data||{})};
@@ -2738,15 +2770,47 @@ $("photoSearch").oninput=()=>{mediaFocus=null;renderPhotosSection()};
 
 async function uploadArchiveVersion(mediaId,file,type,reason,sourceNote){
  const mime=ensureImageFile(file);
- const dims=await fileDimensions(file);
- const path=mediaId+"/v-"+Date.now()+"-"+safeName(file.name);
- const {error:ue}=await sb.storage.from("archive-media").upload(path,file,{contentType:mime,upsert:false});
- if(ue)throw ue;
+ if(!user?.id)throw new Error("Нужно войти в профиль.");
+ if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES)throw new Error("Исходник больше 25 МБ. Для архива сейчас установлен безопасный предел 25 МБ на один файл.");
+ const originalPath=user.id+"/"+mediaId+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
+ const {error:oe}=await sb.storage.from("archive-originals").upload(originalPath,file,{contentType:mime,upsert:false,cacheControl:"31536000"});
+ if(oe)throw oe;
+
+ const body={
+   mediaId,originalPath,fileName:file.name,versionType:type,
+   reason:reason||null,sourceNote:sourceNote||null
+ };
+ const {data:processed,error:pe}=await sb.functions.invoke("process-archive-photo",{body});
+ if(!pe&&processed?.ok)return {...processed,processing:"server"};
+
+ // Резервный путь нужен только из-за лимитов Edge Runtime на тяжёлых смартфонных снимках.
+ // Оригинал уже сохранён в глубоком архиве; в рабочий bucket всё равно попадёт только облегчённая копия.
+ const f=await compressArchiveImageFallback(file);
+ const workingName=String(file.name||"photo").replace(/\.[^.]+$/,"")+"."+f.ext;
+ const workingPath=mediaId+"/web-fallback-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+f.ext;
+ const {error:ue}=await sb.storage.from("archive-media").upload(workingPath,f.blob,{contentType:f.outMime,upsert:false,cacheControl:"31536000"});
+ if(ue)throw new Error("Серверная компрессия не сработала, резервная загрузка тоже не удалась: "+ue.message);
  const {error:re}=await sb.rpc("replace_archive_media_version",{
-   p_media_id:mediaId,p_storage_path:path,p_file_name:file.name,p_version_type:type,p_reason:reason||null,
-   p_source_note:sourceNote||null,p_width:dims.width,p_height:dims.height,p_file_size:file.size
+   p_media_id:mediaId,p_storage_path:workingPath,p_file_name:workingName,p_version_type:type,p_reason:reason||null,
+   p_source_note:sourceNote||null,p_width:f.width,p_height:f.height,p_file_size:f.blob.size
  });
- if(re)throw re;
+ if(re){
+   await sb.storage.from("archive-media").remove([workingPath]);
+   throw re;
+ }
+ const {data:row}=await sb.from("archive_media").select("data").eq("id",mediaId).maybeSingle();
+ const now=new Date().toISOString(),history=Array.isArray(row?.data?.original_history)?row.data.original_history:[];
+ const nextData={...(row?.data||{}),
+   original_storage_path:originalPath,original_file_name:file.name,original_file_size:file.size,
+   source_width:f.sourceWidth,source_height:f.sourceHeight,
+   optimized_format:f.ext,optimized_max_side:ARCHIVE_MAX_SIDE,optimized_quality:ARCHIVE_WEBP_QUALITY,
+   processing_status:"browser_fallback",processed_at:now,
+   original_history:[...history,{storage_path:originalPath,file_name:file.name,file_size:file.size,
+     source_width:f.sourceWidth,source_height:f.sourceHeight,working_path:workingPath,
+     working_file_size:f.blob.size,width:f.width,height:f.height,processed_at:now,processor:"browser_fallback"}].slice(-30)
+ };
+ await sb.from("archive_media").update({data:nextData,updated_at:now}).eq("id",mediaId);
+ return {ok:true,mediaId,originalPath,workingPath,width:f.width,height:f.height,originalBytes:file.size,workingBytes:f.blob.size,format:f.ext,processing:"browser_fallback"};
 }
 $("newArchivePhotoBtn").onclick=()=>{pendingVisualTopicId=null;$("newArchivePhotoInput").value="";$("newArchivePhotoInput").click()};
 $("newArchivePhotoInput").onchange=async()=>{

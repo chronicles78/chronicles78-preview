@@ -808,7 +808,21 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div class="card" id="photoSubmissionReviewBox" style="display:none"><h2>Фотографии на проверке</h2><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="identityReviewBox" style="display:none"><h2>Подписи к фотографиям</h2><div id="identityReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="moderationBox" style="display:none"><h2>Жалобы и модерация</h2><div id="moderationList" class="notice">Загрузка…</div></div>
-<div class="card form" id="loginBox"><b>Вход в архив</b><div class="small" style="margin-top:7px">Если вы уже регистрировались — просто введите e-mail и пароль. На этом устройстве сайт запомнит вход.</div><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button><div class="notice" style="margin-top:14px"><b>Впервые здесь?</b><br>Регистрация теперь без одобрения администратора.</div><button class="secondary" id="goRegisterBtn" type="button">Я здесь впервые · создать доступ</button><div id="loginError"></div></div>
+<div class="card form" id="loginBox">
+  <b>Вход в архив</b>
+  <div class="notice" style="margin-top:9px"><b>Пароль больше не нужен.</b><br>Введите e-mail — мы пришлём одноразовую ссылку для входа.</div>
+  <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
+  <button class="primary" id="loginBtn">Получить ссылку для входа</button>
+  <div id="loginError"></div>
+  <div class="notice" style="margin-top:14px"><b>Впервые здесь?</b><br>Имя, e-mail и одно согласие — после письма доступ откроется автоматически.</div>
+  <button class="secondary" id="goRegisterBtn" type="button">Я здесь впервые · создать доступ</button>
+  <button class="secondary" id="passwordLoginToggle" type="button">Старый вход по паролю</button>
+  <div id="passwordLoginBox" style="display:none;margin-top:9px">
+    <label>Пароль</label><input id="password" type="password" autocomplete="current-password">
+    <button class="secondary" id="passwordLoginBtn" type="button">Войти по паролю</button>
+    <button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button>
+  </div>
+</div>
 </div></section>
 </main>
 <div id="contextShade" class="contextShade" aria-hidden="true">
@@ -878,7 +892,7 @@ const authReturn=(()=>{
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const PASSWORD_RESET_REDIRECT=SITE_URL;
 const CONSENT_CODE="archive_personal_data";
-const CONSENT_VERSION="2026-09-22-v1";
+const CONSENT_VERSION="2026-09-22-v2";
 const START_PARAMS=new URLSearchParams(location.search);
 const OPEN_LOGIN_ON_START=START_PARAMS.get("login")==="1";
 const OPEN_REGISTER_ON_START=START_PARAMS.get("register")==="1";
@@ -932,7 +946,7 @@ function showSignupConfirmationState(){
  if(authReturn.error){
    openPhotoModal("Ссылка подтверждения",
      '<div class="notice"><b>Не удалось завершить переход по ссылке.</b><br>'+esc(authReturn.error)+'</div>'+
-     '<div class="formHint">Если e-mail уже был подтверждён, повторная регистрация не нужна. Откройте профиль и войдите своим e-mail и паролем.</div>',
+     '<div class="formHint">Если e-mail уже зарегистрирован, повторная регистрация не нужна. Откройте профиль и запросите новую ссылку для входа.</div>',
      async()=>{closePhotoModal();showView("profile")}
    );
    $("photoModalSave").textContent="Перейти ко входу";
@@ -956,7 +970,7 @@ function showSignupConfirmationState(){
    photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
  }else{
    openPhotoModal("E-mail подтверждён",
-     '<div class="notice"><b>Адрес подтверждён.</b><br>Теперь войдите на сайт с тем же e-mail и паролем, которые указали при регистрации.</div>',
+     '<div class="notice"><b>Адрес подтверждён.</b><br>Вернитесь в профиль и запросите ссылку для входа на этот e-mail.</div>',
      async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
    );
    $("photoModalSave").textContent="Перейти ко входу";
@@ -1688,62 +1702,77 @@ async function init(){
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
 }
 async function login(){
+ $("loginError").className="";
+ $("loginError").textContent="";
+ const email=$("email").value.trim();
+ if(!email){$("loginError").className="err";$("loginError").textContent="Введите e-mail.";return}
+ $("loginBtn").disabled=true;
+ try{
+  const {error}=await sb.auth.signInWithOtp({
+    email,
+    options:{shouldCreateUser:false,emailRedirectTo:SITE_URL}
+  });
+  if(error)throw error;
+  $("loginError").className="ok";
+  $("loginError").innerHTML="<b>Письмо отправлено.</b><br>Откройте его на этом устройстве и нажмите «Войти в Хроники-78». Пароль вводить не нужно.";
+ }catch(e){
+  $("loginError").className="err";
+  $("loginError").textContent=(e.message||String(e)).includes("Signups not allowed")
+    ?"Такой e-mail ещё не зарегистрирован. Нажмите «Я здесь впервые · создать доступ»."
+    :(e.message||String(e));
+ }finally{$("loginBtn").disabled=false}
+}
+async function passwordLogin(){
+ $("loginError").className="";
  $("loginError").textContent="";
  try{
   const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;
   await hydrateProfileFromSession(data.session,{render:false});
   renderProfile();
-  if(profile){
-    subscribe();subscribeNotifications();showView("home");await loadHome();return;
-  }
+  if(profile){subscribe();subscribeNotifications();showView("home");await loadHome();return}
   if(pendingProfile){showView("profile");return}
   throw new Error("Не удалось открыть профиль.");
- }catch(e){$("loginError").textContent=e.message||String(e)}
+ }catch(e){$("loginError").className="err";$("loginError").textContent=e.message||String(e)}
 }
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
+$("passwordLoginToggle").onclick=()=>{
+ const box=$("passwordLoginBox");
+ box.style.display=box.style.display==="none"?"block":"none";
+};
+$("passwordLoginBtn").onclick=passwordLogin;
 $("forgotPasswordBtn").onclick=openForgotPassword;
 
 function openQuickRegistration(){
  openPhotoModal("Создать доступ",
-   '<div class="notice"><b>Три поля — и всё.</b><br>После регистрации сайт запомнит вход на этом устройстве.</div>'+
+   '<div class="notice"><b>Имя + e-mail. Пароль не нужен.</b><br>Мы пришлём одноразовую ссылку. После перехода по ней сайт запомнит вход на этом устройстве.</div>'+
    '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
    '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
-   '<label>Пароль</label><input id="pfRegPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Не менее 6 символов">'+
-   '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на использование моих ФИО, изображения на архивных фотографиях, сведений профиля и размещённых мной материалов внутри закрытого архива «Хроники-78». <a href="consent.html" target="_blank" rel="noopener">Подробнее</a></span></label>'+
-   '<div class="formHint" style="margin-top:9px">Согласие не распространяется на открытую публикацию в интернете и рекламу.</div>',
+   '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку моих ФИО, e-mail, сведений профиля и использование моего изображения на архивных фотографиях внутри закрытого архива «Хроники-78». <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
+   '<div class="formHint" style="margin-top:9px">Открытая публикация в интернете, соцсетях или рекламе в это согласие не входит.</div>',
    async()=>{
      const display_name=$("pfRegName").value.trim();
      const email=$("pfRegEmail").value.trim();
-     const password=$("pfRegPassword").value;
-     if(!display_name||!email||!password)throw new Error("Введите имя, e-mail и пароль.");
-     if(password.length<6)throw new Error("Пароль должен содержать не менее 6 символов.");
+     if(!display_name||!email)throw new Error("Введите имя и e-mail.");
      if(!$("pfRegConsent").checked)throw new Error("Нужно подтвердить согласие для закрытого архива.");
-     $("photoModalMsg").textContent="Создаю доступ…";
-     const {data,error}=await sb.auth.signUp({
-       email,password,
+     $("photoModalMsg").textContent="Отправляю ссылку для входа…";
+     const {error}=await sb.auth.signInWithOtp({
+       email,
        options:{
-         data:{display_name,consent_personal_data:true,consent_version:CONSENT_VERSION},
-         emailRedirectTo:SITE_URL
+         shouldCreateUser:true,
+         emailRedirectTo:SITE_URL,
+         data:{display_name,consent_personal_data:true,consent_version:CONSENT_VERSION}
        }
      });
      if(error)throw error;
-     if(data.session){
-       await hydrateProfileFromSession(data.session,{render:false});
-       renderProfile();
-       if(profile){subscribe();subscribeNotifications()}
-       closePhotoModal();showView(profile?"home":"profile");
-       if(profile)await loadHome();
-       return;
-     }
      $("photoModalBody").innerHTML=
-       '<div class="notice"><b>Почти готово.</b><br>На '+esc(email)+' отправлено письмо. Один раз нажмите в нём ссылку подтверждения — после этого вход откроется автоматически.</div>'+
-       '<div class="formHint">Никакого дополнительного одобрения администратора не требуется.</div>';
+       '<div class="notice"><b>Готово.</b><br>На '+esc(email)+' отправлено письмо. Откройте его и нажмите ссылку — вы сразу войдёте в «Хроники-78».</div>'+
+       '<div class="formHint">Пароль придумывать и запоминать не нужно. Дополнительного одобрения администратора тоже нет.</div>';
      $("photoModalSave").textContent="Понятно";
      photoModalSubmit=async()=>{closePhotoModal();showView("profile")};
    }
  );
- $("photoModalSave").textContent="Создать доступ";
+ $("photoModalSave").textContent="Получить ссылку";
 }
 $("goRegisterBtn").onclick=openQuickRegistration;
 

@@ -158,3 +158,32 @@ using (
   and private.is_active_user()
   and private.current_role() in ('editor','admin')
 );
+
+
+drop policy if exists archive_originals_delete_unsubmitted_own on storage.objects;
+create policy archive_originals_delete_unsubmitted_own
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id='archive-originals'
+  and private.is_active_user()
+  and (storage.foldername(name))[1]=(select auth.uid())::text
+  and not exists (
+    select 1 from public.photo_submissions ps
+    where ps.original_storage_path=storage.objects.name
+  )
+);
+
+drop policy if exists archive_pending_delete_unsubmitted_own on storage.objects;
+create policy archive_pending_delete_unsubmitted_own
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id='archive-pending'
+  and private.is_active_user()
+  and (storage.foldername(name))[1]=(select auth.uid())::text
+  and not exists (
+    select 1 from public.photo_submissions ps
+    where ps.preview_storage_path=storage.objects.name
+  )
+);

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<title>Регистрация · Хроники-78</title>
+<title>Вход и регистрация · Хроники-78</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
 <style>
 body{margin:0;background:#f3eee6;color:#2b2722;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
@@ -14,81 +14,62 @@ h1{font-family:Georgia,serif;margin-top:0}
 label{display:block;font-size:13px;margin:12px 0 5px}
 input{width:100%;box-sizing:border-box;border:1px solid #ddd2c5;border-radius:11px;padding:12px;font:inherit;background:#fff}
 button{width:100%;border:0;border-radius:11px;padding:12px;font:inherit;font-weight:700;margin-top:15px;background:#2b2722;color:#fff}
-.note{font-size:13px;color:#746d64;line-height:1.45}
-.msg{margin-top:12px;font-size:14px;line-height:1.45}
-.ok{color:#35623c}.err{color:#8b3b32}
-a{color:#2b2722}
+.note{font-size:13px;color:#746d64;line-height:1.45}.notice{background:#eee4d7;border-radius:12px;padding:12px 14px;line-height:1.45}
+.msg{margin-top:12px;font-size:14px;line-height:1.45}.ok{color:#35623c}.err{color:#8b3b32}a{color:#2b2722}
+.check{display:flex;gap:9px;align-items:flex-start;margin-top:16px;line-height:1.45}.check input{width:auto;margin-top:3px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
     <h1>Хроники-78</h1>
-    <p class="note">Первый вход. Заполните три поля и подтвердите согласие. После подтверждения e-mail доступ откроется автоматически — ждать решения администратора не нужно.</p>
-    <label>Как вас подписывать</label>
+    <div class="notice"><b>Первый вход — без пароля.</b><br>Укажите имя и e-mail. Мы пришлём одноразовую ссылку — нажмите её, и архив откроется.</div>
+    <label>Ваше имя</label>
     <input id="name" autocomplete="name" placeholder="Например, Алексей Петров">
     <label>E-mail</label>
-    <input id="email" type="email" autocomplete="email">
-    <label>Пароль</label>
-    <input id="password" type="password" autocomplete="new-password" placeholder="Не менее 6 символов">
-    <label style="display:flex;gap:9px;align-items:flex-start;margin-top:16px;line-height:1.45">
-      <input id="consent" type="checkbox" style="width:auto;margin-top:3px">
-      <span>Я согласен(на) на обработку моих персональных данных для закрытого архива «Хроники-78». <a href="consent.html" target="_blank" rel="noopener">Что именно я разрешаю</a>.</span>
+    <input id="email" type="email" autocomplete="email" placeholder="name@example.com">
+    <label class="check">
+      <input id="consent" type="checkbox">
+      <span>Я согласен(на) на обработку моих ФИО, e-mail, сведений профиля и использование моего изображения на архивных фотографиях внутри закрытого архива «Хроники-78». <a href="consent.html" target="_blank" rel="noopener">Полный текст</a>.</span>
     </label>
-    <button id="btn">Создать доступ</button>
-    <button id="resendBtn" style="display:none;background:#6b6258">Отправить письмо ещё раз</button>
+    <p class="note">Открытая публикация в интернете, социальных сетях или рекламе в это согласие не входит.</p>
+    <button id="btn">Получить ссылку для входа</button>
     <div id="msg" class="msg"></div>
-    <p class="note">Уже регистрировались? <a href="./?login=1">Войти</a></p>
+    <p class="note">Уже участвовали в архиве? <a href="./?login=1">Войти по e-mail</a></p>
   </div>
 </div>
 <script>
 const SITE_URL="https://chronicles78.github.io/chronicles78-preview/";
+const CONSENT_VERSION="2026-09-22-v2";
 const sb=window.supabase.createClient(
  "https://fnwpkmjjdhflnqghnogj.supabase.co",
- "sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX"
+ "sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX",
+ {auth:{persistSession:true,autoRefreshToken:true}}
 );
 const $=id=>document.getElementById(id);
-let lastEmail="";
 $("btn").onclick=async()=>{
  const display_name=$("name").value.trim();
- const email=$("email").value.trim();lastEmail=email;
- const password=$("password").value;
+ const email=$("email").value.trim();
  $("msg").className="msg";$("msg").textContent="";
- if(!display_name||!email||!password){$("msg").classList.add("err");$("msg").textContent="Заполните имя, e-mail и пароль.";return}
- if(password.length<6){$("msg").classList.add("err");$("msg").textContent="Пароль должен содержать не менее 6 символов.";return}
- if(!$("consent").checked){$("msg").classList.add("err");$("msg").textContent="Для входа в закрытый архив нужно принять согласие на обработку персональных данных.";return}
+ if(!display_name||!email){$("msg").classList.add("err");$("msg").textContent="Введите имя и e-mail.";return}
+ if(!$("consent").checked){$("msg").classList.add("err");$("msg").textContent="Нужно подтвердить согласие для закрытого архива.";return}
  $("btn").disabled=true;
  try{
-   const {data,error}=await sb.auth.signUp({email,password,options:{data:{
-     display_name,
-     consent_personal_data:true,
-     consent_version:"2026-09-22-v1"
-   },emailRedirectTo:SITE_URL}});
-   if(error) throw error;
-   $("msg").classList.add("ok");
-   if(data.session){
-     $("msg").innerHTML="Готово. Доступ создан, сейчас откроется архив.";
-     $("resendBtn").style.display="none";
-     setTimeout(()=>location.href=SITE_URL,700);
-   }else{
-     $("msg").innerHTML="<b>Остался один шаг.</b> Откройте письмо от «Хроник-78» и нажмите ссылку подтверждения e-mail. После этого доступ откроется автоматически — администратора ждать не нужно.";
-     $("resendBtn").style.display="block";
-   }
+   const {error}=await sb.auth.signInWithOtp({
+     email,
+     options:{
+       shouldCreateUser:true,
+       emailRedirectTo:SITE_URL,
+       data:{display_name,consent_personal_data:true,consent_version:CONSENT_VERSION}
+     }
+   });
+   if(error)throw error;
+   $("msg").className="msg ok";
+   $("msg").innerHTML="<b>Письмо отправлено.</b><br>Откройте его на этом устройстве и нажмите ссылку. После этого вы сразу войдёте в архив. Пароль не нужен.";
  }catch(e){
-   $("msg").classList.add("err");
+   $("msg").className="msg err";
    $("msg").textContent=e.message||String(e);
  }finally{$("btn").disabled=false}
-};
-$("resendBtn").onclick=async()=>{
- const email=(lastEmail||$("email").value.trim());
- if(!email){$("msg").className="msg err";$("msg").textContent="Введите e-mail.";return}
- $("resendBtn").disabled=true;$("msg").className="msg";$("msg").textContent="Отправляю повторное письмо…";
- try{
-  const {error}=await sb.auth.resend({type:"signup",email,options:{emailRedirectTo:SITE_URL}});
-  if(error)throw error;
-  $("msg").className="msg ok";$("msg").innerHTML="Письмо отправлено повторно. После подтверждения e-mail доступ откроется автоматически.";
- }catch(e){$("msg").className="msg err";$("msg").textContent=e.message||String(e)}
- finally{$("resendBtn").disabled=false}
 };
 </script>
 </body>

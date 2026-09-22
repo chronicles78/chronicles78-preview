@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.110.7/cors";
 import {
   ImageMagick,
   initializeImageMagick,
@@ -20,11 +21,7 @@ const PENDING_BUCKET = "archive-pending";
 function response(body: unknown, status = 200) {
   return Response.json(body, {
     status,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers":
-        "authorization, x-client-info, apikey, content-type",
-    },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
 
@@ -38,7 +35,7 @@ function safeBaseName(name: string) {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return response({ ok: true });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return response({ error: "method_not_allowed" }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");

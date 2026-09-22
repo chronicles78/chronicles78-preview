@@ -2817,11 +2817,12 @@ async function submitParticipantPhoto(file,meta){
  const mime=ensureImageFile(file);
  if(!user?.id||!profile?.is_active)throw new Error("Нужно войти в профиль.");
  if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES)throw new Error("Фото больше 25 МБ.");
+ const submissionId=crypto.randomUUID();
  const originalPath=user.id+"/submissions/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
  const {error:oe}=await sb.storage.from("archive-originals").upload(originalPath,file,{contentType:mime,upsert:false,cacheControl:"31536000"});
  if(oe)throw oe;
  const payload={
-   mode:"submission",originalPath,fileName:file.name,title:meta.title,description:meta.description,
+   mode:"submission",submissionId,originalPath,fileName:file.name,title:meta.title,description:meta.description,
    approxDate:meta.approxDate,location:meta.location,peopleNote:meta.peopleNote,sourceNote:meta.sourceNote,
    permissionConfirmed:true
  };
@@ -2829,10 +2830,12 @@ async function submitParticipantPhoto(file,meta){
  if(!se&&server?.ok)return server;
 
  const f=await compressArchiveImageFallback(file);
- const submissionId=crypto.randomUUID();
  const previewPath=user.id+"/"+submissionId+"/preview."+f.ext;
  const {error:pe}=await sb.storage.from("archive-pending").upload(previewPath,f.blob,{contentType:f.outMime,upsert:false,cacheControl:"31536000"});
- if(pe)throw new Error("Не удалось подготовить копию для редакции: "+pe.message);
+ if(pe){
+   await sb.storage.from("archive-originals").remove([originalPath]);
+   throw new Error("Не удалось подготовить копию для редакции: "+pe.message);
+ }
  const {data:ready,error:re}=await sb.functions.invoke("register-photo-submission",{body:{
    submissionId,originalPath,previewPath,fileName:file.name,
    title:meta.title,description:meta.description,approxDate:meta.approxDate,location:meta.location,
@@ -2840,7 +2843,13 @@ async function submitParticipantPhoto(file,meta){
    originalFileSize:file.size,sourceWidth:f.sourceWidth,sourceHeight:f.sourceHeight,
    previewWidth:f.width,previewHeight:f.height,previewFormat:f.ext
  }});
- if(re||!ready?.ok)throw new Error(re?.message||ready?.detail||ready?.error||"Не удалось зарегистрировать фотографию.");
+ if(re||!ready?.ok){
+   await Promise.allSettled([
+     sb.storage.from("archive-pending").remove([previewPath]),
+     sb.storage.from("archive-originals").remove([originalPath])
+   ]);
+   throw new Error(re?.message||ready?.detail||ready?.error||"Не удалось зарегистрировать фотографию.");
+ }
  return ready;
 }
 async function loadMyPhotoSubmissions(){

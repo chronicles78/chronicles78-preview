@@ -33,7 +33,16 @@ button,input,textarea,select{font:inherit;color:var(--ink)}button{color:var(--in
 .identityReviewTop{display:grid;grid-template-columns:72px 1fr;gap:11px;align-items:start}
 .identityReviewCrop{width:72px;height:92px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
 .identityReviewName{font:700 17px Georgia,serif;margin-bottom:3px}
-@media(max-width:520px){.identityReviewTop{grid-template-columns:62px 1fr}.identityReviewCrop{width:62px;height:80px}}
+.photoSubmissionCard{border:1px solid var(--line);border-radius:14px;padding:12px;margin:9px 0;background:var(--paper)}
+.photoSubmissionTop{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start}
+.photoSubmissionPreview{width:112px;aspect-ratio:4/3;border-radius:11px;overflow:hidden;background:var(--soft);border:1px solid var(--line)}
+.photoSubmissionPreview img{width:100%;height:100%;object-fit:cover;display:block}
+.photoSubmissionTitle{font:700 18px/1.15 Georgia,serif;margin-bottom:4px}
+.photoSubmissionMeta{font-size:12px;line-height:1.45;color:var(--muted)}
+.photoSubmissionText{font-size:13px;line-height:1.5;margin-top:8px}
+.photoSubmissionActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.photoSubmissionActions button{width:auto;margin:0;padding:8px 11px}
+@media(max-width:520px){.identityReviewTop{grid-template-columns:62px 1fr}.identityReviewCrop{width:62px;height:80px}.photoSubmissionTop{grid-template-columns:86px 1fr}.photoSubmissionPreview{width:86px}}
 .status{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 9px;background:var(--input)}
 main{max-width:760px;margin:auto}.view{display:none}.view.active{display:block}.pad{padding:16px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
 a{color:inherit}h1,h2{font-family:Georgia,serif}.hero h1{font-size:42px;line-height:1;margin:10px 0}.hero p{font-size:17px;line-height:1.45;color:var(--ink)}.notice{padding:12px;border-radius:12px;background:var(--soft);font-size:14px;line-height:1.45}
@@ -731,6 +740,13 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <input id="photoSearch" placeholder="Поиск по фото, сюжету, описанию…">
 </div>
 <div id="photoStats" class="photoArchiveStats"></div>
+<div id="photoContributeBox" class="uploadBox" style="display:none">
+<b>Есть фотография из тех лет?</b>
+<div class="small" style="margin:6px 0 8px">Отправьте её прямо со смартфона. Оригинал сохранится в закрытом архиве, а в очередь редакции попадёт только облегчённая копия. В альбоме снимок появится после проверки.</div>
+<button class="secondary" id="submitArchivePhotoBtn">＋ Предложить фото</button>
+<input id="submitArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+<div id="photoSubmitMsg" class="small"></div>
+</div>
 <div id="archiveUploadBox" class="uploadBox" style="display:none">
 <b>Работа с фотоархивом</b>
 <div class="small" style="margin:6px 0 10px">Исходник сохраняется отдельно в глубоком архиве. Для сайта автоматически создаётся WebP-копия не более 1920 px по большой стороне.</div>
@@ -774,6 +790,8 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
 <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
 <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
 <div class="card" id="adminUsersBox" style="display:none"><h2>Заявки на доступ</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
+<div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
+<div class="card" id="photoSubmissionReviewBox" style="display:none"><h2>Фотографии на проверке</h2><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="identityReviewBox" style="display:none"><h2>Подписи к фотографиям</h2><div id="identityReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="moderationBox" style="display:none"><h2>Жалобы и модерация</h2><div id="moderationList" class="notice">Загрузка…</div></div>
 <div class="card form" id="loginBox"><b>Вход в редколлегию</b><label>E-mail</label><input id="email" type="email" autocomplete="email"><label>Пароль</label><input id="password" type="password" autocomplete="current-password"><button class="primary" id="loginBtn">Войти</button><button class="secondary" id="forgotPasswordBtn" type="button">Забыли пароль?</button><p class="small" style="margin-top:12px">Впервые на сайте? Сначала зарегистрируйтесь.</p><p><a href="register.html">Зарегистрироваться</a></p><div id="loginError"></div></div>
@@ -1194,6 +1212,10 @@ async function openNotifications(){
      showView("city");setTimeout(()=>openCityEssay(eid),120);
    }else if(type==="person"){
      activateTag(eid);
+   }else if(type==="photo_submission"){
+     showView("profile");
+     const box=(profile?.role==="editor"||profile?.role==="admin")?$("photoSubmissionReviewBox"):$("myPhotoSubmissionsBox");
+     setTimeout(()=>box?.scrollIntoView({behavior:"smooth",block:"start"}),120);
    }else if(type==="moderation_report"){
      showView("profile");setTimeout(()=>$("moderationBox")?.scrollIntoView({behavior:"smooth",block:"start"}),120);
    }
@@ -1324,6 +1346,10 @@ function showView(v){
  if(v==="photos")loadPhotos();
  if(v==="city")loadCityEssays();
  if(v==="questions")loadQuestions();
+ if(v==="profile"&&user&&profile?.is_active){
+   loadMyPhotoSubmissions();
+   if(profile.role==="editor"||profile.role==="admin")loadPhotoSubmissionReview();
+ }
 }
 document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>showView(b.dataset.view));
 $("mobileMoreBtn").onclick=()=>{
@@ -1575,16 +1601,26 @@ function renderProfile(){
  if(user&&profile){
    $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
    $("loginBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
-   $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";
+   $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";
+   if($("photoContributeBox"))$("photoContributeBox").style.display="block";
+   if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";
+   if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
+   loadMyPhotoSubmissions();
    document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=(profile.role==="editor"||profile.role==="admin")?"":"none");if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
    const canModerate=profile.role==="editor"||profile.role==="admin";
+   if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";
    if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
    if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
    if(profile.role==="admin")loadAdminUsers();
-   if(canModerate){loadIdentityReview();loadModerationPanel()}
+   if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
    subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("nameBox").style.display="none";$("composerWrap").style.display="none";
+   if($("photoContributeBox"))$("photoContributeBox").style.display="none";
+   if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
+   if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
+   if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
+   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
  }
 }
 async function init(){
@@ -2767,6 +2803,154 @@ document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
  renderPhotosSection();
 });
 $("photoSearch").oninput=()=>{mediaFocus=null;renderPhotosSection()};
+
+function fmtFileSize(bytes){
+ const n=Number(bytes)||0;
+ if(n>=1024*1024)return (n/(1024*1024)).toFixed(n>=10*1024*1024?0:1)+" МБ";
+ if(n>=1024)return Math.round(n/1024)+" КБ";
+ return n+" Б";
+}
+function submissionStatusLabel(s){
+ return s==="accepted"?"Принято в архив":s==="rejected"?"Не принято":"На проверке";
+}
+async function submitParticipantPhoto(file,meta){
+ const mime=ensureImageFile(file);
+ if(!user?.id||!profile?.is_active)throw new Error("Нужно войти в профиль.");
+ if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES)throw new Error("Фото больше 25 МБ.");
+ const originalPath=user.id+"/submissions/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
+ const {error:oe}=await sb.storage.from("archive-originals").upload(originalPath,file,{contentType:mime,upsert:false,cacheControl:"31536000"});
+ if(oe)throw oe;
+ const payload={
+   mode:"submission",originalPath,fileName:file.name,title:meta.title,description:meta.description,
+   approxDate:meta.approxDate,location:meta.location,peopleNote:meta.peopleNote,sourceNote:meta.sourceNote,
+   permissionConfirmed:true
+ };
+ const {data:server,error:se}=await sb.functions.invoke("process-archive-photo",{body:payload});
+ if(!se&&server?.ok)return server;
+
+ const f=await compressArchiveImageFallback(file);
+ const submissionId=crypto.randomUUID();
+ const previewPath=user.id+"/"+submissionId+"/preview."+f.ext;
+ const {error:pe}=await sb.storage.from("archive-pending").upload(previewPath,f.blob,{contentType:f.outMime,upsert:false,cacheControl:"31536000"});
+ if(pe)throw new Error("Не удалось подготовить копию для редакции: "+pe.message);
+ const {data:ready,error:re}=await sb.functions.invoke("process-archive-photo",{body:{
+   mode:"submission_ready",submissionId,originalPath,previewPath,fileName:file.name,
+   title:meta.title,description:meta.description,approxDate:meta.approxDate,location:meta.location,
+   peopleNote:meta.peopleNote,sourceNote:meta.sourceNote,permissionConfirmed:true,
+   originalFileSize:file.size,sourceWidth:f.sourceWidth,sourceHeight:f.sourceHeight,
+   previewWidth:f.width,previewHeight:f.height,previewFormat:f.ext
+ }});
+ if(re||!ready?.ok)throw new Error(re?.message||ready?.detail||ready?.error||"Не удалось зарегистрировать фотографию.");
+ return ready;
+}
+async function loadMyPhotoSubmissions(){
+ if(!user||!profile?.is_active||!$("myPhotoSubmissionsList"))return;
+ const {data,error}=await sb.from("photo_submissions")
+   .select("id,title,status,media_id,moderator_note,created_at,original_file_name,original_file_size")
+   .eq("submitted_by",user.id).order("created_at",{ascending:false}).limit(20);
+ if(error){$("myPhotoSubmissionsList").className="err";$("myPhotoSubmissionsList").textContent=error.message;return}
+ const rows=data||[];
+ $("myPhotoSubmissionsList").className="";
+ $("myPhotoSubmissionsList").innerHTML=rows.map(x=>'<div class="photoSubmissionCard">'+
+   '<div class="photoSubmissionTitle">'+esc(x.title)+'</div>'+
+   '<div class="photoSubmissionMeta">'+esc(submissionStatusLabel(x.status))+' · '+new Date(x.created_at).toLocaleString("ru-RU")+
+   (x.original_file_size?' · '+esc(fmtFileSize(x.original_file_size)):'')+'</div>'+
+   (x.media_id?'<div class="photoSubmissionText">Добавлено в архив как <b>'+esc(x.media_id)+'</b>.</div>':'')+
+   (x.moderator_note?'<div class="photoSubmissionText"><b>Комментарий редакции:</b> '+esc(x.moderator_note)+'</div>':'')+
+   (x.media_id?'<div class="photoSubmissionActions"><button class="secondary" data-open-my-media="'+esc(x.media_id)+'">Открыть в фотоархиве</button></div>':'')+
+ '</div>').join("")||'<div class="notice">Вы пока не отправляли фотографии.</div>';
+ $("myPhotoSubmissionsList").querySelectorAll("[data-open-my-media]").forEach(b=>b.onclick=()=>{
+   mediaFocus=b.dataset.openMyMedia;photoMode="archive";showView("photos");
+ });
+}
+async function pendingSubmissionUrls(paths){
+ const unique=[...new Set((paths||[]).filter(Boolean))];
+ const out={};if(!unique.length)return out;
+ const {data,error}=await sb.storage.from("archive-pending").createSignedUrls(unique,3600);
+ if(!error)(data||[]).forEach((r,i)=>{if(r?.signedUrl)out[unique[i]]=r.signedUrl});
+ return out;
+}
+async function loadPhotoSubmissionReview(){
+ if(!["editor","admin"].includes(profile?.role)||!$("photoSubmissionReviewList"))return;
+ const {data,error}=await sb.from("photo_submissions").select("*").eq("status","pending").order("created_at",{ascending:true});
+ if(error){$("photoSubmissionReviewList").className="err";$("photoSubmissionReviewList").textContent=error.message;return}
+ const rows=data||[];
+ const ids=[...new Set(rows.map(x=>x.submitted_by))];
+ const {data:ps}=ids.length?await sb.from("profiles").select("id,display_name").in("id",ids):{data:[]};
+ const names=Object.fromEntries((ps||[]).map(x=>[x.id,x.display_name]));
+ const urls=await pendingSubmissionUrls(rows.map(x=>x.preview_storage_path));
+ $("photoSubmissionReviewList").className="";
+ $("photoSubmissionReviewList").innerHTML=rows.map(x=>{
+   const meta=[x.approx_date_text,x.location_text].filter(Boolean).join(" · ");
+   return '<div class="photoSubmissionCard">'+
+     '<div class="photoSubmissionTop">'+
+       '<div class="photoSubmissionPreview">'+(urls[x.preview_storage_path]?'<img loading="lazy" src="'+esc(urls[x.preview_storage_path])+'" alt="'+esc(x.title)+'">':'')+'</div>'+
+       '<div><div class="photoSubmissionTitle">'+esc(x.title)+'</div>'+
+       '<div class="photoSubmissionMeta">Отправил(а): '+esc(names[x.submitted_by]||"Участник")+' · '+new Date(x.created_at).toLocaleString("ru-RU")+'</div>'+
+       (meta?'<div class="photoSubmissionMeta">'+esc(meta)+'</div>':'')+
+       '<div class="photoSubmissionMeta">Оригинал: '+esc(x.original_file_name||"файл")+(x.original_file_size?' · '+esc(fmtFileSize(x.original_file_size)):'')+
+       (x.preview_width&&x.preview_height?' · копия '+x.preview_width+'×'+x.preview_height:'')+'</div></div></div>'+
+     (x.description?'<div class="photoSubmissionText"><b>Что на фото:</b> '+esc(x.description)+'</div>':'')+
+     (x.people_note?'<div class="photoSubmissionText"><b>Кто на фото:</b> '+esc(x.people_note)+'</div>':'')+
+     (x.source_note?'<div class="photoSubmissionText"><b>Источник:</b> '+esc(x.source_note)+'</div>':'')+
+     '<div class="photoSubmissionActions"><button class="secondary" data-photo-sub-approve="'+x.id+'">Принять в архив</button><button class="secondary" data-photo-sub-reject="'+x.id+'">Отклонить</button></div>'+
+   '</div>';
+ }).join("")||'<div class="notice">Новых фотографий на проверке нет.</div>';
+ $("photoSubmissionReviewList").querySelectorAll("[data-photo-sub-approve]").forEach(b=>b.onclick=async()=>{
+   if(!confirm("Принять эту фотографию в основной фотоархив?"))return;
+   b.disabled=true;
+   try{
+     const {data:r,error:e}=await sb.functions.invoke("moderate-photo-submission",{body:{submissionId:b.dataset.photoSubApprove,decision:"approve",note:""}});
+     if(e||!r?.ok)throw new Error(e?.message||r?.detail||r?.error||"Не удалось принять фото.");
+     await loadPhotoSubmissionReview();await loadNotificationCount();if(activeViewId()==="photos")await loadPhotos();
+   }catch(e){alert("Фото не принято: "+(e.message||e));b.disabled=false}
+ });
+ $("photoSubmissionReviewList").querySelectorAll("[data-photo-sub-reject]").forEach(b=>b.onclick=()=>{
+   const id=b.dataset.photoSubReject;
+   openPhotoModal("Отклонить фотографию",
+     '<div class="notice">Заявка останется в истории со статусом «Не принято».</div><label>Комментарий участнику</label><textarea id="pfSubmissionRejectNote" placeholder="Например: дубликат, слишком мало сведений, не относится к архиву…"></textarea>',
+     async()=>{
+       const {data:r,error:e}=await sb.functions.invoke("moderate-photo-submission",{body:{submissionId:id,decision:"reject",note:$("pfSubmissionRejectNote").value.trim()}});
+       if(e||!r?.ok)throw new Error(e?.message||r?.detail||r?.error||"Не удалось отклонить фото.");
+       await loadPhotoSubmissionReview();await loadNotificationCount();
+     }
+   );
+   $("photoModalSave").textContent="Отклонить";
+ });
+}
+$("submitArchivePhotoBtn").onclick=()=>{$("submitArchivePhotoInput").value="";$("submitArchivePhotoInput").click()};
+$("submitArchivePhotoInput").onchange=()=>{
+ const file=$("submitArchivePhotoInput").files?.[0];if(!file)return;
+ try{ensureImageFile(file)}catch(e){alert(e.message||e);$("submitArchivePhotoInput").value="";return}
+ if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES){alert("Фото больше 25 МБ.");$("submitArchivePhotoInput").value="";return}
+ const defaultTitle=String(file.name||"Фотография").replace(/\.[^.]+$/,"");
+ openPhotoModal("Предложить фотографию",
+   '<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>'+
+   '<label>Короткое название *</label><input id="pfSubmissionTitle" value="'+esc(defaultTitle)+'" placeholder="Например: 8 класс, поход на Волгу">'+
+   '<label>Что изображено</label><textarea id="pfSubmissionDescription" placeholder="Что происходит на снимке, при каких обстоятельствах…"></textarea>'+
+   '<label>Примерный год / период</label><input id="pfSubmissionDate" placeholder="Например: лето 1981">'+
+   '<label>Место</label><input id="pfSubmissionLocation" placeholder="Школа №78, двор, Волга…">'+
+   '<label>Кто на фотографии</label><textarea id="pfSubmissionPeople" placeholder="Кого узнаёте — можно писать свободным текстом"></textarea>'+
+   '<label>Источник / комментарий</label><input id="pfSubmissionSource" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
+   '<label class="checkItem" style="margin-top:12px"><input id="pfSubmissionPermission" type="checkbox"> <span>Я разрешаю использовать эту фотографию внутри архива «Хроники-78».</span></label>',
+   async()=>{
+     const title=$("pfSubmissionTitle").value.trim();
+     if(!title)throw new Error("Укажите название фотографии.");
+     if(!$("pfSubmissionPermission").checked)throw new Error("Нужно подтвердить передачу фотографии в архив.");
+     const meta={
+       title,description:$("pfSubmissionDescription").value.trim(),
+       approxDate:$("pfSubmissionDate").value.trim(),location:$("pfSubmissionLocation").value.trim(),
+       peopleNote:$("pfSubmissionPeople").value.trim(),sourceNote:$("pfSubmissionSource").value.trim()
+     };
+     $("photoModalMsg").textContent="Сохраняю оригинал и готовлю копию для редакции…";
+     await submitParticipantPhoto(file,meta);
+     $("submitArchivePhotoInput").value="";
+     $("photoSubmitMsg").innerHTML='<span class="ok">Фотография отправлена редакции. Она появится в альбоме после проверки.</span>';
+     await loadMyPhotoSubmissions();
+   }
+ );
+ $("photoModalSave").textContent="Отправить редакции";
+};
 
 async function uploadArchiveVersion(mediaId,file,type,reason,sourceNote){
  const mime=ensureImageFile(file);

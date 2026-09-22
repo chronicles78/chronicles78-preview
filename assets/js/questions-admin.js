@@ -255,6 +255,48 @@ async function loadModerationPanel(){
  $("moderationList").querySelectorAll("[data-mod-reject]").forEach(b=>b.onclick=async()=>{const {error}=await sb.rpc("resolve_moderation_report",{p_id:Number(b.dataset.modReject),p_action:"reject"});if(error)alert(error.message);else loadModerationPanel()});
 }
 
+async function loadArchiveStorageStatus(){
+ if(profile?.role!=="admin"||!$("archiveStorageState"))return;
+ const [{data:backend,error:be},{data:objects,error:oe}]=await Promise.all([
+   sb.from("archive_storage_backends").select("code,display_name,enabled,root_folder_id,originals_folder_id,backups_folder_id,config").eq("code","google_drive").maybeSingle(),
+   sb.from("archive_original_objects").select("id,mirror_status,file_size,source_deleted_at,external_provider")
+ ]);
+ if(be||oe){
+   $("archiveStorageState").className="err";
+   $("archiveStorageState").textContent=(be||oe).message;
+   return;
+ }
+ const rows=objects||[];
+ const stats={pending:0,mirrored:0,failed:0,discarded:0,mirroring:0};
+ let bytes=0;
+ rows.forEach(x=>{if(stats[x.mirror_status]!==undefined)stats[x.mirror_status]++;if(!x.source_deleted_at)bytes+=Number(x.file_size)||0});
+ const folderUrl=backend?.originals_folder_id?"https://drive.google.com/drive/folders/"+encodeURIComponent(backend.originals_folder_id):"";
+ const enabled=!!backend?.enabled;
+ $("archiveStorageState").className="notice";
+ $("archiveStorageState").innerHTML=
+   '<b>'+(enabled?'Google Drive подключён':'Google Drive подготовлен, но ещё не подключён к сайту')+'</b><br>'+
+   'Оригиналов под учётом: '+rows.length+
+   ' · ожидают: '+stats.pending+
+   ' · зеркалировано: '+stats.mirrored+
+   (stats.failed?' · ошибок: '+stats.failed:'')+
+   '<br>Исходники, остающиеся в Supabase: '+esc(fmtFileSize(bytes))+
+   (folderUrl?'<br><a href="'+folderUrl+'" target="_blank" rel="noopener">Открыть папку оригиналов в Google Drive</a>':'')+
+   (!enabled?'<div class="small" style="margin-top:8px">Для автоматической выгрузки осталось один раз добавить OAuth-секреты Google Drive в Edge Functions. До этого фото продолжают надёжно храниться в Supabase.</div>':'')+
+   (enabled?'<div style="margin-top:10px"><button class="secondary" id="mirrorDriveBtn" type="button">Зеркалировать до 5 оригиналов</button><div id="mirrorDriveMsg" class="small"></div></div>':'');
+ if(enabled&&$("mirrorDriveBtn")){
+   $("mirrorDriveBtn").onclick=async()=>{
+     $("mirrorDriveBtn").disabled=true;$("mirrorDriveMsg").textContent="Выгружаю…";
+     try{
+       const {data,error}=await sb.functions.invoke("mirror-original-to-drive",{body:{limit:5,releaseSupabase:false}});
+       if(error||!data?.ok)throw new Error(error?.message||data?.detail||data?.error||"Не удалось выполнить зеркалирование.");
+       $("mirrorDriveMsg").textContent="Обработано: "+Number(data.processed||0)+".";
+       await loadArchiveStorageStatus();
+     }catch(e){$("mirrorDriveMsg").className="err";$("mirrorDriveMsg").textContent=e.message||String(e)}
+     finally{if($("mirrorDriveBtn"))$("mirrorDriveBtn").disabled=false}
+   };
+ }
+}
+
 async function loadAdminUsers(){
  if(profile?.role!=="admin"||!$("adminUsersList"))return;
  const {data,error}=await sb.rpc("admin_pending_users");

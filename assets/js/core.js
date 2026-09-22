@@ -791,7 +791,7 @@ function renderProfile(){
    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
-   if($("adminUsersBox"))$("adminUsersBox").style.display="none";
+   if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";
    if($("identityReviewBox"))$("identityReviewBox").style.display="none";
    if($("moderationBox"))$("moderationBox").style.display="none";
    if($("notifyBtn"))$("notifyBtn").style.display="none";
@@ -809,11 +809,12 @@ function renderProfile(){
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
    loadMyPhotoSubmissions();
    document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=(profile.role==="editor"||profile.role==="admin")?"":"none");if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
+   if($("archiveStorageBox"))$("archiveStorageBox").style.display=profile.role==="admin"?"block":"none";
    const canModerate=profile.role==="editor"||profile.role==="admin";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";
    if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
    if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
-   if(profile.role==="admin")loadAdminUsers();
+   if(profile.role==="admin"){loadAdminUsers();loadArchiveStorageStatus()}
    if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
    subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
@@ -822,7 +823,7 @@ function renderProfile(){
    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
-   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
+   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
  }
 }
 async function init(){

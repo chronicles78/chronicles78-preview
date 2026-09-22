@@ -116,6 +116,14 @@ Deno.serve(async (req: Request) => {
 
     await admin.storage.from(PENDING_BUCKET).remove([s.preview_storage_path]);
     await admin.storage.from(SOURCE_BUCKET).remove([s.original_storage_path]);
+    await admin.from("archive_original_objects")
+      .update({
+        mirror_status:"discarded",
+        source_deleted_at:new Date().toISOString(),
+        updated_at:new Date().toISOString(),
+      })
+      .eq("source_bucket",SOURCE_BUCKET)
+      .eq("source_path",s.original_storage_path);
     await notifySubmitter(
       "Фото не принято в архив",
       note || "Редакция завершила проверку фотографии.",
@@ -280,6 +288,14 @@ Deno.serve(async (req: Request) => {
   }
 
   await admin.storage.from(PENDING_BUCKET).remove([s.preview_storage_path]);
+  await admin.from("archive_original_objects")
+    .update({
+      media_id:mediaId,
+      submission_id:submissionId,
+      updated_at:new Date().toISOString(),
+    })
+    .eq("source_bucket",SOURCE_BUCKET)
+    .eq("source_path",s.original_storage_path);
   await notifySubmitter(
     "Фото принято в архив",
     "Фотография «" + s.title + "» добавлена как " + mediaId + ".",

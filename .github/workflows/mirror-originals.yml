@@ -19,17 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Validate worker secret
-        shell: bash
-        env:
-          ARCHIVE_WORKER_SECRET: ${{ secrets.ARCHIVE_WORKER_SECRET }}
-        run: |
-          set -euo pipefail
-          test -n "${ARCHIVE_WORKER_SECRET:-}" || {
-            echo "::error::Missing GitHub Actions secret: ARCHIVE_WORKER_SECRET"
-            exit 1
-          }
-
       - name: Mirror pending originals to Google Drive
         shell: bash
         env:
@@ -37,6 +26,10 @@ jobs:
           MANUAL_RELEASE: ${{ inputs.release_supabase || 'false' }}
         run: |
           set -euo pipefail
+          if [ -z "${ARCHIVE_WORKER_SECRET:-}" ]; then
+            echo "::notice::Drive mirroring is prepared but not active: ARCHIVE_WORKER_SECRET is missing"
+            exit 0
+          fi
           body='{"limit":10,"releaseSupabase":true}'
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ "${MANUAL_RELEASE}" != "true" ]; then
             body='{"limit":10,"releaseSupabase":false}'

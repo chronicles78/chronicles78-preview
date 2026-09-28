@@ -13,13 +13,19 @@ function close(){shade.classList.remove("open");shade.setAttribute("aria-hidden"
 async function invoke(action,payload={}){
  setStatus("Помощник думает…",true);
  try{
+   const {data:{session}}=await sb.auth.getSession();
+   if(!session?.access_token)throw new Error("Сначала войдите в архив.");
    const {data,error}=await sb.functions.invoke("story-assistant",{body:{action,...payload}});
    if(error)throw error;
    if(!data||data.error)throw new Error(data?.error||"Пустой ответ помощника.");
    setStatus("");
    return data;
  }catch(e){
-   setStatus("Не удалось обратиться к помощнику: "+(e?.message||e));
+   const raw=String(e?.message||e||"");
+   const friendly=/OPENAI_API_KEY/i.test(raw)
+     ?"Помощник уже установлен, но его подключение к ИИ ещё не завершено. Ваш текст сохранён — можно продолжить позже."
+     :"Не удалось обратиться к помощнику: "+raw;
+   setStatus(friendly);
    throw e;
  }
 }
@@ -109,8 +115,14 @@ async function startMemory(){
  document.getElementById("memoryTell").onclick=()=>startTell(q?("Тема: "+q+"\n\n"):"");
  await load();
 }
-document.getElementById("storyAssistBtn")?.addEventListener("click",()=>{open();startTell(document.getElementById("composer")?.value.trim()||"")});
-document.getElementById("memoryPromptBtn")?.addEventListener("click",startMemory);
+document.getElementById("storyAssistBtn")?.addEventListener("click",()=>{
+ if(!user||!profile?.is_active){showView("profile");return}
+ open();startTell(document.getElementById("composer")?.value.trim()||"");
+});
+document.getElementById("memoryPromptBtn")?.addEventListener("click",()=>{
+ if(!user||!profile?.is_active){showView("profile");return}
+ startMemory();
+});
 document.getElementById("storyAssistantClose")?.addEventListener("click",close);
 shade.addEventListener("click",e=>{if(e.target===shade)close()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&shade.classList.contains("open"))close()});

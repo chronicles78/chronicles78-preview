@@ -1,3 +1,6 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.110.7";
+
 const corsHeaders={
   "Access-Control-Allow-Origin":"*",
   "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type",
@@ -39,11 +42,17 @@ Deno.serve(async req=>{
  if(req.method!=="POST")return json({error:"Method not allowed"},405);
  try{
    const supabaseUrl=Deno.env.get("SUPABASE_URL")||"";
-   const anon=Deno.env.get("SUPABASE_ANON_KEY")||"";
-   const auth=req.headers.get("Authorization")||"";
-   if(!auth)return json({error:"Требуется вход в архив."},401);
-   const u=await fetch(supabaseUrl+"/auth/v1/user",{headers:{"Authorization":auth,"apikey":anon}});
-   if(!u.ok)return json({error:"Сессия пользователя недействительна."},401);
+   const serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+   const authorization=req.headers.get("Authorization")||"";
+   const jwt=authorization.replace(/^Bearer\\s+/i,"").trim();
+   if(!supabaseUrl||!serviceKey)return json({error:"Ошибка конфигурации сервера."},500);
+   if(!jwt)return json({error:"Требуется вход в архив."},401);
+   const admin=createClient(supabaseUrl,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
+   const {data:authData,error:authError}=await admin.auth.getUser(jwt);
+   const currentUser=authData?.user;
+   if(authError||!currentUser)return json({error:"Сессия пользователя недействительна."},401);
+   const {data:profile,error:profileError}=await admin.from("profiles").select("is_active").eq("id",currentUser.id).maybeSingle();
+   if(profileError||!profile?.is_active)return json({error:"Профиль не активирован."},403);
 
    const body=await req.json();
    const action=body?.action;

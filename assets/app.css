@@ -661,3 +661,24 @@ html[data-theme="dark"] ::selection{background:var(--selected-bg);color:var(--se
   .cityGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .memoryMosaic{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+
+/* Story assistant */
+.storyAssistTrigger{white-space:nowrap}
+.storyAssistantShade{position:fixed;inset:0;z-index:90;background:rgba(20,18,15,.46);display:none;align-items:flex-end;justify-content:center;padding:18px}
+.storyAssistantShade.open{display:flex}
+.storyAssistantPanel{width:min(720px,100%);max-height:min(82vh,760px);overflow:auto;background:var(--panel,#fff);color:var(--text,#2b2722);border-radius:20px 20px 14px 14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.storyAssistantHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.storyAssistantHead h3{margin:4px 0 0;font-size:1.25rem}
+.storyAssistantIntro{margin:0 0 12px;line-height:1.5}
+.storyAssistantInput{width:100%;min-height:150px;resize:vertical;box-sizing:border-box}
+.storyAssistantActions,.storyAssistantModes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.storyAssistantDraft{white-space:pre-wrap;line-height:1.55;padding:14px;border-radius:12px;background:rgba(127,110,85,.09);margin-top:10px}
+.storyAssistantQuestion{font-size:1.05rem;line-height:1.5;margin:10px 0}
+.storyAssistantStatus{min-height:20px;margin-top:9px}
+.storyAssistantStatus.busy{opacity:.75}
+@media(max-width:640px){
+ .storyAssistantShade{padding:0;align-items:flex-end}
+ .storyAssistantPanel{border-radius:18px 18px 0 0;max-height:88vh}
+ .storyAssistTrigger{font-size:.88rem}
+}

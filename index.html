@@ -36,7 +36,7 @@
   <div class="messages" id="messages"></div>
   <div class="composer" id="composerWrap" style="display:none">
     <div class="composeTools">
-      <button class="attachBtn" id="attachBtn">＋ Фото</button>
+      <button class="attachBtn" id="attachBtn">＋ Фото</button><button class="attachBtn storyAssistTrigger" id="memoryPromptBtn" type="button">💭 Вспомнить</button><button class="attachBtn storyAssistTrigger" id="storyAssistBtn" type="button">✨ Помочь рассказать</button>
       <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple hidden>
       <input type="file" id="photoActionInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
       <div class="replying" id="replying"></div>
@@ -44,6 +44,16 @@
     </div>
     <div class="composeRow"><textarea id="composer" rows="1" placeholder="Напишите сообщение…"></textarea><button class="send" id="sendBtn">Отправить ↑</button></div>
   </div>
+</div>
+<div id="storyAssistantShade" class="storyAssistantShade" aria-hidden="true">
+  <section class="storyAssistantPanel" role="dialog" aria-modal="true" aria-labelledby="storyAssistantTitle">
+    <div class="storyAssistantHead">
+      <div><div class="memoryEyebrow">ПОМОЩНИК ВОСПОМИНАНИЙ</div><h3 id="storyAssistantTitle">Помочь рассказать</h3></div>
+      <button id="storyAssistantClose" class="modalClose" type="button" aria-label="Закрыть">×</button>
+    </div>
+    <div id="storyAssistantBody"></div>
+    <div id="storyAssistantStatus" class="small"></div>
+  </section>
 </div>
 </section>
 
@@ -202,6 +212,7 @@
 
 <script src="assets/js/core.js?v=20260922-3"></script>
 <script src="assets/js/chat.js?v=20260922-3"></script>
+<script src="assets/js/story-assistant.js?v=20260928-1"></script>
 <script src="assets/js/people.js?v=20260922-3"></script>
 <script src="assets/js/stories.js?v=20260922-3"></script>
 <script src="assets/js/photos.js?v=20260922-3"></script>

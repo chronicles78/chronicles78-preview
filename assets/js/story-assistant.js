@@ -4,14 +4,30 @@ if(!shade)return;
 const body=document.getElementById("storyAssistantBody");
 const status=document.getElementById("storyAssistantStatus");
 const title=document.getElementById("storyAssistantTitle");
+let pending=false, busyTimer, opener, composerSeed="";
 let state={mode:"tell",source:"",answers:[],questionCount:0,draft:""};
 
 const escLocal=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function setStatus(msg,busy=false){status.textContent=msg||"";status.className="small storyAssistantStatus"+(busy?" busy":"")}
-function open(){shade.classList.add("open");shade.setAttribute("aria-hidden","false")}
-function close(){shade.classList.remove("open");shade.setAttribute("aria-hidden","true");setStatus("")}
+function setStatus(msg,busy=false){
+ status.textContent=msg||"";status.className="storyAssistantStatus"+(busy?" busy":"");
+ status.setAttribute("role","status");status.setAttribute("aria-live","polite");
+}
+function setBusy(active,action){
+ pending=active;clearInterval(busyTimer);
+ body.setAttribute("aria-busy",String(active));
+ body.querySelectorAll("button,input,textarea").forEach(el=>el.disabled=active);
+ body.querySelectorAll("details").forEach(el=>{if(active)el.open=false});
+ if(active){
+  const label=action==="rewrite"?"Помощник работает — оформляет рассказ":action==="assess"?"Помощник работает — читает воспоминание":"Помощник работает — подбирает вопрос";
+  const began=Date.now();setStatus(label+"…",true);
+  busyTimer=setInterval(()=>{const seconds=Math.floor((Date.now()-began)/1000);setStatus(label+"… "+seconds+" с"+(seconds>=20?". Ответ ещё готовится.":""),true)},1000);
+ }
+}
+function open(){opener=document.activeElement;shade.classList.add("open");shade.setAttribute("aria-hidden","false")}
+function close(){shade.classList.remove("open");shade.setAttribute("aria-hidden","true");opener?.focus()}
 async function invoke(action,payload={}){
- setStatus("Помощник думает…",true);
+ if(pending)throw new Error("Запрос уже выполняется");
+ setBusy(true,action);
  try{
    const {data:{session}}=await sb.auth.getSession();
    if(!session?.access_token)throw new Error("Сначала войдите в архив.");
@@ -36,9 +52,10 @@ async function invoke(action,payload={}){
      :"Не удалось обратиться к помощнику: "+raw;
    setStatus(friendly);
    throw e;
- }
+ }finally{setBusy(false)}
 }
 function startTell(seed=""){
+ setStatus("");
  state={mode:"tell",source:seed,answers:[],questionCount:0,draft:""};
  title.textContent="Помочь рассказать";
  body.innerHTML='<p class="storyAssistantIntro">Расскажите как получается. Не думайте о красивых фразах — напишите только то, что действительно помните.</p>'+
@@ -76,16 +93,25 @@ function showQuestion(q){
  document.getElementById("storyAssistantAnswerBtn").onclick=()=>next(false);
  document.getElementById("storyAssistantSkipBtn").onclick=()=>next(true);
 }
+const modes=[
+ ["as_told","Как рассказал","Исправить ошибки, сохранить ваши слова и интонацию."],
+ ["tidy","Чуть причёсаннее","Убрать повторы, улучшить ритм и связность."],
+ ["humor","С лёгким юмором","Подчеркнуть смешное в самой истории, сохранить подлинные реплики."],
+ ["story","Сделать историей","Выстроить начало, развитие и финал без новых фактов."]
+];
+function modeMenu(){
+ const selected=modes.find(m=>m[0]===state.style)||modes[0];
+ return '<details class="storyModeMenu"><summary><span class="memoryEyebrow">ОБРАБОТКА ТЕКСТА</span><strong>'+selected[1]+'</strong><span class="storyModeHint">Раскрыть и выбрать другой режим</span></summary><div class="storyModeOptions">'+modes.map(m=>'<button type="button" data-story-mode="'+m[0]+'" aria-pressed="'+(m[0]===selected[0])+'"><strong>'+m[1]+'</strong><span>'+m[2]+'</span></button>').join('')+'</div></details>';
+}
+function bindModes(){body.querySelectorAll("[data-story-mode]").forEach(b=>b.onclick=()=>{if(pending)return;state.style=b.dataset.storyMode;if(state.draft)showDraft();else showModes()})}
+function sourceView(){return '<details class="storySource"><summary>Ваш исходный текст</summary><div class="storyAssistantDraft">'+escLocal(state.source)+'</div></details>'}
 function showModes(){
- body.innerHTML='<p class="storyAssistantIntro"><b>Как оформить воспоминание?</b><br>По умолчанию лучше сохранить ваш собственный голос.</p>'+
- '<div class="storyAssistantModes">'+
- '<button class="primary" data-story-mode="as_told">Как рассказал</button>'+
- '<button class="secondary" data-story-mode="tidy">Чуть причёсаннее</button>'+
- '<button class="secondary" data-story-mode="humor">С лёгким юмором</button>'+
- '<button class="secondary" data-story-mode="story">Сделать историей</button></div>';
- body.querySelectorAll("[data-story-mode]").forEach(b=>b.onclick=()=>makeDraft(b.dataset.storyMode));
+ body.innerHTML='<p class="storyAssistantIntro">Выберите, насколько заметно изменить подачу. Факты и подлинные реплики сохраняются в каждом режиме.</p>'+modeMenu()+
+ '<div class="storyAssistantActions"><button class="primary" id="storyAssistantMake" type="button">Подготовить текст</button></div>'+sourceView();
+ bindModes();document.getElementById("storyAssistantMake").onclick=()=>makeDraft(state.style||"as_told");
 }
 async function makeDraft(style){
+ state.style=style;
  try{
    const r=await invoke("rewrite",{source:state.source,answers:state.answers,style});
    state.draft=r.text||"";
@@ -94,19 +120,20 @@ async function makeDraft(style){
 }
 function showDraft(){
  body.innerHTML='<p class="storyAssistantIntro"><b>Вот что получилось</b></p><div class="storyAssistantDraft">'+escLocal(state.draft)+'</div>'+
- '<div class="storyAssistantActions"><button class="primary" id="storyAssistantInsert" type="button">Вставить в сообщение</button><button class="secondary" id="storyAssistantEdit" type="button">Поправить самому</button><button class="secondary" id="storyAssistantSimplify" type="button">Сделать проще</button></div>';
+ modeMenu()+'<div class="storyAssistantActions"><button class="primary" id="storyAssistantInsert" type="button">Вставить в сообщение</button><button class="secondary" id="storyAssistantEdit" type="button">Поправить самому</button><button class="secondary" id="storyAssistantSimplify" type="button">Применить выбранный режим</button></div>'+sourceView();
+ bindModes();
  document.getElementById("storyAssistantInsert").onclick=()=>insertDraft(state.draft);
  document.getElementById("storyAssistantEdit").onclick=()=>{
    body.innerHTML='<textarea id="storyAssistantDraftEdit" class="storyAssistantInput">'+escLocal(state.draft)+'</textarea><div class="storyAssistantActions"><button class="primary" id="storyAssistantEditDone">Готово</button></div>';
    document.getElementById("storyAssistantEditDone").onclick=()=>{state.draft=document.getElementById("storyAssistantDraftEdit").value.trim();showDraft()};
  };
- document.getElementById("storyAssistantSimplify").onclick=()=>makeDraft("as_told");
+ document.getElementById("storyAssistantSimplify").onclick=()=>makeDraft(state.style||"as_told");
 }
 function insertDraft(text){
  const composer=document.getElementById("composer");
  if(!composer)return;
  const existing=composer.value.trim();
- composer.value=existing?existing+"\n\n"+text:text;
+ composer.value=existing&&existing!==composerSeed?existing+"\n\n"+text:text;
  composer.dispatchEvent(new Event("input",{bubbles:true}));
  close();
  composer.focus();
@@ -126,13 +153,24 @@ async function startMemory(){
 }
 document.getElementById("storyAssistBtn")?.addEventListener("click",()=>{
  if(!user||!profile?.is_active){showView("profile");return}
- open();startTell(document.getElementById("composer")?.value.trim()||"");
+ if(pending){open();return}
+ composerSeed=document.getElementById("composer")?.value.trim()||"";
+ open();startTell(composerSeed);
 });
 document.getElementById("memoryPromptBtn")?.addEventListener("click",()=>{
  if(!user||!profile?.is_active){showView("profile");return}
+ if(pending){open();return}
+ composerSeed="";
  startMemory();
 });
 document.getElementById("storyAssistantClose")?.addEventListener("click",close);
 shade.addEventListener("click",e=>{if(e.target===shade)close()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&shade.classList.contains("open"))close()});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Tab"&&shade.classList.contains("open")){
+  const items=[...shade.querySelectorAll("button:not(:disabled),textarea:not(:disabled),summary")].filter(el=>el.getClientRects().length);
+  const first=items[0],last=items[items.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}
+ }
+ if(e.key==="Escape"&&shade.classList.contains("open"))close()});
 })();

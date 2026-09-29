@@ -16,7 +16,16 @@ async function invoke(action,payload={}){
    const {data:{session}}=await sb.auth.getSession();
    if(!session?.access_token)throw new Error("Сначала войдите в архив.");
    const {data,error}=await sb.functions.invoke("story-assistant",{body:{action,...payload}});
-   if(error)throw error;
+   if(error){
+    let detail=String(error?.message||error||"");
+    if(error?.context&&typeof error.context.json==="function"){
+      try{
+        const responseError=await error.context.json();
+        detail=String(responseError?.error||responseError?.message||detail);
+      }catch{}
+    }
+    throw new Error(detail);
+   }
    if(!data||data.error)throw new Error(data?.error||"Пустой ответ помощника.");
    setStatus("");
    return data;

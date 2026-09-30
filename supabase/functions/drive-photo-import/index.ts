@@ -114,11 +114,30 @@ Deno.serve(async(req:Request)=>{
  let token="";try{token=await googleAccessToken()}catch(e){return response({error:"google_drive_auth_failed",detail:e instanceof Error?e.message:String(e)},503)}
  let files:DriveFile[],foldersScanned=0;try{const tree=await listDriveImages(token,backend.originals_folder_id);files=tree.files;foldersScanned=tree.foldersScanned}catch(e){return response({error:"google_drive_list_failed",detail:e instanceof Error?e.message:String(e)},502)}
 
- const {data:objects,error:oe}=await admin.from("archive_original_objects").select("media_id,external_file_id,file_name,file_size").not("external_file_id","is",null);
+ const {data:objects,error:oe}=await admin.from("archive_original_objects").select("id,media_id,external_file_id,external_folder_id,file_name,file_size").not("external_file_id","is",null);
  if(oe)return response({error:"original_registry_query_failed",detail:oe.message},422);
  const registeredById=new Map((objects||[]).map((o:any)=>[String(o.external_file_id),o]));
  const driveById=new Map(files.map(f=>[f.id,f]));
  const registeredFiles=(objects||[]).map((o:any)=>driveById.get(String(o.external_file_id))).filter(Boolean) as DriveFile[];
+
+ // Keep folder metadata in sync when an already-imported original is moved inside the Drive tree.
+ const moved=(objects||[]).map((o:any)=>({object:o,file:driveById.get(String(o.external_file_id))})).filter((x:any)=>x.file&&String(x.object.external_folder_id||"")!==String(x.file.folderId||backend.originals_folder_id));
+ if(moved.length){
+  const mediaIds=[...new Set(moved.map((x:any)=>x.object.media_id).filter(Boolean))];
+  const {data:mediaRows}=mediaIds.length?await admin.from("archive_media").select("id,data").in("id",mediaIds):{data:[]};
+  const mediaMap=new Map((mediaRows||[]).map((m:any)=>[m.id,m]));
+  await Promise.all(moved.map(async({object,file}:any)=>{
+    const folderId=file.folderId||backend.originals_folder_id,folderName=file.folderName||null,folderPath=file.folderPath||null;
+    await admin.from("archive_original_objects").update({external_folder_id:folderId,updated_at:new Date().toISOString()}).eq("id",object.id);
+    if(!object.media_id)return;
+    const row:any=mediaMap.get(object.media_id);if(!row)return;
+    const d:any={...(row.data||{})};
+    const autoTopic=d.preliminary_topic_source==="google_drive_folder"||(!d.preliminary_topic_source&&d.original_storage_backend==="google_drive");
+    d.drive_folder_id=folderId;d.drive_folder_name=folderName;d.drive_folder_path=folderPath;
+    if(autoTopic){d.preliminary_topic=folderName;d.preliminary_topic_source=folderName?"google_drive_folder":null}
+    await admin.from("archive_media").update({data:d,updated_at:new Date().toISOString()}).eq("id",object.media_id);
+  }));
+ }
 
  if(action==="scan"){
   const registered:any[]=[],duplicates:any[]=[],newFiles:any[]=[];
@@ -130,7 +149,7 @@ Deno.serve(async(req:Request)=>{
    if(dup){const dreg=registeredById.get(dup.id);duplicates.push({...row,duplicateOf:{driveFileId:dup.id,mediaId:(dreg as any)?.media_id||null,name:dup.name}})}
    else newFiles.push(row);
   }
-  return response({ok:true,folderId:backend.originals_folder_id,folderUrl:"https://drive.google.com/drive/folders/"+backend.originals_folder_id,foldersScanned,total:files.length,registered:registered.length,newFiles,duplicates});
+  return response({ok:true,folderId:backend.originals_folder_id,folderUrl:"https://drive.google.com/drive/folders/"+backend.originals_folder_id,foldersScanned,movedUpdated:moved.length,total:files.length,registered:registered.length,newFiles,duplicates});
  }
 
  if(action!=="import")return response({error:"unknown_action"},400);

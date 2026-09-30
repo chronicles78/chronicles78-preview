@@ -1,4 +1,5 @@
 const archiveSignedCache=new Map();
+let photoWorkspace="albums",photoAlbumFilter="all";
 async function archiveSignedImage(path){
  if(!path)return null;
  const hit=archiveSignedCache.get(path);
@@ -65,7 +66,7 @@ function renderVisualRegistry(){
        (v.source_url?'<a class="secondary visualCandidateLink" href="'+esc(v.source_url)+'" target="_blank" rel="noopener">Источник ↗</a>':'')+
      '</div></article>').join("")+
    (!rows.length?'<div class="notice">Поиск ничего не нашёл.</div>':'');
- $("photosList").querySelectorAll("[data-visual-own]").forEach(b=>b.onclick=()=>{photoMode="archive";mediaFocus=null;photoFilter="all";document.querySelectorAll("[data-photomode]").forEach(x=>x.classList.toggle("on",x.dataset.photomode==="archive"));$("photoArchiveToolbar").style.display="";$("photoSearch").value="";renderPhotoGallery();const id=b.dataset.visualOwn;const linked=mediaCache.filter(m=>m.visual_topic_id===id);if(linked.length){$("photoSearch").value=id;renderPhotoGallery()}});
+ $("photosList").querySelectorAll("[data-visual-own]").forEach(b=>b.onclick=()=>{photoWorkspace="albums";photoMode="archive";mediaFocus=null;photoFilter="all";photoAlbumFilter="all";$("photoSearch").value=b.dataset.visualOwn||"";renderPhotosSection()});
  $("photosList").querySelectorAll("[data-visual-add]").forEach(b=>b.onclick=()=>{pendingVisualTopicId=b.dataset.visualAdd;$("newArchivePhotoInput").value="";$("newArchivePhotoInput").click()});
 }
 function renderVisualCandidates(){
@@ -85,10 +86,43 @@ function renderVisualCandidates(){
    (v.source_url?'<div class="visualRegistryActions"><a class="secondary visualCandidateLink" href="'+esc(v.source_url)+'" target="_blank" rel="noopener">Открыть источник ↗</a></div>':'')+
    '</article>').join("")||'<div class="notice">Кандидатов не найдено.</div>';
 }
+function renderPhotoWorkspaceHeader(){
+ const head=$("photoWorkHeader");if(!head)return;
+ const q=($("photoSearch")?.value||"").trim();
+ if(photoWorkspace==="clarify"){
+  const n=mediaCache.filter(photoNeedsClarification).length;
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Редакторская очередь</b><span>'+n+' '+plural(n,"снимок требует","снимка требуют","снимков требуют")+' уточнения</span></div>';return;
+ }
+ if(photoWorkspace==="upload"){
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Добавление фотографий</b><span>Загрузите один снимок или целую пачку. После загрузки фотографии попадут в редакторскую очередь.</span></div>';return;
+ }
+ if(photoWorkspace==="service"){
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+(photoMode==="registry"?"Визуальный реестр":"Внешние кандидаты")+'</b><span>Служебный редакционный раздел</span></div>';return;
+ }
+ if(photoAlbumFilter!=="all"&&!q){
+  const a=photoAlbums.find(x=>x.id===photoAlbumFilter);
+  if(a){head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+esc(a.title)+'</b><span>'+esc(a.note)+'</span></div>';return}
+ }
+ head.hidden=true;head.innerHTML="";
+}
+function setPhotoWorkspace(mode){
+ photoWorkspace=mode;mediaFocus=null;
+ if(mode==="albums"){photoMode="archive";photoFilter="all"}
+ else if(mode==="clarify"){photoMode="archive";photoFilter="clarify";photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value=""}
+ else if(mode==="upload"){photoMode="archive";photoFilter="all";photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value=""}
+ renderPhotosSection();
+}
 function renderPhotosSection(){
- if(!(profile?.role==="editor"||profile?.role==="admin")&&photoMode!=="archive")photoMode="archive";
- const canEditPhotos=profile?.role==="editor"||profile?.role==="admin"; document.querySelectorAll(".photoHomeAction.editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?"block":"none");
- $("photoArchiveToolbar").style.display="none"; if($("photoEditorModes"))$("photoEditorModes").style.display=(profile?.role==="editor"||profile?.role==="admin")?"flex":"none";
+ const canEditPhotos=profile?.role==="editor"||profile?.role==="admin";
+ if(!canEditPhotos&&(photoWorkspace!=="albums"||photoMode!=="archive")){photoWorkspace="albums";photoMode="archive";photoFilter="all"}
+ if($("photoEditorBar"))$("photoEditorBar").style.display=canEditPhotos?"flex":"none";
+ if($("archiveUploadBox"))$("archiveUploadBox").style.display=(canEditPhotos&&photoWorkspace==="upload")?"block":"none";
+ if($("photosList"))$("photosList").style.display=photoWorkspace==="upload"?"none":"";
+ if($("photoContributeBox"))$("photoContributeBox").style.display=photoWorkspace==="albums"?"block":"none";
+ if($("photoStats"))$("photoStats").style.display=photoWorkspace==="upload"?"none":"";
+ const clarify=mediaCache.filter(photoNeedsClarification).length;if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
+ renderPhotoWorkspaceHeader();
+ if(photoWorkspace==="upload")return;
  if(photoMode==="registry")renderVisualRegistry();
  else if(photoMode==="candidates")renderVisualCandidates();
  else renderPhotoGallery();
@@ -128,42 +162,46 @@ function photoAlbumId(m){
 function renderPhotoGallery(){
  let arr=mediaFocus?mediaCache.filter(m=>m.id===mediaFocus):[...mediaCache];
  const q=($("photoSearch")?.value||"").trim().toLowerCase();
- if(photoFilter==="story")arr=arr.filter(m=>!!m.linked_story);
  if(photoFilter==="clarify")arr=arr.filter(photoNeedsClarification);
- if(photoFilter==="unlinked")arr=arr.filter(m=>!m.linked_story);
  if(q)arr=arr.filter(m=>JSON.stringify([m.id,m.title,m.category,m.linked_story,m.quality_status,m.source_note,m.data,m.visual_topic_id,m.provenance_type,m.original_owner,m.approx_date_text,m.location_text,m.attribution_confidence,m.publication_permission,m.legal_status,mediaPeopleNames(m)]).toLowerCase().includes(q));
- const total=mediaCache.length,withStory=mediaCache.filter(m=>m.linked_story).length,clarify=mediaCache.filter(photoNeedsClarification).length;
- $("photoStats").innerHTML='<b>'+total+'</b> фотографий в архиве'+(clarify?' · <b>'+clarify+'</b> требуют редакторского разбора':''); if($("photoClarifyLabel"))$("photoClarifyLabel").textContent=clarify?clarify+" "+plural(clarify,"снимок требует","снимка требуют","снимков требуют")+" имён, места или даты":"Все снимки разобраны";
+ if(photoWorkspace==="albums"&&photoAlbumFilter!=="all"&&!mediaFocus)arr=arr.filter(m=>photoAlbumId(m)===photoAlbumFilter);
+ const total=mediaCache.length,clarify=mediaCache.filter(photoNeedsClarification).length;
+ if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
  const editor=profile?.role==="editor"||profile?.role==="admin";
  $("photosList").className="photoGrid";
  const grouped=photoAlbums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
- const albumToc=grouped.length>1?'<nav class="photoAlbumToc" aria-label="Альбомы фотоархива">'+grouped.map(({album,items},i)=>'<button type="button" data-photo-album="'+esc(album.id)+'"><small>'+String(i+1).padStart(2,"0")+'</small><span>'+esc(album.title)+'</span><b>'+items.length+'</b></button>').join("")+'</nav>':"";
- $("photosList").innerHTML=albumToc+grouped.map(({album,items},albumIndex)=>'<section class="photoAlbumSection" id="photo-album-'+esc(album.id)+'"><div class="photoAlbumHead"><div><small>АЛЬБОМ '+(albumIndex+1)+'</small><b>'+esc(album.title)+'</b><span>'+esc(album.note)+'</span></div><strong>'+items.length+'</strong></div><div class="photoAlbumGrid">'+items.map((m,idx)=>{
+ let stat='<b>'+total+'</b> фотографий · <b>'+photoAlbums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length+'</b> альбомов';
+ if(photoWorkspace==="clarify")stat='<b>'+arr.length+'</b> '+plural(arr.length,"снимок требует","снимка требуют","снимков требуют")+' редакторского разбора';
+ else if(q)stat='Найдено: <b>'+arr.length+'</b> из '+total;
+ else if(photoAlbumFilter!=="all"){const a=photoAlbums.find(x=>x.id===photoAlbumFilter);stat='<b>'+arr.length+'</b> '+plural(arr.length,"фотография","фотографии","фотографий")+' · '+esc(a?.title||"альбом")}
+ $("photoStats").innerHTML=stat;
+ const allGroups=photoAlbums.map(album=>({album,count:mediaCache.filter(m=>photoAlbumId(m)===album.id).length})).filter(x=>x.count);
+ const showAlbumChooser=photoWorkspace==="albums"&&!q&&!mediaFocus&&photoAlbumFilter==="all";
+ const albumToc=showAlbumChooser?'<nav class="photoAlbumToc photoAlbumChooser" aria-label="Альбомы фотоархива">'+allGroups.map(({album,count},i)=>'<button type="button" data-photo-album="'+esc(album.id)+'"><small>'+String(i+1).padStart(2,"0")+'</small><span>'+esc(album.title)+'</span><b>'+count+'</b></button>').join("")+'</nav>':"";
+ $("photosList").innerHTML=albumToc+grouped.map(({album,items},albumIndex)=>'<section class="photoAlbumSection" id="photo-album-'+esc(album.id)+'"><div class="photoAlbumHead"><div><small>АЛЬБОМ '+(albumIndex+1)+'</small><b>'+esc(album.title)+'</b><span>'+esc(album.note)+'</span></div><strong>'+items.length+'</strong></div><div class="photoAlbumGrid">'+items.map((m)=>{
    const names=mediaPeopleNames(m);
    const desc=m.data?.visual_description||"";
    const whenWhere=[m.approx_date_text,m.location_text].filter(Boolean).join(" · ");
    const origin=m.provenance_type||"";
    const readerCaption=whenWhere||(origin?origin:"Из архива «Хроник-78»");
-   const lead=false; // крупный снимок должен назначаться редакционно, а не позицией в массиве
-   return '<article class="photoTile contextObject '+(lead?"photoAlbumLead":"")+'" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
+   return '<article class="photoTile contextObject" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
      '<div class="photoTileImage">'+
-       (mediaSigned[m.id]?'<img '+(lead?'loading="eager" fetchpriority="high"':'loading="lazy" fetchpriority="low"')+' decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография ещё не загружена</div>')+
+       (mediaSigned[m.id]?'<img loading="lazy" fetchpriority="low" decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография загружается…</div>')+
      '</div>'+
      '<div class="photoTileBody"><div class="photoTileCaption">'+esc(readerCaption)+'</div><h3>'+esc(m.title)+'</h3>'+
        (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+
        (names.length?'<div class="photoTilePeople"><b>На фото:</b> '+esc(names.slice(0,5).join(", "))+(names.length>5?"…":"")+'</div>':'')+
-       (photoNeedsClarification(m)?'<div class="photoTilePeople"><b>Помогите уточнить:</b> '+esc(m.data?.identification_status||"дата, место или люди")+'</div>':'')+
+       (photoNeedsClarification(m)?'<div class="photoTilePeople"><b>Нужно уточнить:</b> '+esc(m.data?.identification_status||"дата, место или люди")+'</div>':'')+
        (m.linked_story?'<div class="photoTileStory">Связано с историей</div>':'')+
        (editor?'<div class="photoEditorialMeta"><button class="badge tagLink" data-tag="'+esc(m.id)+'">'+esc(m.id)+'</button>'+
          (m.linked_story?'<button class="badge tagLink" data-tag="'+esc(m.linked_story)+'">'+esc(m.linked_story)+'</button>':'')+
          (m.visual_topic_id?'<span class="badge">'+esc(m.visual_topic_id)+'</span>':'')+
          (m.quality_status?'<span class="badge">'+esc(m.quality_status)+'</span>':'')+
-         (m.publication_permission?'<span class="badge">'+esc(m.publication_permission)+'</span>':'')+
        '</div>':'')+
      '</div></article>';
- }).join("")+'</div></section>').join("")||'<div class="notice">По выбранному фильтру фотографий нет.</div>';
+ }).join("")+'</div></section>').join("")||'<div class="notice">Фотографий по этому запросу нет.</div>';
  $("photosList").querySelectorAll("[data-photo-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]"))return;openPhotoContext(el.dataset.photoContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPhotoContext(el.dataset.photoContext)}}});
- $("photosList").querySelectorAll("[data-photo-album]").forEach(b=>b.onclick=()=>$("photo-album-"+b.dataset.photoAlbum)?.scrollIntoView({behavior:"smooth",block:"start"}));
+ renderPhotoWorkspaceHeader();
 }
 async function openArchivePhoto(id){
  const m=mediaCache.find(x=>x.id===id);if(!m)return;
@@ -209,24 +247,26 @@ async function loadPhotos(){
  mediaCache=mediaRes.data||[];visualTopicCache=topicRes.data||[];visualCandidateCache=candidateRes.data||[];
  mediaSigned={};
  renderPhotosSection();
- Promise.all(mediaCache.map(async m=>{if(m.current_storage_path)mediaSigned[m.id]=await archiveSignedImage(m.current_storage_path)})).then(()=>{if(photoMode==="archive")renderPhotoGallery()});
+ Promise.all(mediaCache.map(async m=>{if(m.current_storage_path)mediaSigned[m.id]=await archiveSignedImage(m.current_storage_path)})).then(()=>{if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery()});
 }
 document.addEventListener("click",e=>{
- const b=e.target.closest("#photoSearchToggle,#photoSearchClose,#photoClarifyAction,#photoUploadToggle");if(!b)return;
- if(b.id==="photoSearchToggle"){photoMode="archive";photoFilter="all";mediaFocus=null;if($("photoArchiveToolbar"))$("photoArchiveToolbar").style.display="flex";$("photoSearch")?.focus();document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x===b));renderPhotoGallery();return}
- if(b.id==="photoSearchClose"){if($("photoSearch"))$("photoSearch").value="";if($("photoArchiveToolbar"))$("photoArchiveToolbar").style.display="none";document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.remove("on"));photoMode="archive";photoFilter="all";mediaFocus=null;renderPhotoGallery();return}
- if(b.id==="photoClarifyAction"){photoMode="archive";photoFilter="clarify";mediaFocus=null;if($("photoArchiveToolbar"))$("photoArchiveToolbar").style.display="none";document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x===b));renderPhotoGallery();requestAnimationFrame(()=>$("photosList")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
- if(b.id==="photoUploadToggle"){const box=$("archiveUploadBox");if(!box)return;box.style.display=box.style.display==="none"?"block":"none";if(box.style.display!=="none")box.scrollIntoView({behavior:"smooth",block:"start"});return}
+ const b=e.target.closest("#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;
+ if(b.matches("[data-photo-back]")){photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value="";setPhotoWorkspace("albums");return}
+ if(b.matches("[data-photo-album]")){photoAlbumFilter=b.dataset.photoAlbum;photoWorkspace="albums";photoMode="archive";photoFilter="all";mediaFocus=null;renderPhotosSection();requestAnimationFrame(()=>$("photosList")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
+ if(b.id==="photoSearchClear"){if($("photoSearch"))$("photoSearch").value="";photoAlbumFilter="all";setPhotoWorkspace("albums");return}
+ if(b.id==="photoClarifyAction"){setPhotoWorkspace("clarify");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
+ if(b.id==="photoUploadToggle"){setPhotoWorkspace("upload");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
 });
 document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
- photoMode=b.dataset.photomode;mediaFocus=null;photoFilter="all";
- if(b.classList.contains("photoHomeAction")){if($("photoArchiveToolbar"))$("photoArchiveToolbar").style.display="none";document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x===b));}
- document.querySelectorAll("[data-photomode]").forEach(x=>x.classList.toggle("on",x===b));
- $("photoSearch").value="";
- $("photoSearch").placeholder=photoMode==="archive"?"Кого или что ищем?":photoMode==="registry"?"Поиск по визуальным темам…":"Поиск по кандидатам…";
+ photoWorkspace="service";photoMode=b.dataset.photomode;mediaFocus=null;photoFilter="all";photoAlbumFilter="all";
+ if($("photoSearch"))$("photoSearch").value="";
  renderPhotosSection();
 });
-$("photoSearch").oninput=()=>{mediaFocus=null;renderPhotosSection()};
+if($("photoSearch"))$("photoSearch").oninput=()=>{
+ mediaFocus=null;photoWorkspace="albums";photoMode="archive";photoFilter="all";photoAlbumFilter="all";
+ if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
+ renderPhotosSection();
+};
 
 function fmtFileSize(bytes){
  const n=Number(bytes)||0;

@@ -5,7 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2b2722">
 <meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Хроники-78 · Редколлегия</title>
+<script>
+(()=>{try{
+ const u=new URL(location.href);
+ fetch("version.json?ts="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{
+  const rev=String(v?.revision||"").trim();if(!/^[0-9a-f]{7,40}$/i.test(rev))return;
+  const short=rev.slice(0,12);
+  if(u.searchParams.get("rev")!==short){u.searchParams.set("rev",short);location.replace(u.toString())}
+ }).catch(()=>{});
+}catch{}})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
 <link rel="stylesheet" href="assets/app.css?v=20260930-20">
 </head>

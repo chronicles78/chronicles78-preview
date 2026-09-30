@@ -28,6 +28,12 @@ async function googleAccessToken(){
  const j=await r.json();if(!r.ok||!j?.access_token)throw new Error("google_token_refresh_failed");
  return String(j.access_token);
 }
+async function googleTokenScope(token:string){
+ try{
+  const r=await fetch("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token="+encodeURIComponent(token));
+  const j=await r.json();return String(j?.scope||"");
+ }catch{return ""}
+}
 async function listChildren(token:string,folderId:string){
  let pageToken="",out:DriveFile[]=[];
  do{
@@ -158,7 +164,7 @@ Deno.serve(async(req:Request)=>{
    const reg=registeredById.get(f.id);if(reg){registered.push({...f,mediaId:(reg as any).media_id});continue}
    const dup=duplicateOf(f,registeredFiles);if(dup){const dr=registeredById.get(dup.id);duplicates.push({...f,duplicateOf:{driveFileId:dup.id,mediaId:(dr as any)?.media_id||null,name:dup.name}})}else newFiles.push(f);
   }
-  return json({ok:true,folderId:vf.folderId,folderUrl:vf.folderUrl,folderCreated:vf.created,foldersScanned:tree.foldersScanned,total:files.length,registered:registered.length,newFiles,duplicates});
+  const oauthScope=files.length?null:await googleTokenScope(token);\n  return json({ok:true,folderId:vf.folderId,folderUrl:vf.folderUrl,folderCreated:vf.created,foldersScanned:tree.foldersScanned,total:files.length,registered:registered.length,newFiles,duplicates,oauthScope,manualFilesMayBeHidden:!files.length&&!!oauthScope&&!oauthScope.split(/\\s+/).includes("https://www.googleapis.com/auth/drive")&&!oauthScope.split(/\\s+/).includes("https://www.googleapis.com/auth/drive.readonly")});
  }
  if(action!=="import")return json({error:"unknown_action"},400);
  const fileId=String(input.fileId||""),mediaId=String(input.mediaId||"").toUpperCase();

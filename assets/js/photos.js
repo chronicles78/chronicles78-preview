@@ -545,8 +545,16 @@ async function uploadDirectDrivePhoto(file,index,total){
    const originalPath=processed?.originalPath;
    if(!originalPath)throw new Error("Не получен путь оригинала для переноса в Google Drive.");
    $("driveBulkProgress").textContent="Файл "+index+" из "+total+": переношу оригинал в Google Drive — "+file.name;
-   const {data:obj,error:objErr}=await sb.from("archive_original_objects").select("id").eq("source_bucket","archive-originals").eq("source_path",originalPath).maybeSingle();
-   if(objErr||!obj?.id)throw new Error("WebP создана, но оригинал не зарегистрирован для переноса в Google Drive.");
+   let {data:obj,error:objErr}=await sb.from("archive_original_objects").select("id").eq("source_bucket","archive-originals").eq("source_path",originalPath).maybeSingle();
+   if(objErr||!obj?.id){
+     const {data:reg,error:regErr}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"register-temp",mediaId:id,sourcePath:originalPath,fileName:file.name,mimeType:file.type||"application/octet-stream",fileSize:file.size}});
+     if(regErr||!reg?.ok||!reg?.objectId){
+       let detail=reg?.detail||reg?.error||"";
+       if(!detail&&regErr?.context?.json)try{const j=await regErr.context.json();detail=j?.detail||j?.error||JSON.stringify(j)}catch{}
+       throw new Error(detail||regErr?.message||"WebP создана, но оригинал не удалось зарегистрировать для переноса в Google Drive.");
+     }
+     obj={id:reg.objectId};
+   }
    const {data:mir,error:mirErr}=await sb.functions.invoke("mirror-original-to-drive",{body:{objectId:obj.id,releaseSupabase:true}});
    if(mirErr||!mir?.ok||Number(mir?.processed||0)<1){
      let detail=mir?.detail||mir?.error||"";

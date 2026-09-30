@@ -52,7 +52,7 @@ function showPersonLinks(p){
  const stories=p?.story_refs||[];
  const media=p?.data?.media_links||[];
  openPhotoModal(personDisplayName(p),
-   '<div class="notice">Связанные материалы участника.</div>'+
+   '<div class="personMemoryIntro">То, что уже связано с этим человеком в архиве «Хроник».</div>'+
    (stories.length?'<label>Истории</label>'+stories.map(s=>'<button class="secondary" type="button" data-person-story-open="'+esc(s.id)+'">'+esc(s.title||s.id)+'</button>').join(""):'<div class="small">Связанных историй пока нет.</div>')+
    (media.length?'<label>Фотографии</label>'+media.map(m=>'<button class="secondary" type="button" data-person-media-open="'+esc(m.media_id)+'">'+esc(m.media_id)+'</button>').join(""):""),
    async()=>{}
@@ -68,7 +68,7 @@ function openPersonContext(id){
  const preview=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
  const actions=[
    {icon:"◎",label:"Показать на общей фотографии",hint:p.group_name+" · позиция № "+(p.number??""),kind:"primary",run:()=>{selectedPersonId=id;renderPeople();setTimeout(()=>$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),50)}},
-   (p.story_refs?.length||p.data?.media_links?.length)?{icon:"⌁",label:"Связанные материалы",hint:(p.story_refs?.length||0)+" историй",run:()=>showPersonLinks(p)}:null,
+   (p.story_refs?.length||p.data?.media_links?.length)?{icon:"⌁",label:"Истории и фотографии",hint:[p.story_refs?.length?((p.story_refs.length)+" историй"):"",p.data?.media_links?.length?((p.data.media_links.length)+" фото"):""].filter(Boolean).join(" · "),run:()=>showPersonLinks(p)}:null,
    unknown&&!editor?{icon:"✎",label:"Предложить имя",hint:"Редактор проверит подпись",run:()=>suggestPersonIdentity(id)}:null,
    editor?{icon:"✎",label:unknown?"Назначить имя":"Исправить подпись",hint:"Имя, статус и подтверждение",run:()=>editPersonIdentity(id)}:null
  ];

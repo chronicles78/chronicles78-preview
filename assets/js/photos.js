@@ -525,24 +525,38 @@ async function editArchiveCard(id){
 }
 async function uploadDirectDrivePhoto(file,index,total){
  const mime=ensureImageFile(file);
- const id=await nextMediaId();
- const title=String(file.name||"Фотография").replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim()||id;
- const {error:ie}=await sb.from("archive_media").insert({
-   id,title,category:"архивное фото",archive_file:file.name,linked_story:null,visibility:"members",quality_status:"оригинал",
-   provenance_type:"собственное документальное фото",attribution_confidence:"не проверено",publication_permission:"только внутренний архив",
-   data:{identification_status:"требует описания",people:[],bulk_import:true,bulk_imported_at:new Date().toISOString()}
- });
- if(ie)throw ie;
+ let id;
+ const {data:retryRows}=await sb.from("archive_media").select("id,data").eq("archive_file",file.name).order("id",{ascending:false}).limit(5);
+ const retry=(retryRows||[]).find(r=>r.data?.bulk_import&&r.data?.bulk_error&&!r.data?.original_drive_file_id);
+ if(retry)id=retry.id;
+ else{
+   id=await nextMediaId();
+   const title=String(file.name||"Фотография").replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim()||id;
+   const {error:ie}=await sb.from("archive_media").insert({
+     id,title,category:"архивное фото",archive_file:file.name,linked_story:null,visibility:"members",quality_status:"оригинал",
+     provenance_type:"собственное документальное фото",attribution_confidence:"не проверено",publication_permission:"только внутренний архив",
+     data:{identification_status:"требует описания",people:[],bulk_import:true,bulk_imported_at:new Date().toISOString()}
+   });
+   if(ie)throw ie;
+ }
  try{
    $("driveBulkProgress").textContent="Файл "+index+" из "+total+": создаю канал Google Drive — "+file.name;
    const {data:init,error:initError}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"init",mediaId:id,fileName:file.name,mimeType:mime,fileSize:file.size}});
-   if(initError||!init?.uploadUrl)throw new Error(initError?.message||init?.detail||init?.error||"Не удалось открыть загрузку Google Drive.");
+   if(initError||!init?.uploadUrl){
+     let detail=init?.detail||init?.error||"";
+     if(!detail&&initError?.context?.json)try{const j=await initError.context.json();detail=j?.detail||j?.error||JSON.stringify(j)}catch{}
+     throw new Error(detail||initError?.message||"Не удалось открыть загрузку Google Drive.");
+   }
    $("driveBulkProgress").textContent="Файл "+index+" из "+total+": оригинал → Google Drive — "+file.name;
    const put=await fetch(init.uploadUrl,{method:"PUT",headers:{"Content-Type":mime},body:file});
    const drive=await put.json().catch(()=>null);
    if(!put.ok||!drive?.id)throw new Error("Google Drive не подтвердил загрузку ("+put.status+").");
    const {data:fin,error:finError}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"finalize",mediaId:id,fileId:drive.id,fileName:file.name,mimeType:mime,fileSize:file.size}});
-   if(finError||!fin?.ok)throw new Error(finError?.message||fin?.detail||fin?.error||"Не удалось зарегистрировать оригинал.");
+   if(finError||!fin?.ok){
+     let detail=fin?.detail||fin?.error||"";
+     if(!detail&&finError?.context?.json)try{const j=await finError.context.json();detail=j?.detail||j?.error||JSON.stringify(j)}catch{}
+     throw new Error(detail||finError?.message||"Не удалось зарегистрировать оригинал.");
+   }
    $("driveBulkProgress").textContent="Файл "+index+" из "+total+": готовлю WebP-копию — "+file.name;
    const p=await compressArchiveImageFallback(file);
    const workingName=title+"."+p.ext;

@@ -206,15 +206,15 @@ async function openStory(id){
        html+='<section class="storySection fragmentKnown"><div class="sectionTitle">Что известно</div>'+(s.data?.highlights?.length?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join(""):'<div class="storyFact">'+esc(s.data.editorial_summary)+'</div>')+'</section>';
        if(oq)html+='<section class="storySection fragmentQuestion"><div class="sectionTitle">Что ещё не установлено</div><div class="storyQuestion">'+esc(oq)+'</div></section>';
      }
-     if(s.data?.story_text)html+='<section class="storySection storyReadingText"><div class="sectionTitle">История</div><div class="storyProse">'+esc(s.data.story_text).replace(/\n/g,"<br>")+'</div></section>';
+     html+='</div></div>';
+     if(s.data?.story_text)html+='<section class="storySection storyReadingText"><div class="storyLayerLabel">РЕДАКЦИОННЫЙ ТЕКСТ</div><div class="sectionTitle">История</div><div class="storyProse">'+esc(s.data.story_text).replace(/\n/g,"<br>")+'</div></section>';
      if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
-       html+='<section class="storySection storySources"><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Исходные сообщения участников — отдельно от редакционного текста.</p>';
+       html+='<section class="storySection storySources"><div class="storyLayerLabel">ПЕРВОИСТОЧНИКИ</div><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Слова участников сохранены отдельно от редакционной реконструкции.</p>';
        s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+(src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+'<div class="storySourceText">'+esc(src.text||"").replace(/\n/g,"<br>")+'</div></article>'});
        html+='</section>';
      }
-     html+='</div></div>';
      if(!isFragment&&(s.data?.highlights?.length||s.data?.source_basis)){
-       html+='<section class="storySection storyEditorialNote"><div class="sectionTitle">Редакторская справка</div>'+
+       html+='<section class="storySection storyEditorialNote"><div class="storyLayerLabel">РЕДАКЦИОННОЕ ДОСЬЕ</div><div class="sectionTitle">Редакторская справка</div>'+
          (s.data?.highlights?.length?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join(""):'')+
          (s.data?.source_basis?'<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>':'')+
        '</section>';

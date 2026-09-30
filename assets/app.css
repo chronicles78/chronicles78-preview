@@ -858,3 +858,16 @@ html[data-theme="dark"] .storyToc{background:rgba(201,158,93,.025);border-color:
 .storyCatalogActions{order:9}
 html[data-theme="dark"] .storyCatalogCard{box-shadow:0 6px 22px #0004}.storyCatalogKicker{border-bottom-color:rgba(201,158,93,.14)}
 @media(max-width:760px){.storyCatalogBody{padding:15px}.storyCatalogCard h3,.storyCatalogCard.featured:first-child h3{font-size:25px}.storyCatalogSummary{font-size:15px}.storyCatalogKicker{font-size:9px}}
+
+/* 2026-09-30: three evidence layers on story reading page */
+.storyLayerLabel{font:700 10px/1.2 "Courier New",monospace;letter-spacing:.16em;color:#8e4f43;margin-bottom:7px}
+.storyReadingText{max-width:760px;margin:34px auto 42px;padding:0 18px}
+.storyReadingText .sectionTitle{font-size:31px;margin-bottom:18px}
+.storyProse{font:18px/1.82 Georgia,serif;color:var(--ink)}
+.storySources{max-width:820px;margin:36px auto;padding:24px 26px 8px;border-top:2px solid rgba(125,72,52,.26);border-left:4px solid rgba(125,72,52,.24);background:rgba(125,72,52,.035)}
+.storySources .sectionTitle{font-size:25px;margin-bottom:4px}.storySourceIntro{font-family:Georgia,serif;font-style:italic}
+.storySourceItem{padding:18px 0;border-top:1px solid rgba(80,62,45,.17)}.storySourceMeta b{font-size:17px}.storySourceText{font:15px/1.72 Georgia,serif}
+.storyEditorialNote{max-width:820px;margin:38px auto 24px;padding:22px 24px;border:1px solid rgba(78,60,43,.18);background:rgba(255,252,244,.38)}
+.storyEditorialNote .sectionTitle{font-size:23px}.storyEditorialNote .storyFact{border:0;border-top:1px solid rgba(78,60,43,.13);border-radius:0;background:transparent;margin:0;padding:10px 0}.storyEditorialNote .storySource{background:rgba(78,60,43,.045);border-radius:2px}
+html[data-theme="dark"] .storyLayerLabel{color:#c99e5d}html[data-theme="dark"] .storySources{background:rgba(201,158,93,.035);border-color:rgba(201,158,93,.22)}html[data-theme="dark"] .storyEditorialNote{background:rgba(201,158,93,.025);border-color:rgba(201,158,93,.16)}
+@media(max-width:650px){.storyReadingText{margin:24px auto 30px;padding:0 8px}.storyReadingText .sectionTitle{font-size:27px}.storyProse{font-size:17px;line-height:1.72}.storySources{margin:28px 0;padding:20px 14px 6px;border-left-width:3px}.storyEditorialNote{margin:28px 0;padding:18px 14px}}

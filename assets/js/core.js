@@ -363,6 +363,12 @@ async function loadNotificationCount(){
  const n=count||0;
  $("notifyBadge").textContent=n>99?"99+":String(n);
  $("notifyBadge").style.display=n?"block":"none";
+ const chatNav=document.querySelector('.nav[data-view="chat"]');
+ if(chatNav){
+   let badge=chatNav.querySelector(".chatUnreadBadge");
+   if(!badge){badge=document.createElement("span");badge.className="chatUnreadBadge";chatNav.appendChild(badge)}
+   badge.textContent=n>99?"99+":String(n);badge.style.display=n?"inline-flex":"none";
+ }
 }
 async function openNotifications(){
  if(!user||!profile?.is_active)return;
@@ -400,11 +406,35 @@ async function openNotifications(){
    }
  });
 }
+function showChatToast(n){
+ let t=document.getElementById("chatNewToast");
+ if(!t){t=document.createElement("button");t.id="chatNewToast";t.className="chatNewToast";document.body.appendChild(t)}
+ t.innerHTML='<b>'+esc(n.title||"Новое сообщение")+'</b><span>'+esc((n.body||"").slice(0,120))+'</span>';
+ t.onclick=()=>{t.classList.remove("show");showView("chat")};
+ requestAnimationFrame(()=>t.classList.add("show"));
+ clearTimeout(window.__chatToastTimer);window.__chatToastTimer=setTimeout(()=>t.classList.remove("show"),7000);
+}
+async function enableBrowserChatNotifications(){
+ if(!("Notification" in window))return;
+ if(Notification.permission==="default"){
+   try{await Notification.requestPermission()}catch{}
+ }
+}
 function subscribeNotifications(){
  if(unsubNotif){unsubNotif();unsubNotif=null}
  if(!user||!profile?.is_active)return;
  const ch=sb.channel("notifications-"+user.id+"-"+Date.now())
-   .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},()=>loadNotificationCount())
+   .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},payload=>{
+      loadNotificationCount();
+      const n=payload.new||{};
+      if(n.entity_type==="message"){
+        if(document.hidden&&"Notification" in window&&Notification.permission==="granted"){
+          new Notification(n.title||"Новое сообщение в «Хрониках-78»",{body:n.body||"Откройте чат, чтобы прочитать."});
+        }else if(activeViewId()!=="chat"){
+          showChatToast(n);
+        }
+      }
+    })
    .subscribe();
  unsubNotif=()=>sb.removeChannel(ch);
  loadNotificationCount();
@@ -530,7 +560,7 @@ function showView(v){
    if(profile.role==="editor"||profile.role==="admin")loadPhotoSubmissionReview();
  }
 }
-document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>{if(b.dataset.view==="chat")enableBrowserChatNotifications();showView(b.dataset.view)});
 $("mobileMoreBtn").onclick=()=>{
  const isOpen=$("moreNavMenu").classList.contains("open");
  isOpen?closeMoreNav():openMoreNav();
@@ -751,7 +781,7 @@ async function loadHome(){
  box.innerHTML=
    '<div class="memoryEntrances">'+
      '<button class="memoryEntrance" data-home-view="people"><div class="memoryEntranceNo">01 · лица</div><h2>Люди</h2><p>Нажмите на лицо на общей фотографии, вспомните имя, найдите связанные истории.</p></button>'+
-     '<button class="memoryEntrance" data-home-view="stories"><div class="memoryEntranceNo">02 · память</div><h2>Истории</h2><p>Большие и маленькие сюжеты, которые класс восстанавливает вместе.</p></button>'+
+     '<div class="memoryEntrance"><div class="memoryEntranceNo">02 · память</div><h2>Истории</h2><p>Большие и маленькие сюжеты, которые класс восстанавливает вместе.</p>'+(lead?'<div class="homeLeadStory"><span class="homeReadyLabel">ГОТОВАЯ ИСТОРИЯ</span><b>'+esc(lead.title)+'</b><button class="secondary" data-home-story="'+esc(lead.id)+'">Читать историю →</button></div>':'<button class="textLink" data-home-view="stories">Открыть истории →</button>')+'</div>'+
      '<button class="memoryEntrance" data-home-view="city"><div class="memoryEntranceNo">03 · место</div><h2>Город и время</h2><p>Дворы, Волга, трамваи, музыка и вкус Куйбышева нашего времени.</p></button>'+
    '</div>'+
    '<div class="memoryFeatureGrid">'+

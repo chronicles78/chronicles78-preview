@@ -1,5 +1,11 @@
 const archiveSignedCache=new Map();
 let photoWorkspace="albums",photoAlbumFilter="all";
+function photoPlural(n,one,few,many){
+ const x=Math.abs(Number(n)||0),n10=x%10,n100=x%100;
+ if(n10===1&&n100!==11)return one;
+ if(n10>=2&&n10<=4&&(n100<12||n100>14))return few;
+ return many;
+}
 async function archiveSignedImage(path){
  if(!path)return null;
  const hit=archiveSignedCache.get(path);
@@ -91,7 +97,7 @@ function renderPhotoWorkspaceHeader(){
  const q=($("photoSearch")?.value||"").trim();
  if(photoWorkspace==="clarify"){
   const n=mediaCache.filter(photoNeedsClarification).length;
-  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Редакторская очередь</b><span>'+n+' '+plural(n,"снимок требует","снимка требуют","снимков требуют")+' уточнения</span></div>';return;
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Редакторская очередь</b><span>'+n+' '+photoPlural(n,"снимок требует","снимка требуют","снимков требуют")+' уточнения</span></div>';return;
  }
  if(photoWorkspace==="upload"){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Добавление фотографий</b><span>Загрузите один снимок или целую пачку. После загрузки фотографии попадут в редакторскую очередь.</span></div>';return;
@@ -125,7 +131,7 @@ function renderPhotosSection(){
  if($("photoStats"))$("photoStats").style.display=photoWorkspace==="upload"?"none":"";
  const clarify=mediaCache.filter(photoNeedsClarification).length;if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
  const albumCount=photoAlbums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length;
- if($("photoAlbumsCount"))$("photoAlbumsCount").textContent=albumCount+" "+plural(albumCount,"раздел","раздела","разделов");
+ if($("photoAlbumsCount"))$("photoAlbumsCount").textContent=albumCount+" "+photoPlural(albumCount,"раздел","раздела","разделов");
  [["photoAlbumsAction",photoWorkspace==="albums"],["photoClarifyAction",photoWorkspace==="clarify"],["photoUploadToggle",photoWorkspace==="upload"]].forEach(([id,on])=>$(id)?.classList.toggle("on",on));
  renderPhotoWorkspaceHeader();
  if(photoWorkspace==="upload")return;
@@ -177,9 +183,9 @@ function renderPhotoGallery(){
  $("photosList").className="photoGrid";
  const grouped=photoAlbums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
  let stat='<b>'+total+'</b> фотографий · <b>'+photoAlbums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length+'</b> альбомов';
- if(photoWorkspace==="clarify")stat='<b>'+arr.length+'</b> '+plural(arr.length,"снимок требует","снимка требуют","снимков требуют")+' редакторского разбора';
+ if(photoWorkspace==="clarify")stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"снимок требует","снимка требуют","снимков требуют")+' редакторского разбора';
  else if(q)stat='Найдено: <b>'+arr.length+'</b> из '+total;
- else if(photoAlbumFilter!=="all"){const a=photoAlbums.find(x=>x.id===photoAlbumFilter);stat='<b>'+arr.length+'</b> '+plural(arr.length,"фотография","фотографии","фотографий")+' · '+esc(a?.title||"альбом")}
+ else if(photoAlbumFilter!=="all"){const a=photoAlbums.find(x=>x.id===photoAlbumFilter);stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"фотография","фотографии","фотографий")+' · '+esc(a?.title||"альбом")}
  $("photoStats").innerHTML=stat;
  const allGroups=photoAlbums.map(album=>({album,count:mediaCache.filter(m=>photoAlbumId(m)===album.id).length})).filter(x=>x.count);
  const showAlbumChooser=photoWorkspace==="albums"&&!q&&!mediaFocus&&photoAlbumFilter==="all";
@@ -637,7 +643,7 @@ function renderDriveBulkQueue(states={}){
    return '<div class="photoDeskItem '+esc(st.state)+'" data-bulk-index="'+i+'"><img src="'+esc(url)+'" alt=""><div><b>'+esc(file.name)+'</b><small>'+formatFileSize(file.size)+'</small></div><span>'+esc(st.label)+'</span></div>';
  }).join("");
  const a=$("driveBulkActions");if(a)a.hidden=!driveBulkSelectedFiles.length;
- if($("driveBulkSummary"))$("driveBulkSummary").textContent=driveBulkSelectedFiles.length?driveBulkSelectedFiles.length+" "+plural(driveBulkSelectedFiles.length,"фотография","фотографии","фотографий")+" готовы к загрузке":"";
+ if($("driveBulkSummary"))$("driveBulkSummary").textContent=driveBulkSelectedFiles.length?driveBulkSelectedFiles.length+" "+photoPlural(driveBulkSelectedFiles.length,"фотография","фотографии","фотографий")+" готовы к загрузке":"";
 }
 function setDriveBulkState(i,state,label){
  const el=document.querySelector('.photoDeskItem[data-bulk-index="'+i+'"]');if(!el)return;
@@ -702,7 +708,7 @@ async function restoreRecentBulkPhotos(){
  if(!recent.length)return;
  driveBulkNewIds=recent.map(r=>r.id);
  const box=$("driveBulkDone");box.hidden=false;
- box.innerHTML='<b>Последняя загрузка сохранена</b><span>'+recent.length+' '+plural(recent.length,"фотография","фотографии","фотографий")+' находятся в архиве. Можно продолжить их описание.</span><button type="button" id="reviewBulkPhotosBtn">Разобрать фотографии →</button>';
+ box.innerHTML='<b>Последняя загрузка сохранена</b><span>'+recent.length+' '+photoPlural(recent.length,"фотография","фотографии","фотографий")+' находятся в архиве. Можно продолжить их описание.</span><button type="button" id="reviewBulkPhotosBtn">Разобрать фотографии →</button>';
  if($("reviewBulkPhotosBtn"))$("reviewBulkPhotosBtn").onclick=()=>{const id=driveBulkNewIds[0];if(id)editArchiveCard(id)};
 }
 if($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;

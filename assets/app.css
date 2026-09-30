@@ -1077,6 +1077,35 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
  .driveImportFile{grid-template-columns:1fr;gap:2px}.driveImportFile small{text-align:left}
 }
 
+/* Profile: compact hierarchical navigation */
+.profilePage{padding-bottom:24px}
+.profileIdentityCard{padding:14px 16px}.profileIdentityCard h2{margin:3px 0 9px;font-size:25px}.profileIdentityCard #profileBox{line-height:1.45}
+.profileIdentityCard #profileBox>.secondary{width:auto;margin:10px 0 0;padding:8px 12px}
+.profileSection{margin:0 0 10px;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.profileSection>summary{list-style:none;display:grid;grid-template-columns:32px minmax(0,1fr) 22px;align-items:center;gap:10px;min-height:62px;padding:11px 14px;cursor:pointer;user-select:none}
+.profileSection>summary::-webkit-details-marker,.profileSubsection>summary::-webkit-details-marker{display:none}
+.profileSection>summary:hover,.profileSubsection>summary:hover{background:var(--soft)}
+.profileSectionIcon{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--line);border-radius:50%;font:700 15px/1 Georgia,serif;color:var(--focus)}
+.profileSectionText{min-width:0}.profileSectionText b{display:block;font:700 17px/1.15 Georgia,serif}.profileSectionText small{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.35}
+.profileSectionArrow{justify-self:end;color:var(--muted);font-size:18px;transition:transform .18s ease}.profileSection[open]>summary .profileSectionArrow{transform:rotate(180deg)}
+.profileSectionBody{padding:9px;border-top:1px solid var(--line);background:color-mix(in srgb,var(--paper) 90%,var(--soft))}
+.profileSectionBody>.card{margin:0 0 8px;border-radius:12px}.profileSectionBody>.card:last-child{margin-bottom:0}
+.profileSubsection{background:var(--paper);border:1px solid var(--line);border-radius:12px;margin:0 0 7px;overflow:hidden}.profileSubsection:last-child{margin-bottom:0}
+.profileSubsection>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;padding:9px 12px;cursor:pointer;user-select:none}
+.profileSubsection>summary>span:first-child{min-width:0}.profileSubsection>summary b{display:block;font:700 14px/1.2 Georgia,serif}.profileSubsection>summary small{display:block;margin-top:2px;color:var(--muted);font-size:9px;line-height:1.3}
+.profileSubsection>summary>span:last-child{color:var(--muted);font-size:16px;transition:transform .18s ease}.profileSubsection[open]>summary>span:last-child{transform:rotate(180deg)}
+.profileSubsectionBody{padding:8px;border-top:1px solid var(--line)}
+.profileSubsectionBody>.card{margin:0;border:0;border-radius:8px;padding:8px;background:transparent}
+.profileSubsectionBody>.trafficAdminBox{padding:4px}
+.profileAdminSection>summary .profileSectionIcon{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+@media(max-width:600px){
+ .profilePage{padding:10px}.profileIdentityCard{padding:12px 13px}
+ .profileSection>summary{grid-template-columns:29px minmax(0,1fr) 18px;gap:8px;min-height:58px;padding:10px 11px}
+ .profileSectionIcon{width:27px;height:27px;font-size:13px}.profileSectionText b{font-size:16px}
+ .profileSectionBody{padding:7px}.profileSubsection>summary{padding:9px 10px}
+ .profileSubsectionBody{padding:5px}.profileSubsectionBody>.card{padding:7px}
+}
+
 /* Admin traffic analytics */
 .trafficAdminBox{overflow:hidden}
 .trafficAdminHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}

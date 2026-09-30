@@ -508,7 +508,7 @@ async function toggleVoiceDictation(){
     const fd=new FormData();fd.append("audio",blob,"voice."+ext);
     const {data:{session}}=await sb.auth.getSession();
     if(!session)throw new Error("Нужно войти в архив.");
-    const res=await fetch(SUPABASE_URL+"/functions/v1/voice-transcribe",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_ANON_KEY},body:fd});
+    const res=await fetch(SUPABASE_URL+"/functions/v1/voice-transcribe",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_KEY},body:fd});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||"Не удалось распознать речь.");
     const text=String(data.text||"").trim();

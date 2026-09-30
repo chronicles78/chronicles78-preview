@@ -520,7 +520,7 @@ function renderDriveImportSnapshot(snap){
  if(!state||!results||!actions)return;
  const nNew=snap?.newFiles?.length||0,nDup=snap?.duplicates?.length||0,nReg=Number(snap?.registered||0);
  const folders=Math.max(1,Number(snap?.foldersScanned||1));
- state.innerHTML='<b>'+Number(snap?.total||0)+'</b> фотографий · просмотрено <b>'+folders+'</b> '+photoPlural(folders,"папка","папки","папок")+' · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(nDup?' · <b>'+nDup+'</b> возможный '+photoPlural(nDup,"дубль","дубля","дублей"):'');
+ state.innerHTML='<b>'+Number(snap?.total||0)+'</b> фотографий · просмотрено <b>'+folders+'</b> '+photoPlural(folders,"папка","папки","папок")+' · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(nDup?' · <b>'+nDup+'</b> возможный '+photoPlural(nDup,"дубль","дубля","дублей"):'')+(Number(snap?.movedUpdated||0)?' · обновлено тем после переноса: <b>'+Number(snap.movedUpdated)+'</b>':'');
  const driveLabel=f=>(f.folderPath?f.folderPath+" / ":"")+f.name;
  const newHtml=nNew?'<section class="driveImportGroup"><b>Новые</b>'+snap.newFiles.map(f=>'<div class="driveImportFile"><span>'+esc(driveLabel(f))+'</span><small>'+fmtFileSize(f.size)+(f.folderName?' · тема: '+esc(f.folderName):'')+'</small></div>').join("")+'</section>':'';
  const dupHtml=nDup?'<section class="driveImportGroup duplicate"><b>Не импортируются: возможные дубли</b>'+snap.duplicates.map(f=>'<div class="driveImportFile"><span>'+esc(driveLabel(f))+'</span><small>'+fmtFileSize(f.size)+' · уже есть '+esc(f.duplicateOf?.mediaId||"в архиве")+'</small></div>').join("")+'</section>':'';

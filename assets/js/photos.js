@@ -106,7 +106,7 @@ function renderPhotoWorkspaceHeader(){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+(photoMode==="registry"?"Визуальный реестр":"Внешние кандидаты")+'</b><span>Служебный редакционный раздел</span></div>';return;
  }
  if(photoAlbumFilter!=="all"&&!q){
-  const a=photoAlbums.find(x=>x.id===photoAlbumFilter);
+  const a=albums.find(x=>x.id===photoAlbumFilter);
   if(a){head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+esc(a.title)+'</b><span>'+esc(a.note)+'</span></div>';return}
  }
  head.hidden=true;head.innerHTML="";
@@ -132,7 +132,7 @@ function renderPhotosSection(){
  if($("photoContributeBox"))$("photoContributeBox").style.display=photoWorkspace==="albums"?"block":"none";
  if($("photoStats"))$("photoStats").style.display=photoWorkspace==="upload"?"none":"";
  const clarify=mediaCache.filter(photoNeedsClarification).length;if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
- const albumCount=photoAlbums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length;
+ const albumCount=getPhotoAlbums().filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length;
  if($("photoAlbumsCount"))$("photoAlbumsCount").textContent=albumCount+" "+photoPlural(albumCount,"раздел","раздела","разделов");
  [["photoAlbumsAction",photoWorkspace==="albums"],["photoClarifyAction",photoWorkspace==="clarify"],["photoUploadToggle",photoWorkspace==="upload"]].forEach(([id,on])=>$(id)?.classList.toggle("on",on));
  renderPhotoWorkspaceHeader();
@@ -163,7 +163,22 @@ const photoAlbums=[
  {id:"atmosphere",title:"Атмосфера эпохи",note:"Иллюстрации к этюдам. Они передают время и настроение, но не выдаются за документальные фотографии класса."},
  {id:"unfiled",title:"Архив без подписи",note:"Снимки, которым ещё предстоит точнее установить сюжет, место или контекст."}
 ];
+function driveTopicAlbumId(m){
+ const topic=String(m.data?.preliminary_topic||"").trim(),folderId=String(m.data?.drive_folder_id||"").trim();
+ return topic&&folderId?"drive:"+folderId:null;
+}
+function getPhotoAlbums(){
+ const dynamic=new Map();
+ mediaCache.forEach(m=>{
+   const id=driveTopicAlbumId(m),topic=String(m.data?.preliminary_topic||"").trim();
+   if(id&&topic&&!dynamic.has(id))dynamic.set(id,{id,title:topic,note:m.data?.drive_folder_path?"Тематическая папка Google Drive: "+m.data.drive_folder_path:"Предварительная тема, полученная из папки Google Drive."});
+ });
+ const fixed=photoAlbums.filter(a=>a.id!=="unfiled");
+ return [...fixed,...dynamic.values(),photoAlbums.find(a=>a.id==="unfiled")].filter(Boolean);
+}
 function photoAlbumId(m){
+ const driveId=driveTopicAlbumId(m);
+ if(driveId)return driveId;
  const cat=String(m.category||"").toLowerCase(),title=String(m.title||"").toLowerCase(),loc=String(m.location_text||"").toLowerCase(),desc=String(m.data?.visual_description||"").toLowerCase();
  const hay=[title,loc,desc,String(m.visual_topic_id||"")].join(" ");
  if(cat.includes("иллюстрац"))return "atmosphere";
@@ -183,13 +198,14 @@ function renderPhotoGallery(){
  if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
  const editor=profile?.role==="editor"||profile?.role==="admin";
  $("photosList").className="photoGrid";
- const grouped=photoAlbums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
- let stat='<b>'+total+'</b> фотографий · <b>'+photoAlbums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length+'</b> альбомов';
+ const albums=getPhotoAlbums();
+ const grouped=albums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
+ let stat='<b>'+total+'</b> фотографий · <b>'+albums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length+'</b> альбомов';
  if(photoWorkspace==="clarify")stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"снимок требует","снимка требуют","снимков требуют")+' редакторского разбора';
  else if(q)stat='Найдено: <b>'+arr.length+'</b> из '+total;
  else if(photoAlbumFilter!=="all"){const a=photoAlbums.find(x=>x.id===photoAlbumFilter);stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"фотография","фотографии","фотографий")+' · '+esc(a?.title||"альбом")}
  $("photoStats").innerHTML=stat;
- const allGroups=photoAlbums.map(album=>({album,count:mediaCache.filter(m=>photoAlbumId(m)===album.id).length})).filter(x=>x.count);
+ const allGroups=albums.map(album=>({album,count:mediaCache.filter(m=>photoAlbumId(m)===album.id).length})).filter(x=>x.count);
  const showAlbumChooser=photoWorkspace==="albums"&&!q&&!mediaFocus&&photoAlbumFilter==="all";
  const albumToc=showAlbumChooser?'<nav class="photoAlbumToc photoAlbumChooser" aria-label="Альбомы фотоархива">'+allGroups.map(({album,count},i)=>'<button type="button" data-photo-album="'+esc(album.id)+'"><small>'+String(i+1).padStart(2,"0")+'</small><span>'+esc(album.title)+'</span><b>'+count+'</b></button>').join("")+'</nav>':"";
  $("photosList").innerHTML=albumToc+grouped.map(({album,items},albumIndex)=>'<section class="photoAlbumSection" id="photo-album-'+esc(album.id)+'"><div class="photoAlbumHead"><div><small>АЛЬБОМ '+(albumIndex+1)+'</small><b>'+esc(album.title)+'</b><span>'+esc(album.note)+'</span></div><strong>'+items.length+'</strong></div><div class="photoAlbumGrid">'+items.map((m)=>{
@@ -210,6 +226,7 @@ function renderPhotoGallery(){
        (m.linked_story?'<div class="photoTileStory">Связано с историей</div>':'')+
        (editor?'<div class="photoEditorialMeta"><button class="badge tagLink" data-tag="'+esc(m.id)+'">'+esc(m.id)+'</button>'+
          (m.linked_story?'<button class="badge tagLink" data-tag="'+esc(m.linked_story)+'">'+esc(m.linked_story)+'</button>':'')+
+         (m.data?.preliminary_topic?'<span class="badge">'+esc(m.data.preliminary_topic)+'</span>':'')+
          (m.visual_topic_id?'<span class="badge">'+esc(m.visual_topic_id)+'</span>':'')+
          (m.quality_status?'<span class="badge">'+esc(m.quality_status)+'</span>':'')+
        '</div>':'')+
@@ -233,7 +250,7 @@ async function openArchivePhoto(id){
    (photoNeedsClarification(m)?'<div class="memoryArchiveNote"><b>Память ещё работает.</b> '+esc(m.data?.identification_status||"Дата, место или участники требуют уточнения.")+'</div>':'')+
    (m.linked_story?'<div class="questionActions"><button class="secondary" type="button" data-detail-story="'+esc(m.linked_story)+'">Читать связанную историю</button></div>':'');
  const editorial=editor?'<div class="photoDetailEditorial"><div class="memoryEyebrow">РЕДАКТОРСКАЯ КАРТОЧКА</div>'+
-   '<div class="photoTileMeta"><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span><span class="badge">'+esc(m.quality_status||"")+'</span>'+(m.visual_topic_id?'<span class="badge">'+esc(m.visual_topic_id)+'</span>':'')+'</div>'+
+   '<div class="photoTileMeta"><span class="badge">'+esc(m.id)+'</span><span class="badge">'+esc(m.category||"")+'</span><span class="badge">'+esc(m.quality_status||"")+'</span>'+(m.data?.preliminary_topic?'<span class="badge">Тема: '+esc(m.data.preliminary_topic)+'</span>':'')+(m.visual_topic_id?'<span class="badge">'+esc(m.visual_topic_id)+'</span>':'')+'</div>'+
    (m.source_note?'<p class="small"><b>Источник:</b> '+esc(m.source_note)+'</p>':'')+
    (m.original_owner?'<p class="small"><b>Владелец оригинала:</b> '+esc(m.original_owner)+'</p>':'')+
    (m.attribution_confidence?'<p class="small"><b>Атрибуция:</b> '+esc(m.attribution_confidence)+(m.attributed_by?" · "+esc(m.attributed_by):"")+'</p>':'')+
@@ -502,9 +519,11 @@ function renderDriveImportSnapshot(snap){
  if(link&&snap?.folderUrl){link.href=snap.folderUrl;link.style.display="inline-flex"}
  if(!state||!results||!actions)return;
  const nNew=snap?.newFiles?.length||0,nDup=snap?.duplicates?.length||0,nReg=Number(snap?.registered||0);
- state.innerHTML='<b>'+Number(snap?.total||0)+'</b> файлов в папке · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(nDup?' · <b>'+nDup+'</b> возможный '+photoPlural(nDup,"дубль","дубля","дублей"):'');
- const newHtml=nNew?'<section class="driveImportGroup"><b>Новые</b>'+snap.newFiles.map(f=>'<div class="driveImportFile"><span>'+esc(f.name)+'</span><small>'+fmtFileSize(f.size)+'</small></div>').join("")+'</section>':'';
- const dupHtml=nDup?'<section class="driveImportGroup duplicate"><b>Не импортируются: возможные дубли</b>'+snap.duplicates.map(f=>'<div class="driveImportFile"><span>'+esc(f.name)+'</span><small>'+fmtFileSize(f.size)+' · уже есть '+esc(f.duplicateOf?.mediaId||"в архиве")+'</small></div>').join("")+'</section>':'';
+ const folders=Math.max(1,Number(snap?.foldersScanned||1));
+ state.innerHTML='<b>'+Number(snap?.total||0)+'</b> фотографий · просмотрено <b>'+folders+'</b> '+photoPlural(folders,"папка","папки","папок")+' · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(nDup?' · <b>'+nDup+'</b> возможный '+photoPlural(nDup,"дубль","дубля","дублей"):'');
+ const driveLabel=f=>(f.folderPath?f.folderPath+" / ":"")+f.name;
+ const newHtml=nNew?'<section class="driveImportGroup"><b>Новые</b>'+snap.newFiles.map(f=>'<div class="driveImportFile"><span>'+esc(driveLabel(f))+'</span><small>'+fmtFileSize(f.size)+(f.folderName?' · тема: '+esc(f.folderName):'')+'</small></div>').join("")+'</section>':'';
+ const dupHtml=nDup?'<section class="driveImportGroup duplicate"><b>Не импортируются: возможные дубли</b>'+snap.duplicates.map(f=>'<div class="driveImportFile"><span>'+esc(driveLabel(f))+'</span><small>'+fmtFileSize(f.size)+' · уже есть '+esc(f.duplicateOf?.mediaId||"в архиве")+'</small></div>').join("")+'</section>':'';
  results.innerHTML=newHtml+dupHtml+(!nNew&&!nDup?'<div class="notice">Новых фотографий в Google Drive нет.</div>':'');
  actions.hidden=!nNew;
  if($("driveImportSummary"))$("driveImportSummary").textContent=nNew?nNew+" "+photoPlural(nNew,"новая фотография","новые фотографии","новых фотографий"):"";
@@ -526,7 +545,7 @@ async function importDrivePhotos(){
  driveImportBusy=true;if(run)run.disabled=true;if(scan)scan.disabled=true;
  let ok=0;const imported=[],failed=[];
  for(let i=0;i<files.length;i++){
-  const file=files[i];if(progress)progress.textContent=(i+1)+" из "+files.length+" · "+file.name;
+  const file=files[i];if(progress)progress.textContent=(i+1)+" из "+files.length+" · "+(file.folderPath?file.folderPath+" / ":"")+file.name;
   try{
    const mediaId=await nextMediaId();
    const {data,error}=await sb.functions.invoke("drive-photo-import",{body:{action:"import",fileId:file.id,mediaId}});
@@ -577,6 +596,8 @@ async function editArchiveCard(id){
    '<label>Статус идентификации</label><select id="pfIdent">'+
      ["требует описания","частично идентифицировано","идентифицировано","дата/место требуют уточнения"].map(x=>'<option '+(x===(m.data?.identification_status||"")?"selected":"")+'>'+x+'</option>').join("")+
    '</select>'+
+   '<label>Предварительная тема / альбом</label><input id="pfPreliminaryTopic" value="'+esc(m.data?.preliminary_topic||"")+'" placeholder="Например: УПК, Выпускной, Поход">'+
+   (m.data?.drive_folder_path?'<div class="formHint">Путь оригинала в Google Drive: '+esc(m.data.drive_folder_path)+'</div>':'')+
    '<label>Источник</label><input id="pfSource" value="'+esc(m.source_note||"")+'">'+
    '<label>Визуальная тема</label>'+visualTopicSelectHtml(m.visual_topic_id||"")+
    '<label>Тип происхождения</label><select id="pfProvenance">'+["собственное документальное фото","внешнее атмосферное фото","предметная иллюстрация"].map(x=>'<option '+(x===(m.provenance_type||"")?"selected":"")+'>'+x+'</option>').join("")+'</select>'+
@@ -591,7 +612,9 @@ async function editArchiveCard(id){
    '<label>Люди на фотографии</label>'+peopleChecksHtml(people,m.data?.people||[]),
    async()=>{
      const title=$("pfTitle").value.trim();if(!title)throw new Error("Укажите название.");
-     const next={...(m.data||{}),identification_status:$("pfIdent").value,people:selectedPeople()};
+     const nextTopic=$("pfPreliminaryTopic").value.trim()||null;
+     const next={...(m.data||{}),identification_status:$("pfIdent").value,people:selectedPeople(),preliminary_topic:nextTopic,
+       preliminary_topic_source:nextTopic?(nextTopic===m.data?.preliminary_topic?(m.data?.preliminary_topic_source||"manual"):"manual"):null};
      const {error:ue}=await sb.from("archive_media").update({
        title,linked_story:$("pfStory").value||null,data:next,source_note:$("pfSource").value.trim(),
        visual_topic_id:$("pfVisualTopic").value||null,provenance_type:$("pfProvenance").value||null,

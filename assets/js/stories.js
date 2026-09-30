@@ -138,8 +138,8 @@ async function editStoryInfo(id){
   '<label>Название</label><input id="pfStoryTitle" value="'+esc(st.title||"")+'"><label>Период</label><input id="pfStoryPeriod" value="'+esc(st.period||"")+'"><label>Автор / основной рассказчик</label><select id="pfStoryPerson"><option value="">Не указан</option>'+opts+'</select><label>Краткое описание</label><textarea id="pfStorySummary" style="min-height:120px">'+esc(st.data?.editorial_summary||"")+'</textarea>',
   async()=>{
    const title=$("pfStoryTitle").value.trim();if(!title)throw new Error("Укажите название.");
-   const period=$("pfStoryPeriod").value.trim(),personId=$("pfStoryPerson").value,summary=$("pfStorySummary").value.trim();
-   const nextData={...(st.data||{}),people:personId?[personId]:[],editorial_summary:summary};
+   const period=$("pfStoryPeriod").value.trim(),personId=$("pfStoryPerson").value,summary=$("pfStorySummary").value.trim(),storyText=$("pfStoryText").value.trim();
+   const nextData={...(st.data||{}),people:personId?[personId]:[],editorial_summary:summary,story_text:storyText};
    const {error}=await sb.from("archive_stories").update({title,period:period||null,data:nextData,updated_at:new Date().toISOString()}).eq("id",id);
    if(error)throw error;closePhotoModal();await loadStories();
   });
@@ -158,6 +158,7 @@ async function openStory(id){
  if(!ch){
    if(s.data?.editorial_summary){
      html+='<div class="storyIntro">'+esc(s.data.editorial_summary)+'</div>';
+     if(s.data?.story_text)html+='<section class="storySection storyReadingText"><div class="sectionTitle">История</div><div class="storyProse">'+esc(s.data.story_text).replace(/\n/g,"<br>")+'</div></section>';
      if(s.data?.highlights?.length){
        html+='</div></div><section class="storySection"><div class="sectionTitle">Главное</div>'+
          s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join("")+'</section>';

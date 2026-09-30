@@ -1,6 +1,6 @@
 const TRAFFIC_SESSION_KEY="chronicles78-traffic-session-v1";
 const TRAFFIC_SESSION_TTL=30*60*1000;
-let trafficHeartbeatTimer=null,trafficHeartbeatBusy=false,trafficStatsBusy=false;
+let trafficHeartbeatTimer=null,trafficHeartbeatBusy=false,trafficStatsBusy=false,trafficLastTrackView="",trafficLastTrackAt=0;
 
 function trafficUuid(){
  try{return crypto.randomUUID()}catch{}
@@ -40,7 +40,12 @@ async function sendTraffic(action,view){
    if(error)console.warn("traffic:",error.message||error);
  }catch(e){console.warn("traffic:",e)}
 }
-function trackSiteView(view){void sendTraffic("track",view)}
+function trackSiteView(view){
+ const v=view||activeViewId?.()||"home",now=Date.now();
+ if(v===trafficLastTrackView&&now-trafficLastTrackAt<1500)return;
+ trafficLastTrackView=v;trafficLastTrackAt=now;
+ void sendTraffic("track",v);
+}
 async function trafficHeartbeat(){
  if(trafficHeartbeatBusy||document.visibilityState!=="visible")return;
  trafficHeartbeatBusy=true;
@@ -113,4 +118,5 @@ async function loadTrafficStats(){
  }
 }
 if($("trafficRefreshBtn"))$("trafficRefreshBtn").onclick=loadTrafficStats;
+trackSiteView(activeViewId?.()||"home");
 startTrafficHeartbeat();

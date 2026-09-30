@@ -144,6 +144,10 @@ Deno.serve(async(req:Request)=>{
  const finalData={...(committed?.data||baseData),...baseData,original_history:[...((committed?.data as any)?.original_history||[]),{storage_backend:"google_drive",drive_file_id:file.id,file_name:file.name,file_size:size||inputBytes.byteLength,md5:file.md5Checksum||null,working_path:fullPath,working_file_size:full.data.byteLength,thumbnail_path:thumbPath,thumbnail_file_size:thumb.data.byteLength,source_width:full.sourceWidth,source_height:full.sourceHeight,width:full.width,height:full.height,processed_at:now}].slice(-30)};
  await admin.from("archive_media").update({data:finalData,updated_at:now}).eq("id",mediaId);
  const {error:ooe}=await admin.from("archive_original_objects").insert({owner_user_id:user.id,media_id:mediaId,source_bucket:"google-drive",source_path:file.id,file_name:file.name,mime_type:file.mimeType||null,file_size:size||inputBytes.byteLength,storage_backend:"google_drive",external_provider:"google_drive",external_file_id:file.id,external_folder_id:backend.originals_folder_id,external_url:file.webViewLink||null,mirror_status:"mirrored",mirrored_at:now,source_deleted_at:now,updated_at:now});
- if(ooe)return response({error:"original_registry_failed",detail:ooe.message,mediaId},422);
+ if(ooe){
+  await admin.from("archive_media").delete().eq("id",mediaId);
+  await admin.storage.from(WORK_BUCKET).remove([fullPath,thumbPath]);
+  return response({error:"original_registry_failed",detail:ooe.message},422);
+ }
  return response({ok:true,mediaId,fileId:file.id,fileName:file.name,fullPath,thumbPath,width:full.width,height:full.height,thumbnailWidth:thumb.width,thumbnailHeight:thumb.height});
 });

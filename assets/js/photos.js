@@ -203,7 +203,7 @@ function renderPhotoGallery(){
  let stat='<b>'+total+'</b> фотографий · <b>'+albums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length+'</b> альбомов';
  if(photoWorkspace==="clarify")stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"снимок требует","снимка требуют","снимков требуют")+' редакторского разбора';
  else if(q)stat='Найдено: <b>'+arr.length+'</b> из '+total;
- else if(photoAlbumFilter!=="all"){const a=photoAlbums.find(x=>x.id===photoAlbumFilter);stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"фотография","фотографии","фотографий")+' · '+esc(a?.title||"альбом")}
+ else if(photoAlbumFilter!=="all"){const a=albums.find(x=>x.id===photoAlbumFilter);stat='<b>'+arr.length+'</b> '+photoPlural(arr.length,"фотография","фотографии","фотографий")+' · '+esc(a?.title||"альбом")}
  $("photoStats").innerHTML=stat;
  const allGroups=albums.map(album=>({album,count:mediaCache.filter(m=>photoAlbumId(m)===album.id).length})).filter(x=>x.count);
  const showAlbumChooser=photoWorkspace==="albums"&&!q&&!mediaFocus&&photoAlbumFilter==="all";

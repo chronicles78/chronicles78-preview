@@ -558,7 +558,9 @@ function showView(v){
  if(v==="profile"&&user&&profile?.is_active){
    loadMyPhotoSubmissions();
    if(profile.role==="editor"||profile.role==="admin")loadPhotoSubmissionReview();
+    if(profile.role==="admin"&&typeof loadTrafficStats==="function")loadTrafficStats();
  }
+  if(typeof trackSiteView==="function")trackSiteView(v);
 }
 document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>{if(b.dataset.view==="chat")enableBrowserChatNotifications();showView(b.dataset.view)});
 $("mobileMoreBtn").onclick=()=>{
@@ -809,7 +811,7 @@ async function loadHome(){
 function renderProfile(){
  if(user&&pendingProfile&&!profile){
    $("profileBox").innerHTML='<b>'+esc(pendingProfile.display_name||"Участник")+'</b><br>'+
-     '<span class="small">'+(consentRequired?"Нужно один раз подтвердить согласие на использование данных внутри закрытого архива.":(pendingProfile.access_blocked?"Доступ временно отключён администратором.":"Доступ пока недоступен."))+'</span>'+
+     '<span class="small">'+(consentRequired?"Нужно подтвердить обновлённое согласие: теперь в нём прямо указана внутренняя статистика посещений без IP и fingerprint.":(pendingProfile.access_blocked?"Доступ временно отключён администратором.":"Доступ пока недоступен."))+'</span>'+
      '<button class="secondary" id="logoutPendingBtn">Выйти</button>';
    $("logoutPendingBtn").onclick=logout;
    $("loginBox").style.display="none";
@@ -841,11 +843,12 @@ function renderProfile(){
    loadMyPhotoSubmissions();
     {const canEditPhotos=profile.role==="editor"||profile.role==="admin";document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?"inline-block":"none")}if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
    if($("archiveStorageBox"))$("archiveStorageBox").style.display=profile.role==="admin"?"block":"none";
+    if($("trafficStatsBox"))$("trafficStatsBox").style.display=profile.role==="admin"?"block":"none";
    const canModerate=profile.role==="editor"||profile.role==="admin";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";
    if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
    if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
-   if(profile.role==="admin"){loadAdminUsers();loadArchiveStorageStatus()}
+    if(profile.role==="admin"){loadAdminUsers();loadArchiveStorageStatus();if(typeof loadTrafficStats==="function")loadTrafficStats()}
    if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
    subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
@@ -914,7 +917,7 @@ function openQuickRegistration(){
    '<div class="notice"><b>Имя + e-mail. Пароль не нужен.</b><br>Мы пришлём одноразовую ссылку. После перехода по ней сайт запомнит вход на этом устройстве.</div>'+
    '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
    '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
-   '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку моих ФИО, e-mail, сведений профиля и использование моего изображения на архивных фотографиях внутри закрытого архива «Хроники-78». <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
+    '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку данных для работы закрытого архива, включая внутреннюю статистику посещений и разделов без сохранения IP‑адреса и цифрового fingerprint. <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
    '<div class="formHint" style="margin-top:9px">Открытая публикация в интернете, соцсетях или рекламе в это согласие не входит.</div>',
    async()=>{
      const display_name=$("pfRegName").value.trim();

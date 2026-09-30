@@ -132,7 +132,7 @@ function renderPhotoGallery(){
        (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+
        (names.length?'<div class="photoTilePeople"><b>На фото:</b> '+esc(names.slice(0,5).join(", "))+(names.length>5?"…":"")+'</div>':'')+
        (photoNeedsClarification(m)?'<div class="photoTilePeople"><b>Помогите уточнить:</b> '+esc(m.data?.identification_status||"дата, место или люди")+'</div>':'')+
-       '<div class="photoTileActions"><span class="small">Нажмите, чтобы выбрать действие</span></div>'+
+       (m.linked_story?'<div class="photoTileStory">Связано с историей</div>':'')+
        (editor?'<div class="photoEditorialMeta"><button class="badge tagLink" data-tag="'+esc(m.id)+'">'+esc(m.id)+'</button>'+
          (m.linked_story?'<button class="badge tagLink" data-tag="'+esc(m.linked_story)+'">'+esc(m.linked_story)+'</button>':'')+
          (m.visual_topic_id?'<span class="badge">'+esc(m.visual_topic_id)+'</span>':'')+
@@ -150,7 +150,8 @@ async function openArchivePhoto(id){
  const image=mediaSigned[m.id]?'<figure class="photoMemoryFigure"><img class="photoDetailImage" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">'+
    ((m.approx_date_text||m.location_text||m.original_owner)?'<figcaption>'+esc([m.approx_date_text,m.location_text,m.original_owner?"из архива "+m.original_owner:""].filter(Boolean).join(" · "))+'</figcaption>':'')+
    '</figure>':'<div class="notice">Файл изображения ещё не загружен.</div>';
- const people=names.length?'<div class="photoDetailPeople"><b>На фотографии:</b> '+names.map(n=>'<span class="badge">'+esc(n)+'</span>').join("")+'</div>':'<div class="small">Люди на фотографии пока не закреплены.</div>';
+ const personIds=Array.isArray(m.data?.people)?m.data.people:[];
+ const people=names.length?'<div class="photoDetailPeople"><b>На фотографии:</b> '+names.map((n,i)=>'<button class="photoPersonLink" type="button" data-detail-person="'+esc(personIds[i]||"")+'">'+esc(n)+'</button>').join("")+'</div>':'<div class="small">Люди на фотографии пока не закреплены.</div>';
  const readerMeta=
    (m.data?.visual_description?'<p class="photoMemoryText">'+esc(m.data.visual_description)+'</p>':'')+
    people+
@@ -168,6 +169,7 @@ async function openArchivePhoto(id){
  $("photoModalSave").textContent="Закрыть";
  photoModalSubmit=async()=>closePhotoModal();
  document.querySelectorAll("[data-detail-story]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.detailStory)});
+ document.querySelectorAll("[data-detail-person]").forEach(b=>b.onclick=()=>{const id=b.dataset.detailPerson;if(!id)return;closePhotoModal();showView("people");const p=peopleCache.find(x=>x.id===id);if(p?.group_name&&["10А","10Б"].includes(p.group_name)){peopleGroup=p.group_name;document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===peopleGroup));loadClassPhoto()}selectedPersonId=id;renderPeople();setTimeout(()=>openPersonContext(id),120)});
 
 }
 async function loadPhotos(){

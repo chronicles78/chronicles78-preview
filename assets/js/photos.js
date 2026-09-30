@@ -523,7 +523,7 @@ async function editArchiveCard(id){
    }
  );
 }
-async function uploadDirectDrivePhoto(file,index,total){
+async function uploadDirectDrivePhoto(file,index,total,onStage){
  ensureImageFile(file);
  let id;
  const {data:retryRows}=await sb.from("archive_media").select("id,data").eq("archive_file",file.name).order("id",{ascending:false}).limit(5);
@@ -540,11 +540,11 @@ async function uploadDirectDrivePhoto(file,index,total){
    if(ie)throw ie;
  }
  try{
-   $("driveBulkProgress").textContent="Файл "+index+" из "+total+": принимаю оригинал — "+file.name;
+   onStage?.("Подготовка и WebP",file.name);
    const processed=await uploadArchiveVersion(id,file,"копия","Массовая загрузка в Google Drive","");
    const originalPath=processed?.originalPath;
    if(!originalPath)throw new Error("Не получен путь оригинала для переноса в Google Drive.");
-   $("driveBulkProgress").textContent="Файл "+index+" из "+total+": переношу оригинал в Google Drive — "+file.name;
+   onStage?.("Перенос оригинала в Google Drive",file.name);
    let {data:obj,error:objErr}=await sb.from("archive_original_objects").select("id").eq("source_bucket","archive-originals").eq("source_path",originalPath).maybeSingle();
    if(objErr||!obj?.id){
      const {data:reg,error:regErr}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"register-temp",mediaId:id,sourcePath:originalPath,fileName:file.name,mimeType:file.type||"application/octet-stream",fileSize:file.size}});
@@ -603,9 +603,9 @@ async function uploadDirectDriveBatch(){
  files.forEach((_,i)=>states[i]={state:"wait",label:"ожидает"});renderDriveBulkQueue(states);
  const runOne=async(i)=>{
    states[i]={state:"work",label:"загружается"};setDriveBulkState(i,"work","загружается");
-   try{const r=await uploadDirectDrivePhoto(files[i],i+1,files.length);ok++;driveBulkNewIds.push(r.id);states[i]={state:"done",label:"готово"};setDriveBulkState(i,"done","готово")}
+   try{const r=await uploadDirectDrivePhoto(files[i],i+1,files.length,(stage,name)=>{if($("driveBulkCounter"))$("driveBulkCounter").textContent=(i+1)+" из "+files.length;if($("driveBulkProgress"))$("driveBulkProgress").textContent=stage+" · "+name;if($("driveBulkProgressBar"))$("driveBulkProgressBar").style.width=Math.round((done/files.length)*100)+"%"});ok++;driveBulkNewIds.push(r.id);states[i]={state:"done",label:"готово"};setDriveBulkState(i,"done","готово")}
    catch(e){const msg=e.message||String(e);fail.push(files[i].name+" — "+msg);states[i]={state:"fail",label:"ошибка"};setDriveBulkState(i,"fail","ошибка")}
-   finally{done++;$("driveBulkProgress").textContent=done+" / "+files.length+" · "+(files.length-done?"обработка продолжается":"завершено")}
+   finally{done++;if($("driveBulkCounter"))$("driveBulkCounter").textContent=done+" из "+files.length;if($("driveBulkProgressBar"))$("driveBulkProgressBar").style.width=Math.round((done/files.length)*100)+"%";if($("driveBulkProgress"))$("driveBulkProgress").textContent=files.length-done?"Сохранено "+done+" · следующий файл готовится":"Загрузка завершена"}
  };
  for(let i=0;i<files.length;i++)await runOne(i);
  $("driveBulkUploadBtn").disabled=false;$("driveBulkChooseBtn").disabled=false;
@@ -645,7 +645,7 @@ if($("driveBulkChooseBtn"))$("driveBulkChooseBtn").onclick=()=>$("driveBulkFileI
 if($("driveBulkFileInput"))$("driveBulkFileInput").onchange=()=>{driveBulkSelectedFiles=[...($("driveBulkFileInput").files||[])];if($("driveBulkDone"))$("driveBulkDone").hidden=true;renderDriveBulkQueue();};
 async function restoreRecentBulkPhotos(){
  if(profile?.role!=="admin"||!$("driveBulkDone"))return;
- const since=new Date(Date.now()-6*60*60*1000).toISOString();
+ const since=new Date(Date.now()-24*60*60*1000).toISOString();
  const {data:rows}=await sb.from("archive_media").select("id,archive_file,data,updated_at").gte("updated_at",since).order("updated_at",{ascending:false}).limit(50);
  const recent=(rows||[]).filter(r=>r.data?.bulk_import&&r.data?.original_drive_file_id&&!r.data?.bulk_error);
  if(!recent.length)return;
@@ -655,5 +655,5 @@ async function restoreRecentBulkPhotos(){
  if($("reviewBulkPhotosBtn"))$("reviewBulkPhotosBtn").onclick=()=>{const id=driveBulkNewIds[0];if(id)editArchiveCard(id)};
 }
 if($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;
-restoreRecentBulkPhotos();
+
 

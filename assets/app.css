@@ -1010,3 +1010,59 @@ html[data-theme="dark"] .photoPrimaryTab.on{background:rgba(201,158,93,.06);bord
  .photoAlbumToc.photoAlbumChooser{grid-template-columns:1fr!important}
  .photoAlbumToc.photoAlbumChooser button{border-right:0!important}
 }
+
+/* Photo sizing safety: must apply on mobile too, not only desktop */
+.photoArchivePage,.photoGrid,.photoAlbumSection,.photoAlbumGrid,.photoTile,.photoTileImage,.photoTileBody{
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.photoTile{
+  width:100%;
+  overflow:hidden;
+  background:var(--paper);
+  border:1px solid var(--line);
+}
+.photoTileImage{
+  position:relative;
+  width:100%;
+  max-width:100%;
+  aspect-ratio:4/3;
+  overflow:hidden;
+  background:var(--image-bg);
+}
+.photoTileImage img{
+  display:block;
+  width:100%!important;
+  max-width:100%!important;
+  height:100%!important;
+  max-height:100%!important;
+  object-fit:cover;
+}
+.photoMemoryFigure,.photoMemoryFigure img,.photoDetailImage,.modalPanel,.modalForm{
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.photoMemoryFigure{
+  width:100%;
+  overflow:hidden;
+  margin:0 0 16px;
+}
+.photoMemoryFigure img,.photoDetailImage{
+  display:block;
+  width:100%!important;
+  height:auto!important;
+  max-width:100%!important;
+  max-height:72dvh;
+  object-fit:contain;
+  background:var(--image-bg);
+}
+#photos{overflow-x:hidden}
+.modalPanel{overflow-x:hidden}
+@media(max-width:760px){
+  .photoAlbumGrid{width:100%;max-width:100%;overflow:hidden}
+  .photoTile{transform:none!important}
+  .photoTileImage{aspect-ratio:4/3}
+  .photoMemoryFigure img,.photoDetailImage{max-height:62dvh}
+}

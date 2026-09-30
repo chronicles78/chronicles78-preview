@@ -123,6 +123,7 @@ function renderDriveVideoSnapshot(snap){
  const nNew=snap?.newFiles?.length||0,nDup=snap?.duplicates?.length||0,nReg=Number(snap?.registered||0),folders=Math.max(1,Number(snap?.foldersScanned||1));
  state.innerHTML='<b>'+Number(snap?.total||0)+'</b> '+photoPlural(snap?.total||0,"ролик","ролика","роликов")+' · <b>'+folders+'</b> '+photoPlural(folders,"папка","папки","папок")+' · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(snap?.folderCreated?' · папка «Видео» создана':'')+
    (snap?.manualFilesMayBeHidden?'<div class="driveScopeWarning"><b>Google Drive ограничил доступ приложения.</b><span>Папка видна, но файлы, загруженные в неё вручную, скрыты от текущего OAuth-токена. Для автоматического импорта нужен доступ ко всему Drive (scope drive или drive.readonly).</span></div>':'')+
+   ((snap?.total===0&&snap?.oauthUser?.emailAddress)?'<div class="driveScopeNote">Google OAuth: '+esc(snap.oauthUser.emailAddress)+'</div>':'')+
    (!snap?.manualFilesMayBeHidden&&snap?.total===0&&snap?.oauthScope?'<div class="driveScopeNote">OAuth scope: '+esc(snap.oauthScope)+'</div>':'');
  const label=f=>(f.folderPath?f.folderPath+" / ":"")+f.name;
  const status=f=>["video/mp4","video/webm"].includes(String(f.mimeType||""))?"готово к просмотру":"потребуется конвертация";

@@ -102,11 +102,14 @@ function renderPhotoWorkspaceHeader(){
  if(photoWorkspace==="upload"){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Импорт из Google Drive</b><span>Оригиналы остаются в Drive; сайт создаёт рабочие WebP и ставит новые снимки в очередь на описание.</span></div>';return;
  }
+ if(photoWorkspace==="videos"){
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Фотоальбомы</button><div><b>Видеоархив</b><span>Исторические ролики класса из закрытого архива Google Drive.</span></div>';return;
+ }
  if(photoWorkspace==="service"){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+(photoMode==="registry"?"Визуальный реестр":"Внешние кандидаты")+'</b><span>Служебный редакционный раздел</span></div>';return;
  }
  if(photoAlbumFilter!=="all"&&!q){
-  const a=albums.find(x=>x.id===photoAlbumFilter);
+  const a=getPhotoAlbums().find(x=>x.id===photoAlbumFilter);
   if(a){head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+esc(a.title)+'</b><span>'+esc(a.note)+'</span></div>';return}
  }
  head.hidden=true;head.innerHTML="";
@@ -116,17 +119,19 @@ function setPhotoWorkspace(mode){
  if(mode==="albums"){photoMode="archive";photoFilter="all"}
  else if(mode==="clarify"){photoMode="archive";photoFilter="clarify";photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value=""}
  else if(mode==="upload"){photoMode="archive";photoFilter="all";photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value=""}
+ else if(mode==="videos"){photoMode="archive";photoFilter="all";photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value=""}
  renderPhotosSection();
 }
 function renderPhotosSection(){
  const canEditPhotos=profile?.role==="editor"||profile?.role==="admin",isAdmin=profile?.role==="admin";
- if(!canEditPhotos&&(photoWorkspace!=="albums"||photoMode!=="archive")){photoWorkspace="albums";photoMode="archive";photoFilter="all"}
+ if(!canEditPhotos&&!(["albums","videos"].includes(photoWorkspace)&&photoMode==="archive")){photoWorkspace="albums";photoMode="archive";photoFilter="all"}
  if(!isAdmin&&photoWorkspace==="upload")photoWorkspace="albums";
  if($("photoEditorBar"))$("photoEditorBar").style.display="grid";
  document.querySelectorAll(".editorOnlyPhotoAction").forEach(x=>x.style.display=canEditPhotos?"flex":"none");
  document.querySelectorAll(".adminOnlyPhotoAction").forEach(x=>x.style.display=isAdmin?"flex":"none");
  if($("photoServiceRow"))$("photoServiceRow").style.display=canEditPhotos?"block":"none";
  if(document.querySelector(".photoBrowseBar"))document.querySelector(".photoBrowseBar").style.display=photoWorkspace==="albums"?"grid":"none";
+ if($("videoUploadBox"))$("videoUploadBox").style.display=(isAdmin&&photoWorkspace==="videos")?"block":"none";
  if($("archiveUploadBox"))$("archiveUploadBox").style.display=(isAdmin&&photoWorkspace==="upload")?"block":"none";
  if($("photosList"))$("photosList").style.display=photoWorkspace==="upload"?"none":"";
  if($("photoContributeBox"))$("photoContributeBox").style.display=photoWorkspace==="albums"?"block":"none";
@@ -134,9 +139,10 @@ function renderPhotosSection(){
  const clarify=mediaCache.filter(photoNeedsClarification).length;if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
  const albumCount=getPhotoAlbums().filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length;
  if($("photoAlbumsCount"))$("photoAlbumsCount").textContent=albumCount+" "+photoPlural(albumCount,"раздел","раздела","разделов");
- [["photoAlbumsAction",photoWorkspace==="albums"],["photoClarifyAction",photoWorkspace==="clarify"],["photoUploadToggle",photoWorkspace==="upload"]].forEach(([id,on])=>$(id)?.classList.toggle("on",on));
+ [["photoAlbumsAction",photoWorkspace==="albums"],["videoArchiveAction",photoWorkspace==="videos"],["photoClarifyAction",photoWorkspace==="clarify"],["photoUploadToggle",photoWorkspace==="upload"]].forEach(([id,on])=>$(id)?.classList.toggle("on",on));
  renderPhotoWorkspaceHeader();
  if(photoWorkspace==="upload")return;
+ if(photoWorkspace==="videos"){if(typeof renderVideoArchive==="function")renderVideoArchive();else $("photosList").innerHTML='<div class="notice">Видеоархив загружается…</div>';return}
  if(photoMode==="registry")renderVisualRegistry();
  else if(photoMode==="candidates")renderVisualCandidates();
  else renderPhotoGallery();
@@ -271,13 +277,14 @@ async function loadPhotos(){
    peopleCache=pp||[];
  }
  const [mediaRes,topicRes,candidateRes]=await Promise.all([
-   sb.from("archive_media").select("id,title,category,linked_story,archive_file,current_storage_path,current_file_name,quality_status,source_note,data,visual_topic_id,provenance_type,original_owner,approx_date_text,location_text,attributed_by,attribution_confidence,publication_permission,legal_status,reverse_scanned").order("id"),
+   sb.from("archive_media").select("id,media_type,title,category,linked_story,archive_file,current_storage_path,current_file_name,quality_status,source_note,data,visual_topic_id,provenance_type,original_owner,approx_date_text,location_text,attributed_by,attribution_confidence,publication_permission,legal_status,reverse_scanned").order("id"),
    sb.from("visual_topics").select("*").order("sort_order"),
    sb.from("visual_candidates").select("*").order("sort_order")
  ]);
  if(mediaRes.error||topicRes.error||candidateRes.error){$("photosList").className="";$("photosList").innerHTML='<div class="notice">'+esc(mediaRes.error?.message||topicRes.error?.message||candidateRes.error?.message)+'</div>';return}
- mediaCache=mediaRes.data||[];visualTopicCache=topicRes.data||[];visualCandidateCache=candidateRes.data||[];
+ const allMedia=mediaRes.data||[];mediaCache=allMedia.filter(m=>m.media_type!=="video");videoCache=allMedia.filter(m=>m.media_type==="video");visualTopicCache=topicRes.data||[];visualCandidateCache=candidateRes.data||[];
  mediaSigned={};mediaThumbSigned={};
+ if(typeof prepareVideoArchive==="function")void prepareVideoArchive();
  renderPhotosSection();
  Promise.all(mediaCache.map(async m=>{
    const jobs=[];
@@ -287,10 +294,11 @@ async function loadPhotos(){
  })).then(()=>{if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery()});
 }
 document.addEventListener("click",e=>{
- const b=e.target.closest("#photoAlbumsAction,#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;
+ const b=e.target.closest("#photoAlbumsAction,#videoArchiveAction,#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;
  if(b.matches("[data-photo-back]")||b.id==="photoAlbumsAction"){photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value="";setPhotoWorkspace("albums");return}
  if(b.matches("[data-photo-album]")){photoAlbumFilter=b.dataset.photoAlbum;photoWorkspace="albums";photoMode="archive";photoFilter="all";mediaFocus=null;renderPhotosSection();requestAnimationFrame(()=>$("photosList")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
  if(b.id==="photoSearchClear"){if($("photoSearch"))$("photoSearch").value="";photoAlbumFilter="all";setPhotoWorkspace("albums");return}
+ if(b.id==="videoArchiveAction"){setPhotoWorkspace("videos");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
  if(b.id==="photoClarifyAction"){setPhotoWorkspace("clarify");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
  if(b.id==="photoUploadToggle"){if(profile?.role!=="admin")return;setPhotoWorkspace("upload");scanDrivePhotos();requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
 });

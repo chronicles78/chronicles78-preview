@@ -28,21 +28,45 @@ async function googleAccessToken(){
  const j=await r.json(); if(!r.ok||!j?.access_token)throw new Error("google_token_refresh_failed");
  return String(j.access_token);
 }
-type DriveFile={id:string;name:string;size?:string;mimeType?:string;md5Checksum?:string;webViewLink?:string;createdTime?:string;modifiedTime?:string;parents?:string[];trashed?:boolean;imageMediaMetadata?:{width?:number;height?:number}};
-async function listDriveImages(token:string,folderId:string){
+type DriveFile={id:string;name:string;size?:string;mimeType?:string;md5Checksum?:string;webViewLink?:string;createdTime?:string;modifiedTime?:string;parents?:string[];trashed?:boolean;imageMediaMetadata?:{width?:number;height?:number};folderId?:string;folderName?:string|null;folderPath?:string|null};\ntype DriveFolder={id:string;name:string;path:string;depth:number};
+async function listDriveChildren(token:string,folderId:string){
  let pageToken="",out:DriveFile[]=[];
  do{
-  const q="'"+folderId.replaceAll("'","\\'")+"' in parents and trashed = false";
+  const q="'"+folderId.replaceAll("'","\\\\'")+"' in parents and trashed = false";
   const u=new URL("https://www.googleapis.com/drive/v3/files");
   u.searchParams.set("q",q);u.searchParams.set("pageSize","1000");
   u.searchParams.set("fields","nextPageToken,files(id,name,size,mimeType,md5Checksum,webViewLink,createdTime,modifiedTime,parents,trashed,imageMediaMetadata(width,height))");
   if(pageToken)u.searchParams.set("pageToken",pageToken);
   const r=await fetch(u,{headers:{Authorization:"Bearer "+token}});const j=await r.json();
   if(!r.ok)throw new Error("google_drive_list_failed: "+JSON.stringify(j));
-  out.push(...(j.files||[]).filter((f:DriveFile)=>String(f.mimeType||"").startsWith("image/")));
+  out.push(...(j.files||[]));
   pageToken=String(j.nextPageToken||"");
  }while(pageToken);
  return out;
+}
+async function listDriveImages(token:string,rootFolderId:string){
+ const FOLDER_MIME="application/vnd.google-apps.folder";
+ const queue:DriveFolder[]=[{id:rootFolderId,name:"",path:"",depth:0}],visited=new Set<string>(),out:DriveFile[]=[];
+ let foldersScanned=0;
+ while(queue.length){
+  const folder=queue.shift()!;
+  if(visited.has(folder.id))continue;
+  visited.add(folder.id);foldersScanned++;
+  if(foldersScanned>1000)throw new Error("google_drive_folder_limit_exceeded");
+  const children=await listDriveChildren(token,folder.id);
+  for(const f of children){
+   if(String(f.mimeType||"")===FOLDER_MIME){
+    if(folder.depth>=12)continue;
+    const childName=String(f.name||"").trim()||"Без названия";
+    const childPath=folder.path?folder.path+" / "+childName:childName;
+    queue.push({id:f.id,name:childName,path:childPath,depth:folder.depth+1});
+    continue;
+   }
+   if(!String(f.mimeType||"").startsWith("image/"))continue;
+   out.push({...f,folderId:folder.id,folderName:folder.depth?folder.name:null,folderPath:folder.depth?folder.path:null});
+  }
+ }
+ return {files:out,foldersScanned};
 }
 async function downloadDriveFile(token:string,fileId:string){
  const r=await fetch("https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(fileId)+"?alt=media",{headers:{Authorization:"Bearer "+token}});
@@ -88,7 +112,7 @@ Deno.serve(async(req:Request)=>{
  const {data:backend,error:be}=await admin.from("archive_storage_backends").select("enabled,originals_folder_id").eq("code","google_drive").maybeSingle();
  if(be||!backend?.enabled||!backend.originals_folder_id)return response({error:"google_drive_backend_unavailable"},503);
  let token="";try{token=await googleAccessToken()}catch(e){return response({error:"google_drive_auth_failed",detail:e instanceof Error?e.message:String(e)},503)}
- let files:DriveFile[];try{files=await listDriveImages(token,backend.originals_folder_id)}catch(e){return response({error:"google_drive_list_failed",detail:e instanceof Error?e.message:String(e)},502)}
+ let files:DriveFile[],foldersScanned=0;try{const tree=await listDriveImages(token,backend.originals_folder_id);files=tree.files;foldersScanned=tree.foldersScanned}catch(e){return response({error:"google_drive_list_failed",detail:e instanceof Error?e.message:String(e)},502)}
 
  const {data:objects,error:oe}=await admin.from("archive_original_objects").select("media_id,external_file_id,file_name,file_size").not("external_file_id","is",null);
  if(oe)return response({error:"original_registry_query_failed",detail:oe.message},422);
@@ -106,7 +130,7 @@ Deno.serve(async(req:Request)=>{
    if(dup){const dreg=registeredById.get(dup.id);duplicates.push({...row,duplicateOf:{driveFileId:dup.id,mediaId:(dreg as any)?.media_id||null,name:dup.name}})}
    else newFiles.push(row);
   }
-  return response({ok:true,folderId:backend.originals_folder_id,folderUrl:"https://drive.google.com/drive/folders/"+backend.originals_folder_id,total:files.length,registered:registered.length,newFiles,duplicates});
+  return response({ok:true,folderId:backend.originals_folder_id,folderUrl:"https://drive.google.com/drive/folders/"+backend.originals_folder_id,foldersScanned,total:files.length,registered:registered.length,newFiles,duplicates});
  }
 
  if(action!=="import")return response({error:"unknown_action"},400);
@@ -132,7 +156,7 @@ Deno.serve(async(req:Request)=>{
  if(tu){await admin.storage.from(WORK_BUCKET).remove([fullPath]);return response({error:"thumb_upload_failed",detail:tu.message},422)}
 
  const now=new Date().toISOString();
- const baseData:any={identification_status:"требует описания",people:[],original_storage_backend:"google_drive",original_drive_file_id:file.id,original_drive_url:file.webViewLink||null,original_file_name:file.name,original_file_size:size||inputBytes.byteLength,original_md5:file.md5Checksum||null,drive_created_at:file.createdTime||null,drive_modified_at:file.modifiedTime||null,source_width:full.sourceWidth,source_height:full.sourceHeight,optimized_format:"webp",optimized_max_side:FULL_MAX,optimized_quality:FULL_QUALITY,thumbnail_storage_path:thumbPath,thumbnail_width:thumb.width,thumbnail_height:thumb.height,thumbnail_file_size:thumb.data.byteLength,processing_status:"ready",processed_at:now};
+ const preliminaryTopic=String(file.folderName||"").trim()||null;\n const baseData:any={identification_status:"требует описания",people:[],preliminary_topic:preliminaryTopic,preliminary_topic_source:preliminaryTopic?"google_drive_folder":null,drive_folder_id:file.folderId||backend.originals_folder_id,drive_folder_name:file.folderName||null,drive_folder_path:file.folderPath||null,original_storage_backend:"google_drive",original_drive_file_id:file.id,original_drive_url:file.webViewLink||null,original_file_name:file.name,original_file_size:size||inputBytes.byteLength,original_md5:file.md5Checksum||null,drive_created_at:file.createdTime||null,drive_modified_at:file.modifiedTime||null,source_width:full.sourceWidth,source_height:full.sourceHeight,optimized_format:"webp",optimized_max_side:FULL_MAX,optimized_quality:FULL_QUALITY,thumbnail_storage_path:thumbPath,thumbnail_width:thumb.width,thumbnail_height:thumb.height,thumbnail_file_size:thumb.data.byteLength,processing_status:"ready",processed_at:now};
  const {error:ie}=await admin.from("archive_media").insert({id:mediaId,title:titleFromName(file.name),category:"архивное фото",archive_file:file.name,linked_story:null,data:baseData,visibility:"members",quality_status:"оригинал",source_note:"Импортировано из Google Drive",provenance_type:"собственное документальное фото",attribution_confidence:"не проверено",publication_permission:"только внутренний архив"});
  if(ie){await admin.storage.from(WORK_BUCKET).remove([fullPath,thumbPath]);return response({error:"media_create_failed",detail:ie.message},422)}
 
@@ -141,13 +165,13 @@ Deno.serve(async(req:Request)=>{
  if(ve){await admin.from("archive_media").delete().eq("id",mediaId);await admin.storage.from(WORK_BUCKET).remove([fullPath,thumbPath]);return response({error:"version_commit_failed",detail:ve.message},422)}
 
  const {data:committed}=await admin.from("archive_media").select("data").eq("id",mediaId).maybeSingle();
- const finalData={...(committed?.data||baseData),...baseData,original_history:[...((committed?.data as any)?.original_history||[]),{storage_backend:"google_drive",drive_file_id:file.id,file_name:file.name,file_size:size||inputBytes.byteLength,md5:file.md5Checksum||null,working_path:fullPath,working_file_size:full.data.byteLength,thumbnail_path:thumbPath,thumbnail_file_size:thumb.data.byteLength,source_width:full.sourceWidth,source_height:full.sourceHeight,width:full.width,height:full.height,processed_at:now}].slice(-30)};
+ const finalData={...(committed?.data||baseData),...baseData,original_history:[...((committed?.data as any)?.original_history||[]),{storage_backend:"google_drive",drive_file_id:file.id,drive_folder_id:file.folderId||backend.originals_folder_id,drive_folder_name:file.folderName||null,drive_folder_path:file.folderPath||null,preliminary_topic:preliminaryTopic,file_name:file.name,file_size:size||inputBytes.byteLength,md5:file.md5Checksum||null,working_path:fullPath,working_file_size:full.data.byteLength,thumbnail_path:thumbPath,thumbnail_file_size:thumb.data.byteLength,source_width:full.sourceWidth,source_height:full.sourceHeight,width:full.width,height:full.height,processed_at:now}].slice(-30)};
  await admin.from("archive_media").update({data:finalData,updated_at:now}).eq("id",mediaId);
- const {error:ooe}=await admin.from("archive_original_objects").insert({owner_user_id:user.id,media_id:mediaId,source_bucket:"google-drive",source_path:file.id,file_name:file.name,mime_type:file.mimeType||null,file_size:size||inputBytes.byteLength,storage_backend:"google_drive",external_provider:"google_drive",external_file_id:file.id,external_folder_id:backend.originals_folder_id,external_url:file.webViewLink||null,mirror_status:"mirrored",mirrored_at:now,source_deleted_at:now,updated_at:now});
+ const {error:ooe}=await admin.from("archive_original_objects").insert({owner_user_id:user.id,media_id:mediaId,source_bucket:"google-drive",source_path:file.id,file_name:file.name,mime_type:file.mimeType||null,file_size:size||inputBytes.byteLength,storage_backend:"google_drive",external_provider:"google_drive",external_file_id:file.id,external_folder_id:file.folderId||backend.originals_folder_id,external_url:file.webViewLink||null,mirror_status:"mirrored",mirrored_at:now,source_deleted_at:now,updated_at:now});
  if(ooe){
   await admin.from("archive_media").delete().eq("id",mediaId);
   await admin.storage.from(WORK_BUCKET).remove([fullPath,thumbPath]);
   return response({error:"original_registry_failed",detail:ooe.message},422);
  }
- return response({ok:true,mediaId,fileId:file.id,fileName:file.name,fullPath,thumbPath,width:full.width,height:full.height,thumbnailWidth:thumb.width,thumbnailHeight:thumb.height});
+ return response({ok:true,mediaId,fileId:file.id,fileName:file.name,folderId:file.folderId||backend.originals_folder_id,folderName:file.folderName||null,folderPath:file.folderPath||null,preliminaryTopic,fullPath,thumbPath,width:full.width,height:full.height,thumbnailWidth:thumb.width,thumbnailHeight:thumb.height});
 });

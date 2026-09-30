@@ -790,3 +790,15 @@ html[data-theme="dark"] #home .memoryFeature .homeActions .secondary,html[data-t
 .voiceInputBtn.recording{font-weight:800;box-shadow:0 0 0 2px #9b3a3240 inset}
 html[data-theme="dark"] #home{background:radial-gradient(ellipse at 50% 0,rgba(126,73,41,.12),transparent 52%),linear-gradient(180deg,#171615,#111211)}
 @media(max-width:760px){.composeTools{overflow-x:auto}.attachBtn{flex:0 0 auto}.storyCatalogActions{gap:10px}}
+
+/* 2026-09-30: explicit story reading + chat alerts */
+.nav{position:relative}
+.chatUnreadBadge{margin-left:auto;min-width:20px;height:20px;padding:0 5px;border-radius:10px;align-items:center;justify-content:center;font-size:11px;font-weight:800;background:#a43c31;color:#fff}
+.homeLeadStory{margin-top:14px;padding-top:12px;border-top:1px solid rgba(64,51,39,.2);display:grid;gap:7px;text-align:left}
+.homeLeadStory b{font-family:Georgia,serif;font-size:16px;line-height:1.25}
+.homeReadyLabel{font-size:10px;letter-spacing:.13em;font-weight:800;color:#9b3e32}
+.homeLeadStory .secondary{width:max-content;margin:2px 0 0;padding:8px 11px}
+.chatNewToast{position:fixed;z-index:1200;right:22px;bottom:22px;width:min(360px,calc(100vw - 32px));border:1px solid rgba(90,70,50,.24);border-radius:10px;background:var(--panel,#fffaf2);color:var(--text,#29251f);box-shadow:0 14px 42px rgba(0,0,0,.22);padding:13px 15px;text-align:left;display:grid;gap:4px;opacity:0;transform:translateY(14px);pointer-events:none;transition:.2s ease}
+.chatNewToast.show{opacity:1;transform:none;pointer-events:auto}
+.chatNewToast span{font-size:13px;line-height:1.35;color:var(--muted)}
+@media(max-width:760px){.chatNewToast{right:16px;bottom:76px}.homeLeadStory .secondary{width:100%}}

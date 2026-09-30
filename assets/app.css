@@ -1162,3 +1162,7 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
 .videoPersonName{display:inline-block;margin:3px 5px 0 0;padding:4px 7px;border:1px solid var(--line);border-radius:99px;font-size:10px}
 .videoImportDesk{margin-top:10px}
 @media(max-width:620px){.videoGrid{grid-template-columns:1fr}.videoCardBody h3{font-size:16px}.videoPlayerShell video{max-height:58dvh}}
+
+.driveScopeWarning{margin-top:10px;padding:10px 12px;border:1px solid rgba(142,79,67,.35);border-radius:10px;background:rgba(142,79,67,.07)}
+.driveScopeWarning b,.driveScopeWarning span{display:block}.driveScopeWarning span{margin-top:4px;font-size:10px;line-height:1.45}
+.driveScopeNote{margin-top:8px;font:9px/1.4 "Courier New",monospace;color:var(--muted);word-break:break-all}

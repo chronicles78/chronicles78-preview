@@ -928,3 +928,8 @@ html[data-theme="dark"] .photoAlbumHead{background:linear-gradient(90deg,rgba(20
 html[data-theme="dark"] .photoAlbumToc{background:rgba(201,158,93,.02);border-color:rgba(201,158,93,.16)}html[data-theme="dark"] .photoAlbumToc button{border-color:rgba(201,158,93,.12)}html[data-theme="dark"] .photoAlbumToc small{color:#c99e5d}
 @media(max-width:900px){.photoAlbumToc{grid-template-columns:repeat(3,minmax(0,1fr))}.photoAlbumToc button{border-bottom:1px solid rgba(78,60,43,.12)}}
 @media(max-width:600px){.photoAlbumToc{display:flex;overflow-x:auto}.photoAlbumToc button{flex:0 0 155px;grid-template-columns:auto 1fr;border-bottom:0}.photoAlbumToc b{grid-column:2}}
+
+/* 2026-09-30: admin direct Google Drive bulk upload */
+.adminDriveBulkBox{margin-top:14px;padding:14px 14px 12px;border-top:2px solid rgba(125,72,52,.24);background:rgba(125,72,52,.035)}
+.adminDriveBulkBox input[type=file]{display:block;width:100%;margin:9px 0}.adminDriveBulkBox button{margin-top:4px}.adminDriveBulkBox #driveBulkProgress{margin-top:9px;line-height:1.45}
+html[data-theme="dark"] .adminDriveBulkBox{border-top-color:rgba(201,158,93,.22);background:rgba(201,158,93,.03)}

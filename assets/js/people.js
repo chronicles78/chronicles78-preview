@@ -127,6 +127,8 @@ function renderPeople(){
    $("peopleList").innerHTML='<div class="peopleSide">'+cards+'</div>';
  }
  $("peopleList").querySelectorAll("[data-person-context]").forEach(el=>{el.onclick=()=>openPersonContext(el.dataset.personContext);el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPersonContext(el.dataset.personContext)}}});
+ $("peopleList").querySelectorAll("[data-person-assign]").forEach(b=>b.onclick=e=>{e.stopPropagation();editPersonIdentity(b.dataset.personAssign)});
+ $("peopleList").querySelectorAll("[data-person-suggest]").forEach(b=>b.onclick=e=>{e.stopPropagation();suggestPersonIdentity(b.dataset.personSuggest)});
  $("peopleList").querySelectorAll("[data-selected-person-context]").forEach(el=>el.onclick=()=>openPersonContext(el.dataset.selectedPersonContext));
  $("peopleList").querySelectorAll("[data-hot-person]").forEach(b=>b.onclick=()=>openPersonContext(b.dataset.hotPerson));
  if($("toggleClassNumbers"))$("toggleClassNumbers").onclick=()=>{showClassNumbers=!showClassNumbers;renderPeople()};

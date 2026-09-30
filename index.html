@@ -188,6 +188,20 @@
 <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
 <div class="card" id="adminUsersBox" style="display:none"><h2>Участники</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
 <div class="card" id="archiveStorageBox" style="display:none"><h2>Глубокий архив</h2><div id="archiveStorageState" class="notice">Загрузка…</div></div>
+<div class="card trafficAdminBox" id="trafficStatsBox" style="display:none">
+  <div class="trafficAdminHead"><div><h2>Посещаемость</h2><p>Внутренняя статистика сайта и чата. Зарегистрированные участники — по имени, гости — анонимно.</p></div><button class="secondary" id="trafficRefreshBtn" type="button">Обновить</button></div>
+  <div id="trafficStatsState" class="notice">Статистика ещё не загружена.</div>
+  <div id="trafficKpis" class="trafficKpis"></div>
+  <div class="trafficGrid">
+    <section class="trafficPanel"><h3>Сейчас на сайте</h3><div id="trafficOnlineList"></div></section>
+    <section class="trafficPanel"><h3>Чат</h3><div id="trafficChatStats"></div></section>
+  </div>
+  <div class="trafficGrid">
+    <section class="trafficPanel"><h3>Популярные разделы · 30 дней</h3><div id="trafficPopularViews"></div></section>
+    <section class="trafficPanel"><h3>Последние посещения</h3><div id="trafficRecentVisitors"></div></section>
+  </div>
+  <div class="trafficPrivacyNote">Гости считаются по анонимным сессиям. IP‑адреса и цифровой fingerprint устройства не сохраняются.</div>
+</div>
 <div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
 <div class="card" id="photoSubmissionReviewBox" style="display:none"><h2>Фотографии на проверке</h2><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div>
 <div class="card" id="identityReviewBox" style="display:none"><h2>Подписи к фотографиям</h2><div id="identityReviewList" class="notice">Загрузка…</div></div>
@@ -255,6 +269,7 @@
 <script src="assets/js/stories.js?v=20260930-14"></script>
 <script src="assets/js/photos.js?v=20260930-20"></script>
 <script src="assets/js/city.js?v=20260922-3"></script>
+<script src="assets/js/traffic.js?v=20260930-1"></script>
 <script src="assets/js/questions-admin.js?v=20260922-3"></script>
 </body>
 </html>

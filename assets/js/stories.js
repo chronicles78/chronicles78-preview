@@ -107,13 +107,22 @@ function renderStoriesCatalog(){
  storyShelves.forEach((sh,chapterIndex)=>{
    const shelfStories=sh.ids.filter(id=>visibleIds.has(id)).map(id=>stories.find(s=>s.id===id)).filter(Boolean);
    if(!shelfStories.length)return;
-   catalogHtml+='<div class="storyShelfHead thematicShelf"><div><small>ГЛАВА '+(chapterIndex+1)+'</small><b>'+esc(sh.title)+'</b><span>'+esc(sh.note)+'</span></div><strong>'+shelfStories.length+'</strong></div>'+shelfStories.map(renderCard).join('');
+   catalogHtml+='<div class="storyShelfHead thematicShelf" id="story-chapter-'+(chapterIndex+1)+'"><div><small>ГЛАВА '+(chapterIndex+1)+'</small><b>'+esc(sh.title)+'</b><span>'+esc(sh.note)+'</span></div><strong>'+shelfStories.length+'</strong></div>'+shelfStories.map(renderCard).join('');
  });
  const shelved=new Set(storyShelves.flatMap(sh=>sh.ids));
  const otherStories=stories.filter(s=>!shelved.has(s.id));
  if(otherStories.length)catalogHtml+='<div class="storyShelfHead thematicShelf"><div><b>Новые истории</b><span>Недавно добавленные материалы, которым ещё предстоит занять своё место в книге.</span></div><strong>'+otherStories.length+'</strong></div>'+otherStories.map(renderCard).join('');
  if(fragmentArr.length)catalogHtml+='<div class="storyShelfHead fragmentShelf"><div><b>Фрагменты и открытые вопросы</b><span>Фотографии, версии и детали, которые ещё уточняются или не требуют превращения в отдельный рассказ.</span></div><strong>'+fragmentArr.length+'</strong></div>'+fragmentArr.map(renderCard).join('');
  $("storiesList").innerHTML=catalogHtml||'<div class="notice">По выбранному фильтру историй нет.</div>';
+ const toc=$("storyToc");
+ if(toc){
+   toc.querySelectorAll("[data-story-chapter]").forEach(btn=>{
+     const n=btn.dataset.storyChapter;
+     const target=$("story-chapter-"+n);
+     btn.hidden=!target;
+     btn.onclick=()=>target?.scrollIntoView({behavior:"smooth",block:"start"});
+   });
+ }
  $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag],[data-story-read],[data-story-edit]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});
  $("storiesList").querySelectorAll("[data-story-read]").forEach(b=>b.onclick=e=>{e.stopPropagation();openStory(b.dataset.storyRead)});
  $("storiesList").querySelectorAll("[data-story-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editStoryInfo(b.dataset.storyEdit)});

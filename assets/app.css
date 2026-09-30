@@ -830,3 +830,12 @@ html[data-theme="dark"] #home{background:radial-gradient(ellipse at 50% 0,rgba(1
 html[data-theme="dark"] .storyShelfHead.thematicShelf{background:linear-gradient(90deg,rgba(201,158,93,.06),transparent 72%);border-bottom-color:rgba(201,158,93,.24)}
 html[data-theme="dark"] .storyShelfHead.thematicShelf small{color:#c99e5d}
 @media(max-width:760px){.storyShelfHead.thematicShelf{margin-top:26px;padding:20px 10px 11px}.storyShelfHead.thematicShelf b{font-size:23px}.storyShelfHead.thematicShelf span{font-size:13px}.storyShelfHead.thematicShelf strong{font-size:15px;min-width:36px;padding:7px}}
+
+/* 2026-09-30: story table of contents */
+.storyToc{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;margin:18px 0 20px;border:1px solid rgba(78,60,43,.2);background:rgba(255,252,244,.28)}
+.storyToc button{appearance:none;border:0;border-right:1px solid rgba(78,60,43,.16);background:transparent;color:var(--ink);min-width:0;padding:13px 10px 14px;text-align:left;cursor:pointer;display:grid;gap:5px;align-content:start}
+.storyToc button:last-child{border-right:0}.storyToc button:hover{background:rgba(125,72,52,.06)}
+.storyToc button[hidden]{display:none}.storyToc small{font:700 10px/1 "Courier New",monospace;letter-spacing:.12em;color:#8e4f43}.storyToc span{font:700 13px/1.22 Georgia,serif}
+html[data-theme="dark"] .storyToc{background:rgba(201,158,93,.025);border-color:rgba(201,158,93,.18)}html[data-theme="dark"] .storyToc button{border-color:rgba(201,158,93,.14)}html[data-theme="dark"] .storyToc small{color:#c99e5d}
+@media(max-width:980px){.storyToc{grid-template-columns:repeat(4,minmax(0,1fr))}.storyToc button{border-bottom:1px solid rgba(78,60,43,.16)}}
+@media(max-width:620px){.storyToc{display:flex;overflow-x:auto;scroll-snap-type:x proximity}.storyToc button{flex:0 0 155px;scroll-snap-align:start;min-height:72px}.storyToc span{font-size:12px}}

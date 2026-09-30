@@ -151,7 +151,9 @@ sb.auth.onAuthStateChange((event,session)=>{
  if(event==="PASSWORD_RECOVERY")setTimeout(()=>openNewPasswordForm(),0);
  if(["INITIAL_SESSION","SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","SIGNED_OUT"].includes(event)){
    setTimeout(()=>hydrateProfileFromSession(session,{render:true}).then(ok=>{
+      if(!ok&&pendingProfile){showView("profile");return}
      if(ok){
+        if(typeof trafficHeartbeat==="function")void trafficHeartbeat();
        const v=activeViewId();
        if(v==="home")loadHome();
        else if(v==="chat")loadRoom();
@@ -866,7 +868,8 @@ async function init(){
  renderRooms();renderProfile();
  if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
  if(profile){subscribe();subscribeNotifications();setTimeout(prefetchClassPhotoUrls,0);}
- if(!user||OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)showView("profile");
+  if(!user||pendingProfile||OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)showView("profile");
+  else if(profile&&typeof trackSiteView==="function")trackSiteView(activeViewId()||"home");
  if(OPEN_REGISTER_ON_START&&!user)setTimeout(openQuickRegistration,120);
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
 }

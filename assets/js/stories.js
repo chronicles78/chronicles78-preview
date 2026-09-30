@@ -186,11 +186,15 @@ async function openStory(id){
        s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+(src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+'<div class="storySourceText">'+esc(src.text||"").replace(/\n/g,"<br>")+'</div></article>'});
        html+='</section>';
      }
-     if(s.data?.highlights?.length){
-       html+='</div></div><section class="storySection"><div class="sectionTitle">Главное</div>'+
-         s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join("")+'</section>';
-     }else html+='</div></div>';
-     if(s.data?.source_basis)html+='<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>';
+     html+='</div></div>';
+     if(!isFragment&&(s.data?.highlights?.length||s.data?.source_basis)){
+       html+='<section class="storySection storyEditorialNote"><div class="sectionTitle">Редакторская справка</div>'+
+         (s.data?.highlights?.length?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join(""):'')+
+         (s.data?.source_basis?'<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>':'')+
+       '</section>';
+     }else if(isFragment&&s.data?.source_basis){
+       html+='<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>';
+     }
    } else {
      html+='<div class="storyIntro">Для этой истории пока собрана карточка и связи с архивом. Развёрнутая редакционная реконструкция ещё не подготовлена.</div></div></div>';
    }

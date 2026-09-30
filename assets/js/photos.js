@@ -87,7 +87,7 @@ function renderVisualCandidates(){
 }
 function renderPhotosSection(){
  if(!(profile?.role==="editor"||profile?.role==="admin")&&photoMode!=="archive")photoMode="archive";
- $("photoArchiveToolbar").style.display=photoMode==="archive"?"":"none";
+ $("photoArchiveToolbar").style.display="none"; if($("photoEditorModes"))$("photoEditorModes").style.display=(profile?.role==="editor"||profile?.role==="admin")?"flex":"none";
  if(photoMode==="registry")renderVisualRegistry();
  else if(photoMode==="candidates")renderVisualCandidates();
  else renderPhotoGallery();
@@ -132,7 +132,7 @@ function renderPhotoGallery(){
  if(photoFilter==="unlinked")arr=arr.filter(m=>!m.linked_story);
  if(q)arr=arr.filter(m=>JSON.stringify([m.id,m.title,m.category,m.linked_story,m.quality_status,m.source_note,m.data,m.visual_topic_id,m.provenance_type,m.original_owner,m.approx_date_text,m.location_text,m.attribution_confidence,m.publication_permission,m.legal_status,mediaPeopleNames(m)]).toLowerCase().includes(q));
  const total=mediaCache.length,withStory=mediaCache.filter(m=>m.linked_story).length,clarify=mediaCache.filter(photoNeedsClarification).length;
- $("photoStats").innerHTML='<b>'+total+'</b> фотографий · <b>'+withStory+'</b> связаны с историями'+(clarify?' · <b>'+clarify+'</b> ждут уточнения':'');
+ $("photoStats").innerHTML='<b>'+total+'</b> фотографий в архиве'+(clarify?' · <b>'+clarify+'</b> требуют редакторского разбора':''); if($("photoClarifyLabel"))$("photoClarifyLabel").textContent=clarify?clarify+" "+plural(clarify,"снимок требует","снимка требуют","снимков требуют")+" имён, места или даты":"Все снимки разобраны";
  const editor=profile?.role==="editor"||profile?.role==="admin";
  $("photosList").className="photoGrid";
  const grouped=photoAlbums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
@@ -210,17 +210,15 @@ async function loadPhotos(){
  await Promise.all(mediaCache.map(async m=>{if(m.current_storage_path)mediaSigned[m.id]=await archiveSignedImage(m.current_storage_path)}));
  renderPhotosSection();
 }
-document.querySelectorAll("[data-photofilter]").forEach(b=>b.onclick=()=>{
- photoFilter=b.dataset.photofilter;
- mediaFocus=null;
- document.querySelectorAll("[data-photofilter]").forEach(x=>x.classList.toggle("on",x===b));
- renderPhotoGallery();
-});
+if($("photoSearchToggle"))$("photoSearchToggle").onclick=()=>{photoMode="archive";photoFilter="all";mediaFocus=null;$("photoArchiveToolbar").style.display="flex";$("photoSearch").focus();document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x===$("photoSearchToggle")));renderPhotoGallery()};
+if($("photoSearchClose"))$("photoSearchClose").onclick=()=>{$("photoSearch").value="";$("photoArchiveToolbar").style.display="none";document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x.dataset.photomode==="archive"));renderPhotoGallery()};
+if($("photoClarifyAction"))$("photoClarifyAction").onclick=()=>{photoMode="archive";photoFilter="clarify";mediaFocus=null;$("photoArchiveToolbar").style.display="none";document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x===$("photoClarifyAction")));renderPhotoGallery()};
+if($("photoUploadToggle"))$("photoUploadToggle").onclick=()=>{const box=$("archiveUploadBox");if(!box)return;box.style.display=box.style.display==="none"?"block":"none";if(box.style.display!=="none")box.scrollIntoView({behavior:"smooth",block:"start"})};
 document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
- photoMode=b.dataset.photomode;mediaFocus=null;
+ photoMode=b.dataset.photomode;mediaFocus=null;photoFilter="all";
  document.querySelectorAll("[data-photomode]").forEach(x=>x.classList.toggle("on",x===b));
  $("photoSearch").value="";
- $("photoSearch").placeholder=photoMode==="archive"?"Поиск по фото, сюжету, описанию…":photoMode==="registry"?"Поиск по визуальным темам…":"Поиск по кандидатам…";
+ $("photoSearch").placeholder=photoMode==="archive"?"Кого или что ищем?":photoMode==="registry"?"Поиск по визуальным темам…":"Поиск по кандидатам…";
  renderPhotosSection();
 });
 $("photoSearch").oninput=()=>{mediaFocus=null;renderPhotosSection()};

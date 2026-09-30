@@ -41,6 +41,15 @@ function openStoryContext(id){
    ]
  });
 }
+const storyShelves=[
+ {title:"Школа и класс",note:"Уроки, переход в 78-ю, экзамены и те сцены, из которых складывалась повседневная жизнь класса.",ids:["S-001","S-006","S-014","S-015"]},
+ {title:"Люди 78-й",note:"Портреты, большие личные тексты и характеры, которые память сохранила особенно отчётливо.",ids:["S-002","S-003","S-004","S-005","S-017","S-018","S-036","S-019","S-032"]},
+ {title:"Свобода за школьным порогом",note:"Походы, лагеря, Заволга и первые решения, которые принимались уже без школьного звонка.",ids:["S-012","S-020","S-021","S-022","S-023","S-024","S-033","S-034"]},
+ {title:"Музыка, мода и свои правила",note:"Джинсы, фураги, самодельная одежда, магнитофоны и музыка как язык поколения.",ids:["S-011","S-028","S-029","S-030","S-031"]},
+ {title:"Первые деньги",note:"Работа школьников, собственный заработок и первые столкновения с настоящей взрослой экономикой.",ids:["S-025","S-026","S-027"]},
+ {title:"После звонка",note:"То, что происходило уже после школы: первые встречи выпускников и возвращение старых фотографий.",ids:["S-016","S-010"]},
+ {title:"Как мы вспоминаем",note:"Внутренние легенды и история самого архива — память как отдельный сюжет «Хроник 78-й».",ids:["S-007","S-000"]}
+];
 function renderStoriesCatalog(){
  const q=($("storySearch")?.value||"").trim().toLowerCase();
  let arr=storyCache.filter(storyMatchesFilter);
@@ -94,7 +103,15 @@ function renderStoriesCatalog(){
  const stories=arr.filter(s=>storyState(s)!=="фрагмент памяти");
  const fragmentArr=arr.filter(s=>storyState(s)==="фрагмент памяти");
  let catalogHtml='';
- if(stories.length)catalogHtml+='<div class="storyShelfHead"><div><b>Истории</b><span>Готовые рассказы и реконструкции по воспоминаниям участников.</span></div><strong>'+stories.length+'</strong></div>'+stories.map(renderCard).join('');
+ const visibleIds=new Set(stories.map(s=>s.id));
+ storyShelves.forEach(sh=>{
+   const shelfStories=sh.ids.filter(id=>visibleIds.has(id)).map(id=>stories.find(s=>s.id===id)).filter(Boolean);
+   if(!shelfStories.length)return;
+   catalogHtml+='<div class="storyShelfHead thematicShelf"><div><b>'+esc(sh.title)+'</b><span>'+esc(sh.note)+'</span></div><strong>'+shelfStories.length+'</strong></div>'+shelfStories.map(renderCard).join('');
+ });
+ const shelved=new Set(storyShelves.flatMap(sh=>sh.ids));
+ const otherStories=stories.filter(s=>!shelved.has(s.id));
+ if(otherStories.length)catalogHtml+='<div class="storyShelfHead thematicShelf"><div><b>Новые истории</b><span>Недавно добавленные материалы, которым ещё предстоит занять своё место в книге.</span></div><strong>'+otherStories.length+'</strong></div>'+otherStories.map(renderCard).join('');
  if(fragmentArr.length)catalogHtml+='<div class="storyShelfHead fragmentShelf"><div><b>Фрагменты и открытые вопросы</b><span>Фотографии, версии и детали, которые ещё уточняются или не требуют превращения в отдельный рассказ.</span></div><strong>'+fragmentArr.length+'</strong></div>'+fragmentArr.map(renderCard).join('');
  $("storiesList").innerHTML=catalogHtml||'<div class="notice">По выбранному фильтру историй нет.</div>';
  $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag],[data-story-read],[data-story-edit]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});

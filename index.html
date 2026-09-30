@@ -122,26 +122,7 @@
 </div>
 <input id="newArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
 <input id="replaceArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
-<div id="adminDriveBulkBox" class="photoDeskBulk" style="display:none">
-  <input id="driveBulkFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple hidden>
-  <button class="photoDeskDrop" id="driveBulkChooseBtn" type="button"><span>＋</span><b>Выбрать пачку фотографий</b><small>JPG, PNG или WebP · можно выбрать сразу много файлов</small></button>
-  <div id="driveBulkQueue" class="photoDeskQueue"></div>
-  <div id="driveBulkActions" class="photoDeskActions" hidden>
-    <div class="photoDeskProgressWrap"><div><b id="driveBulkSummary"></b><strong id="driveBulkCounter">Готово к запуску</strong></div><div class="photoDeskProgressBar"><i id="driveBulkProgressBar"></i></div><span id="driveBulkProgress" class="small">После запуска здесь будет виден текущий файл и этап обработки.</span></div>
-    <button class="primary" id="driveBulkUploadBtn">Начать загрузку</button>
-  </div>
-  <div id="driveBulkDone" class="photoDeskDone" hidden></div>
-</div>
-<details class="photoDeskTools">
- <summary>Служебные инструменты</summary>
- <div class="photoDeskToolsBody">
-  <b>Загрузка по существующим MEDIA-ID</b>
-  <div class="small">Для замены или добавления файлов к уже созданным карточкам. Имя файла должно содержать ID, например MEDIA-012.jpeg.</div>
-  <input id="archiveFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-  <button class="secondary" id="archiveUploadBtn">Загрузить по MEDIA-ID</button>
-  <div id="archiveUploadMsg" class="small"></div>
- </div>
-</details>
+
 </div>
 <div id="photosList" class="photoGrid"></div>
 <div id="photoContributeBox" class="uploadBox" style="display:none">

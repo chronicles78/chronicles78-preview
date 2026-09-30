@@ -106,6 +106,24 @@ function openPhotoContext(id){
  ];
  openContextSheet({eyebrow:"ФОТОАРХИВ",title:m.title,meta,preview,actions});
 }
+const photoAlbums=[
+ {id:"school",title:"Школа и класс",note:"Классные фотографии, школьные сцены и всё, что относится непосредственно к 78-й."},
+ {id:"people",title:"Люди и встречи",note:"Личные, групповые и семейные снимки одноклассников — в школе и после неё."},
+ {id:"travel",title:"Походы и лагеря",note:"Походная жизнь, лагеря, поездки и свобода за школьным порогом."},
+ {id:"city",title:"Город и время",note:"Куйбышев и Самара как часть общей памяти: улицы, места и городской фон."},
+ {id:"atmosphere",title:"Атмосфера эпохи",note:"Иллюстрации к этюдам. Они передают время и настроение, но не выдаются за документальные фотографии класса."},
+ {id:"unfiled",title:"Архив без подписи",note:"Снимки, которым ещё предстоит точнее установить сюжет, место или контекст."}
+];
+function photoAlbumId(m){
+ const cat=String(m.category||"").toLowerCase(),title=String(m.title||"").toLowerCase(),loc=String(m.location_text||"").toLowerCase(),desc=String(m.data?.visual_description||"").toLowerCase();
+ const hay=[title,loc,desc,String(m.visual_topic_id||"")].join(" ");
+ if(cat.includes("иллюстрац"))return "atmosphere";
+ if(/поход|лагер|турист|палат|солнечн/.test(hay)||["S-012","S-009"].includes(m.linked_story))return "travel";
+ if(/школ|класс|пионер|учен|парт/.test(hay)||m.linked_story==="S-013")return "school";
+ if(/куйбыш|самар|улиц|спуск|монастыр|город|набереж|вилонов/.test(hay)||m.visual_topic_id)return "city";
+ if((Array.isArray(m.data?.people)&&m.data.people.length)||/татьяна|светлана|дети|группов|ковр|курсант/.test(hay))return "people";
+ return "unfiled";
+}
 function renderPhotoGallery(){
  let arr=mediaFocus?mediaCache.filter(m=>m.id===mediaFocus):[...mediaCache];
  const q=($("photoSearch")?.value||"").trim().toLowerCase();
@@ -117,7 +135,8 @@ function renderPhotoGallery(){
  $("photoStats").innerHTML='<b>'+total+'</b> фотографий · <b>'+withStory+'</b> связаны с историями'+(clarify?' · <b>'+clarify+'</b> ждут уточнения':'');
  const editor=profile?.role==="editor"||profile?.role==="admin";
  $("photosList").className="photoGrid";
- $("photosList").innerHTML=arr.map((m,idx)=>{
+ const grouped=photoAlbums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
+ $("photosList").innerHTML=grouped.map(({album,items},albumIndex)=>'<section class="photoAlbumSection" id="photo-album-'+esc(album.id)+'"><div class="photoAlbumHead"><div><small>АЛЬБОМ '+(albumIndex+1)+'</small><b>'+esc(album.title)+'</b><span>'+esc(album.note)+'</span></div><strong>'+items.length+'</strong></div><div class="photoAlbumGrid">'+items.map((m,idx)=>{
    const names=mediaPeopleNames(m);
    const desc=m.data?.visual_description||"";
    const whenWhere=[m.approx_date_text,m.location_text].filter(Boolean).join(" · ");
@@ -140,7 +159,7 @@ function renderPhotoGallery(){
          (m.publication_permission?'<span class="badge">'+esc(m.publication_permission)+'</span>':'')+
        '</div>':'')+
      '</div></article>';
- }).join("")||'<div class="notice">По выбранному фильтру фотографий нет.</div>';
+ }).join("")+'</div></section>').join("")||'<div class="notice">По выбранному фильтру фотографий нет.</div>';
  $("photosList").querySelectorAll("[data-photo-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]"))return;openPhotoContext(el.dataset.photoContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPhotoContext(el.dataset.photoContext)}}});
 }
 async function openArchivePhoto(id){

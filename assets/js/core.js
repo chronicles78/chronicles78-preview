@@ -836,7 +836,7 @@ function renderProfile(){
    $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";
    if($("photoContributeBox"))$("photoContributeBox").style.display="block";
    if($("archiveUploadBox"))$("archiveUploadBox").style.display=(profile.role==="editor"||profile.role==="admin")?"block":"none";
-   if($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile.role==="admin"?"block":"none";
+   if($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile.role==="admin"?"block":"none"; if(profile.role==="admin"&&typeof restoreRecentBulkPhotos==="function")restoreRecentBulkPhotos();
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
    loadMyPhotoSubmissions();
    document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=(profile.role==="editor"||profile.role==="admin")?"":"none");if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";

@@ -104,10 +104,10 @@ function renderStoriesCatalog(){
  const fragmentArr=arr.filter(s=>storyState(s)==="фрагмент памяти");
  let catalogHtml='';
  const visibleIds=new Set(stories.map(s=>s.id));
- storyShelves.forEach(sh=>{
+ storyShelves.forEach((sh,chapterIndex)=>{
    const shelfStories=sh.ids.filter(id=>visibleIds.has(id)).map(id=>stories.find(s=>s.id===id)).filter(Boolean);
    if(!shelfStories.length)return;
-   catalogHtml+='<div class="storyShelfHead thematicShelf"><div><b>'+esc(sh.title)+'</b><span>'+esc(sh.note)+'</span></div><strong>'+shelfStories.length+'</strong></div>'+shelfStories.map(renderCard).join('');
+   catalogHtml+='<div class="storyShelfHead thematicShelf"><div><small>ГЛАВА '+(chapterIndex+1)+'</small><b>'+esc(sh.title)+'</b><span>'+esc(sh.note)+'</span></div><strong>'+shelfStories.length+'</strong></div>'+shelfStories.map(renderCard).join('');
  });
  const shelved=new Set(storyShelves.flatMap(sh=>sh.ids));
  const otherStories=stories.filter(s=>!shelved.has(s.id));

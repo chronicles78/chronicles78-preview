@@ -28,7 +28,8 @@ async function googleAccessToken(){
  const j=await r.json(); if(!r.ok||!j?.access_token)throw new Error("google_token_refresh_failed");
  return String(j.access_token);
 }
-type DriveFile={id:string;name:string;size?:string;mimeType?:string;md5Checksum?:string;webViewLink?:string;createdTime?:string;modifiedTime?:string;parents?:string[];trashed?:boolean;imageMediaMetadata?:{width?:number;height?:number};folderId?:string;folderName?:string|null;folderPath?:string|null};\ntype DriveFolder={id:string;name:string;path:string;depth:number};
+type DriveFile={id:string;name:string;size?:string;mimeType?:string;md5Checksum?:string;webViewLink?:string;createdTime?:string;modifiedTime?:string;parents?:string[];trashed?:boolean;imageMediaMetadata?:{width?:number;height?:number};folderId?:string;folderName?:string|null;folderPath?:string|null};
+type DriveFolder={id:string;name:string;path:string;depth:number};
 async function listDriveChildren(token:string,folderId:string){
  let pageToken="",out:DriveFile[]=[];
  do{
@@ -175,7 +176,8 @@ Deno.serve(async(req:Request)=>{
  if(tu){await admin.storage.from(WORK_BUCKET).remove([fullPath]);return response({error:"thumb_upload_failed",detail:tu.message},422)}
 
  const now=new Date().toISOString();
- const preliminaryTopic=String(file.folderName||"").trim()||null;\n const baseData:any={identification_status:"требует описания",people:[],preliminary_topic:preliminaryTopic,preliminary_topic_source:preliminaryTopic?"google_drive_folder":null,drive_folder_id:file.folderId||backend.originals_folder_id,drive_folder_name:file.folderName||null,drive_folder_path:file.folderPath||null,original_storage_backend:"google_drive",original_drive_file_id:file.id,original_drive_url:file.webViewLink||null,original_file_name:file.name,original_file_size:size||inputBytes.byteLength,original_md5:file.md5Checksum||null,drive_created_at:file.createdTime||null,drive_modified_at:file.modifiedTime||null,source_width:full.sourceWidth,source_height:full.sourceHeight,optimized_format:"webp",optimized_max_side:FULL_MAX,optimized_quality:FULL_QUALITY,thumbnail_storage_path:thumbPath,thumbnail_width:thumb.width,thumbnail_height:thumb.height,thumbnail_file_size:thumb.data.byteLength,processing_status:"ready",processed_at:now};
+ const preliminaryTopic=String(file.folderName||"").trim()||null;
+ const baseData:any={identification_status:"требует описания",people:[],preliminary_topic:preliminaryTopic,preliminary_topic_source:preliminaryTopic?"google_drive_folder":null,drive_folder_id:file.folderId||backend.originals_folder_id,drive_folder_name:file.folderName||null,drive_folder_path:file.folderPath||null,original_storage_backend:"google_drive",original_drive_file_id:file.id,original_drive_url:file.webViewLink||null,original_file_name:file.name,original_file_size:size||inputBytes.byteLength,original_md5:file.md5Checksum||null,drive_created_at:file.createdTime||null,drive_modified_at:file.modifiedTime||null,source_width:full.sourceWidth,source_height:full.sourceHeight,optimized_format:"webp",optimized_max_side:FULL_MAX,optimized_quality:FULL_QUALITY,thumbnail_storage_path:thumbPath,thumbnail_width:thumb.width,thumbnail_height:thumb.height,thumbnail_file_size:thumb.data.byteLength,processing_status:"ready",processed_at:now};
  const {error:ie}=await admin.from("archive_media").insert({id:mediaId,title:titleFromName(file.name),category:"архивное фото",archive_file:file.name,linked_story:null,data:baseData,visibility:"members",quality_status:"оригинал",source_note:"Импортировано из Google Drive",provenance_type:"собственное документальное фото",attribution_confidence:"не проверено",publication_permission:"только внутренний архив"});
  if(ie){await admin.storage.from(WORK_BUCKET).remove([fullPath,thumbPath]);return response({error:"media_create_failed",detail:ie.message},422)}
 

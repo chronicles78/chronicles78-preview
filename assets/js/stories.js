@@ -88,7 +88,7 @@ function renderStoriesCatalog(){
          (media?'<span class="badge">фото '+media+'</span>':'')+
        '</div>':'')+
        (kws?'<div class="storyCatalogTags">'+kws+'</div>':'')+
-       '<div class="storyCatalogActions">'+(readable?'<button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Читать историю</button>':'<span class="storyPreparing">Текст готовится из найденных первоисточников</span>')+(profile?.role==="editor"||profile?.role==="admin"?'<button class="editorialLink" data-story-edit="'+esc(s.id)+'">Исправить сведения</button>':'')+'</div>'+
+       '<div class="storyCatalogActions">'+(readable?'<button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Читать историю</button>':state==="фрагмент памяти"?'<button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Открыть материалы</button>':'<span class="storyPreparing">Текст готовится из найденных первоисточников</span>')+(profile?.role==="editor"||profile?.role==="admin"?'<button class="editorialLink" data-story-edit="'+esc(s.id)+'">Исправить сведения</button>':'')+'</div>'+
      '</div></article>';
  };
  const stories=arr.filter(s=>storyState(s)!=="фрагмент памяти");

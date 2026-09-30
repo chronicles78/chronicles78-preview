@@ -143,7 +143,7 @@ async function editStoryInfo(id){
  const current=(st.data?.people||[])[0]||"";
  const opts=peopleCache.slice().sort((a,b)=>(a.canonical_name||"").localeCompare(b.canonical_name||"","ru")).map(x=>'<option value="'+esc(x.id)+'" '+(x.id===current?"selected":"")+'>'+esc(x.canonical_name||x.id)+' · '+esc(x.group_name||"")+'</option>').join("");
  openPhotoModal("Исправить сведения об истории",
-  '<label>Название</label><input id="pfStoryTitle" value="'+esc(st.title||"")+'"><label>Период</label><input id="pfStoryPeriod" value="'+esc(st.period||"")+'"><label>Автор / основной рассказчик</label><select id="pfStoryPerson"><option value="">Не указан</option>'+opts+'</select><label>Краткое описание</label><textarea id="pfStorySummary" style="min-height:120px">'+esc(st.data?.editorial_summary||"")+'</textarea>',
+  '<label>Название</label><input id="pfStoryTitle" value="'+esc(st.title||"")+'"><label>Период</label><input id="pfStoryPeriod" value="'+esc(st.period||"")+'"><label>Автор / основной рассказчик</label><select id="pfStoryPerson"><option value="">Не указан</option>'+opts+'</select><label>Краткое описание</label><textarea id="pfStorySummary" style="min-height:120px">'+esc(st.data?.editorial_summary||"")+'</textarea><label>Текст истории</label><textarea id="pfStoryText" style="min-height:260px" placeholder="Редакторский текст для чтения">'+esc(st.data?.story_text||"")+'</textarea>',
   async()=>{
    const title=$("pfStoryTitle").value.trim();if(!title)throw new Error("Укажите название.");
    const period=$("pfStoryPeriod").value.trim(),personId=$("pfStoryPerson").value,summary=$("pfStorySummary").value.trim(),storyText=$("pfStoryText").value.trim();

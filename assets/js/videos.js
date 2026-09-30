@@ -121,7 +121,9 @@ function renderDriveVideoSnapshot(snap){
  if(link&&snap?.folderUrl){link.href=snap.folderUrl;link.style.display="inline-flex"}
  if(!state||!results||!actions)return;
  const nNew=snap?.newFiles?.length||0,nDup=snap?.duplicates?.length||0,nReg=Number(snap?.registered||0),folders=Math.max(1,Number(snap?.foldersScanned||1));
- state.innerHTML='<b>'+Number(snap?.total||0)+'</b> '+photoPlural(snap?.total||0,"ролик","ролика","роликов")+' · <b>'+folders+'</b> '+photoPlural(folders,"папка","папки","папок")+' · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(snap?.folderCreated?' · папка «Видео» создана':'');
+ state.innerHTML='<b>'+Number(snap?.total||0)+'</b> '+photoPlural(snap?.total||0,"ролик","ролика","роликов")+' · <b>'+folders+'</b> '+photoPlural(folders,"папка","папки","папок")+' · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(snap?.folderCreated?' · папка «Видео» создана':'')+
+   (snap?.manualFilesMayBeHidden?'<div class="driveScopeWarning"><b>Google Drive ограничил доступ приложения.</b><span>Папка видна, но файлы, загруженные в неё вручную, скрыты от текущего OAuth-токена. Для автоматического импорта нужен доступ ко всему Drive (scope drive или drive.readonly).</span></div>':'')+
+   (!snap?.manualFilesMayBeHidden&&snap?.total===0&&snap?.oauthScope?'<div class="driveScopeNote">OAuth scope: '+esc(snap.oauthScope)+'</div>':'');
  const label=f=>(f.folderPath?f.folderPath+" / ":"")+f.name;
  const status=f=>["video/mp4","video/webm"].includes(String(f.mimeType||""))?"готово к просмотру":"потребуется конвертация";
  const newHtml=nNew?'<section class="driveImportGroup"><b>Новые видео</b>'+snap.newFiles.map(f=>'<div class="driveImportFile"><span>'+esc(label(f))+'</span><small>'+fmtFileSize(f.size)+' · '+esc(status(f))+'</small></div>').join("")+'</section>':"";

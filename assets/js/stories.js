@@ -152,20 +152,34 @@ async function editStoryInfo(id){
    if(error)throw error;closePhotoModal();await loadStories();
   });
 }
+function fragmentOpenQuestion(s){
+ const type=s.data?.fragment_type||"";
+ if(type==="поиск фотографии")return "Найти и атрибутировать фотографию, которую участники помнят по этому эпизоду.";
+ if(type==="фотоархив")return "Перенести найденный цифровой массив в архив сайта, убрать дубли и подписать людей, место и дату.";
+ if(type==="атрибуция и датировка")return "Закрепить датировку фотографии более твёрдым свидетельством: подписью, документом или независимым воспоминанием.";
+ if(type==="архивный поиск")return "Продолжать пополнять архив новыми снимками и связывать их с людьми и историями.";
+ return "";
+}
 async function openStory(id){
  openStoryId=id;
  const {data:s,error}=await sb.from("archive_stories").select("*").eq("id",id).maybeSingle();
  if(error||!s){alert(error?.message||"История не найдена");return}
  const ch=s.data?.chapter;
  const cover=storyCoverFor(s);
+ const isFragment=storyState(s)==="фрагмент памяти";
  let html='<div class="storyHero">'+
    (cover?.url?'<div class="storyHeroCover"><img src="'+cover.url+'" alt="'+esc(cover.title||s.title)+'"></div>':'')+
-   '<div class="storyHeroInner"><div class="memoryEyebrow">'+esc(s.period||"ИЗ ПАМЯТИ КЛАССА")+'</div>'+
+   '<div class="storyHeroInner"><div class="memoryEyebrow">'+esc(isFragment?(s.data?.fragment_type||"ФРАГМЕНТ ПАМЯТИ"):(s.period||"ИЗ ПАМЯТИ КЛАССА"))+'</div>'+
    '<h2>'+esc(s.title)+'</h2>'+
    '<div class="storyMeta"><button class="badge tagLink" data-tag="'+esc(s.id)+'">'+esc(s.id)+'</button>'+(s.kind?'<button class="badge tagLink" data-tag="'+esc(s.kind)+'">'+esc(s.kind)+'</button>':'')+'<span class="badge">'+esc(storyState(s))+'</span>'+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':'')+'</div>';
  if(!ch){
    if(s.data?.editorial_summary){
      html+='<div class="storyIntro">'+esc(s.data.editorial_summary)+'</div>';
+     if(isFragment){
+       const oq=fragmentOpenQuestion(s);
+       html+='<section class="storySection fragmentKnown"><div class="sectionTitle">Что известно</div>'+(s.data?.highlights?.length?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join(""):'<div class="storyFact">'+esc(s.data.editorial_summary)+'</div>')+'</section>';
+       if(oq)html+='<section class="storySection fragmentQuestion"><div class="sectionTitle">Что ещё не установлено</div><div class="storyQuestion">'+esc(oq)+'</div></section>';
+     }
      if(s.data?.story_text)html+='<section class="storySection storyReadingText"><div class="sectionTitle">История</div><div class="storyProse">'+esc(s.data.story_text).replace(/\n/g,"<br>")+'</div></section>';
      if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
        html+='<section class="storySection storySources"><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Исходные сообщения участников — отдельно от редакционного текста.</p>';

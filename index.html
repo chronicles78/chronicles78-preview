@@ -106,13 +106,6 @@
 <button class="editorPhotoMode" data-photomode="candidates">Внешние кандидаты</button>
 </div>
 <div id="photoStats" class="photoArchiveStats"></div>
-<div id="photoContributeBox" class="uploadBox" style="display:none">
-<b>Есть фотография из тех лет?</b>
-<div class="small" style="margin:6px 0 8px">Отправьте её прямо со смартфона. Оригинал сохранится в закрытом архиве, а в очередь редакции попадёт только облегчённая копия. В альбоме снимок появится после проверки.</div>
-<button class="secondary" id="submitArchivePhotoBtn">＋ Предложить фото</button>
-<input id="submitArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
-<div id="photoSubmitMsg" class="small"></div>
-</div>
 <div id="archiveUploadBox" class="photoDesk" style="display:none">
 <div class="photoDeskHead">
   <div><span class="memoryEyebrow">РЕДАКТОРСКИЙ ФОТОСТОЛ</span><b>Добавить фотографии</b><p>Оригиналы после проверки сохраняются в Google Drive. Для сайта автоматически готовятся облегчённые WebP-копии.</p></div>
@@ -141,7 +134,15 @@
  </div>
 </details>
 </div>
-<div id="photosList" class="photoGrid"></div></div></section>
+<div id="photosList" class="photoGrid"></div>
+<div id="photoContributeBox" class="uploadBox" style="display:none">
+<b>Есть фотография из тех лет?</b>
+<div class="small" style="margin:6px 0 8px">Отправьте её прямо со смартфона. Оригинал сохранится в закрытом архиве, а в очередь редакции попадёт только облегчённая копия. В альбоме снимок появится после проверки.</div>
+<button class="secondary" id="submitArchivePhotoBtn">＋ Предложить фото</button>
+<input id="submitArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+<div id="photoSubmitMsg" class="small"></div>
+</div>
+</div></section>
 <section id="city" class="view"><div class="archiveList cityArchivePage">
 <div class="cityArchiveIntro">
   <div class="memoryEyebrow">КУЙБЫШЕВ · 1970–1980-е</div>

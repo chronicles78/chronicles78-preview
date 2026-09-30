@@ -817,3 +817,5 @@ html[data-theme="dark"] #home{background:radial-gradient(ellipse at 50% 0,rgba(1
 .storyShelfHead div{display:grid;gap:4px}.storyShelfHead b{font:700 22px/1.15 Georgia,serif}.storyShelfHead span{font-size:13px;line-height:1.4;color:var(--muted);max-width:720px}.storyShelfHead strong{font:700 26px/1 Georgia,serif;color:var(--muted)}
 .storyShelfHead.fragmentShelf{margin-top:34px;border-top:2px solid rgba(125,72,52,.18);padding-top:24px}
 @media(max-width:760px){.storyShelfHead{align-items:start;margin-top:10px}.storyShelfHead b{font-size:19px}.storyShelfHead span{font-size:12px}.storyShelfHead strong{font-size:21px}}
+
+.storySourceType{display:inline-block;margin:4px 0 9px;padding:3px 7px;border:1px solid rgba(78,60,43,.18);border-radius:999px;font-size:11px;line-height:1.25;color:var(--muted);background:rgba(255,252,244,.45)}

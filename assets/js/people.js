@@ -115,7 +115,7 @@ function renderPeople(){
      '<div class="personAlbumSub">'+esc(p.group_name||"")+' · № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+
      (!confirmed?'<span class="badge">имя уточняется</span>':'')+
      (p.identification_note&&!confirmed?'<div class="small" style="margin-top:5px">'+esc(p.identification_note)+'</div>':'')+
-     ((linkedStories.length||p.data?.media_links?.length)?'<div class="small" style="margin-top:6px">Нажмите, чтобы открыть действия</div>':'<div class="small" style="margin-top:6px">Нажмите, чтобы открыть действия</div>')+
+     ((linkedStories.length||p.data?.media_links?.length)?'<div class="personMemoryCount">'+(linkedStories.length?linkedStories.length+' '+(linkedStories.length===1?'история':linkedStories.length<5?'истории':'историй'):'')+(linkedStories.length&&p.data?.media_links?.length?' · ':'')+(p.data?.media_links?.length?(p.data.media_links.length+' фото'):'')+'</div>':'')+
      (editor?'<div class="personTech">'+esc(p.id)+' · '+esc(status)+(p.aliases?.length?" · в чате: "+esc(p.aliases.join(", ")):"")+'</div>':'')+
    '</div></article>';
  }).join("")||'<div class="notice">Ничего не найдено.</div>';

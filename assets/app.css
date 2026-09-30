@@ -1076,3 +1076,36 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
  .driveImportLead>button,.driveImportActions>button{width:100%}
  .driveImportFile{grid-template-columns:1fr;gap:2px}.driveImportFile small{text-align:left}
 }
+
+/* Admin traffic analytics */
+.trafficAdminBox{overflow:hidden}
+.trafficAdminHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.trafficAdminHead h2{margin:0 0 4px}.trafficAdminHead p{margin:0;color:var(--muted);font-size:12px;line-height:1.45;max-width:560px}
+.trafficAdminHead>button{width:auto;margin:0;padding:8px 12px;flex:0 0 auto}
+.trafficGenerated{margin:10px 0;color:var(--muted)}
+.trafficKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
+.trafficKpi{min-width:0;border:1px solid var(--line);border-radius:13px;background:var(--paper-2);padding:11px}
+.trafficKpi span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.trafficKpi b{display:block;margin:4px 0 2px;font:700 28px/1 Georgia,serif}
+.trafficKpi small{display:block;color:var(--muted);font-size:9px;line-height:1.35}
+.trafficGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.trafficPanel{min-width:0;border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:12px}
+.trafficPanel h3{font:700 17px/1.15 Georgia,serif;margin:0 0 9px}
+.trafficRow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.trafficRow:first-child{border-top:0}.trafficRow>div{min-width:0}.trafficRow b{display:block;font-size:12px}.trafficRow span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.trafficRow small{font-size:9px;color:var(--muted);white-space:nowrap}
+.trafficEmpty{font-size:11px;color:var(--muted);padding:8px 0}
+.trafficChatTable{display:grid}.trafficChatRow{display:grid;grid-template-columns:68px repeat(4,minmax(0,1fr));gap:5px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:9px}
+.trafficChatRow:first-child{border-top:0}.trafficChatRow b{font-size:10px}.trafficChatRow span{color:var(--muted)}
+.trafficPopularRow{display:grid;grid-template-columns:82px minmax(0,1fr) 32px;gap:8px;align-items:center;padding:5px 0}
+.trafficPopularRow>span{font-size:10px}.trafficPopularRow>div{height:5px;border-radius:99px;background:var(--soft);overflow:hidden}.trafficPopularRow i{display:block;height:100%;background:var(--focus);border-radius:99px}.trafficPopularRow>b{text-align:right;font-size:10px}
+.trafficVisitor{padding:9px 0;border-top:1px solid var(--line)}.trafficVisitor:first-child{border-top:0}
+.trafficVisitorTop{display:flex;justify-content:space-between;gap:10px}.trafficVisitorTop b{font-size:12px}.trafficVisitorTop small{font-size:9px;color:var(--muted);white-space:nowrap}
+.trafficVisitorMeta{margin-top:3px;color:var(--muted);font-size:9px;line-height:1.35}
+.trafficPrivacyNote{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:10px;line-height:1.45}
+@media(max-width:700px){
+ .trafficAdminHead{flex-direction:column}.trafficAdminHead>button{width:100%}
+ .trafficKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .trafficGrid{grid-template-columns:1fr}
+ .trafficChatRow{grid-template-columns:62px repeat(2,minmax(0,1fr));row-gap:4px}
+ .trafficChatRow span:nth-of-type(3),.trafficChatRow span:nth-of-type(4){grid-column:auto}
+}

@@ -893,3 +893,11 @@ html[data-theme="dark"] .personCard{box-shadow:0 4px 16px #0003}.personMemoryCou
 .contextEyebrow{font-family:"Courier New",monospace;letter-spacing:.15em}.contextAction{border-radius:4px}.contextAction.primary{box-shadow:none}
 html[data-theme="dark"] .personDossierSummary>div{border-color:rgba(201,158,93,.14);background:rgba(201,158,93,.025)}
 @media(max-width:430px){.contextPreview:has(.personDossierSummary) .identitySuggestCrop{flex-basis:92px;width:92px}.personDossierSummary b{font-size:25px}.personDossierSummary span{font-size:11px}}
+
+/* 2026-09-30: class photo as a people map */
+@media(hover:hover) and (pointer:fine){
+.classHotspot:after{content:attr(data-person-label);position:absolute;left:50%;bottom:calc(100% + 7px);transform:translateX(-50%) translateY(3px);z-index:8;max-width:190px;width:max-content;padding:6px 8px;background:rgba(43,36,29,.94);color:#fffaf0;border-radius:3px;font:12px/1.2 Georgia,serif;white-space:normal;text-align:center;opacity:0;pointer-events:none;transition:opacity .12s ease,transform .12s ease;box-shadow:0 4px 14px #0004}
+.classHotspot:hover:after,.classHotspot:focus-visible:after{opacity:1;transform:translateX(-50%) translateY(0)}
+.classHotspot.unknown:after{font-style:italic;color:#e7dcc9}
+}
+.classHotspot.active{z-index:5;border-color:#fff4d7;box-shadow:0 0 0 2px var(--focus),0 0 18px rgba(255,244,215,.5);background:rgba(212,180,131,.16)}

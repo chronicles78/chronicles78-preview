@@ -575,24 +575,50 @@ async function uploadDirectDrivePhoto(file,index,total){
    throw new Error(id+" · "+msg);
  }
 }
+let driveBulkSelectedFiles=[],driveBulkNewIds=[];
+function formatFileSize(n){return n<1024*1024?Math.max(1,Math.round(n/1024))+" КБ":(n/1024/1024).toFixed(1).replace(".",",")+" МБ"}
+function renderDriveBulkQueue(states={}){
+ const q=$("driveBulkQueue");if(!q)return;
+ q.innerHTML=driveBulkSelectedFiles.map((file,i)=>{
+   const st=states[i]||{state:"wait",label:"ожидает"};
+   const url=URL.createObjectURL(file);
+   setTimeout(()=>URL.revokeObjectURL(url),3000);
+   return '<div class="photoDeskItem '+esc(st.state)+'" data-bulk-index="'+i+'"><img src="'+esc(url)+'" alt=""><div><b>'+esc(file.name)+'</b><small>'+formatFileSize(file.size)+'</small></div><span>'+esc(st.label)+'</span></div>';
+ }).join("");
+ const a=$("driveBulkActions");if(a)a.hidden=!driveBulkSelectedFiles.length;
+ if($("driveBulkSummary"))$("driveBulkSummary").textContent=driveBulkSelectedFiles.length?driveBulkSelectedFiles.length+" "+plural(driveBulkSelectedFiles.length,"фотография","фотографии","фотографий")+" готовы к загрузке":"";
+}
+function setDriveBulkState(i,state,label){
+ const el=document.querySelector('.photoDeskItem[data-bulk-index="'+i+'"]');if(!el)return;
+ el.className="photoDeskItem "+state;const s=el.querySelector(":scope > span");if(s)s.textContent=label;
+}
 async function uploadDirectDriveBatch(){
  if(profile?.role!=="admin")return;
- const files=[...($("driveBulkFileInput")?.files||[])];
+ const files=driveBulkSelectedFiles.length?driveBulkSelectedFiles:[...($("driveBulkFileInput")?.files||[])];
  if(!files.length){$("driveBulkProgress").textContent="Выберите фотографии.";return}
  const bad=files.find(f=>{try{ensureImageFile(f);return false}catch{return true}});
  if(bad){$("driveBulkProgress").textContent="Неподдерживаемый файл: "+bad.name;return}
- if(!confirm("Загрузить "+files.length+" фотографий напрямую в Google Drive и автоматически создать карточки фотоархива?"))return;
- $("driveBulkUploadBtn").disabled=true;
- let ok=0;const fail=[];
- for(let i=0;i<files.length;i++){
-   try{await uploadDirectDrivePhoto(files[i],i+1,files.length);ok++}
-   catch(e){fail.push(files[i].name+" — "+(e.message||e))}
- }
- $("driveBulkUploadBtn").disabled=false;
- $("driveBulkFileInput").value="";
- $("driveBulkProgress").innerHTML='<b>Готово: '+ok+' из '+files.length+'.</b>'+(fail.length?'<br>Ошибки: '+esc(fail.join("; ")):'')+'<br>Новые карточки помечены «требует описания».';
+ $("driveBulkUploadBtn").disabled=true;$("driveBulkChooseBtn").disabled=true;
+ driveBulkNewIds=[];let ok=0,done=0;const fail=[],states={};
+ files.forEach((_,i)=>states[i]={state:"wait",label:"ожидает"});renderDriveBulkQueue(states);
+ const runOne=async(i)=>{
+   states[i]={state:"work",label:"загружается"};setDriveBulkState(i,"work","загружается");
+   try{const r=await uploadDirectDrivePhoto(files[i],i+1,files.length);ok++;driveBulkNewIds.push(r.id);states[i]={state:"done",label:"готово"};setDriveBulkState(i,"done","готово")}
+   catch(e){const msg=e.message||String(e);fail.push(files[i].name+" — "+msg);states[i]={state:"fail",label:"ошибка"};setDriveBulkState(i,"fail","ошибка")}
+   finally{done++;$("driveBulkProgress").textContent=done+" / "+files.length+" · "+(files.length-done?"обработка продолжается":"завершено")}
+ };
+ let cursor=0;
+ const worker=async()=>{while(true){const i=cursor++;if(i>=files.length)return;await runOne(i)}};
+ await Promise.all(Array.from({length:Math.min(3,files.length)},worker));
+ $("driveBulkUploadBtn").disabled=false;$("driveBulkChooseBtn").disabled=false;
+ $("driveBulkFileInput").value="";driveBulkSelectedFiles=[];
+ const doneBox=$("driveBulkDone");doneBox.hidden=false;
+ doneBox.innerHTML='<b>Готово: '+ok+' из '+files.length+'</b><span>'+(fail.length?'Есть ошибки: '+esc(fail.join("; ")):'Все оригиналы сохранены, рабочие копии подготовлены.')+'</span>'+(driveBulkNewIds.length?'<button type="button" id="reviewBulkPhotosBtn">Разобрать новые фотографии →</button>':'');
+ if($("driveBulkActions"))$("driveBulkActions").hidden=true;
  await loadPhotos();
+ if($("reviewBulkPhotosBtn"))$("reviewBulkPhotosBtn").onclick=()=>{const id=driveBulkNewIds[0];if(id)editArchiveCard(id)};
 }
+
 async function uploadArchiveMedia(){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
  const files=[...($("archiveFileInput").files||[])];
@@ -617,5 +643,7 @@ async function uploadArchiveMedia(){
 }
 $("archiveUploadBtn").onclick=uploadArchiveMedia;
 if($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile?.role==="admin"?"block":"none";
+if($("driveBulkChooseBtn"))$("driveBulkChooseBtn").onclick=()=>$("driveBulkFileInput")?.click();
+if($("driveBulkFileInput"))$("driveBulkFileInput").onchange=()=>{driveBulkSelectedFiles=[...($("driveBulkFileInput").files||[])];if($("driveBulkDone"))$("driveBulkDone").hidden=true;renderDriveBulkQueue();};
 if($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;
 

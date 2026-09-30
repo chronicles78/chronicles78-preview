@@ -79,19 +79,19 @@
 <div id="storyDetail" class="storyDetail"><div class="storyDetailIn"><div class="storyHead"><b>История</b><button id="closeStory">← К списку</button></div><div id="storyDetailBody"></div></div></div>
 <section id="photos" class="view"><div class="archiveList photoArchivePage">
 <div class="photoArchiveIntro"><div class="memoryEyebrow">СЕМЕЙНЫЙ АЛЬБОМ · ВИЗУАЛЬНАЯ ПАМЯТЬ</div><h2>Фотографии</h2><p>Здесь снимок важнее карточки. Открывайте фотографию, узнавайте людей, уточняйте место и время — а редакционный реестр и права остаются отдельным рабочим слоем.</p></div>
-<div class="photoModeRail filterRail" id="photoModeRail" style="margin-bottom:10px">
-<button class="mini on" data-photomode="archive">Альбом</button>
-<button class="mini editorPhotoMode" data-photomode="registry">Визуальный реестр</button>
-<button class="mini editorPhotoMode" data-photomode="candidates">Кандидаты</button>
+<div class="photoHomeNav" id="photoModeRail">
+<button class="photoHomeAction on" data-photomode="archive"><b>Смотреть альбомы</b><span>Фотографии разложены по темам и сюжетам</span></button>
+<button class="photoHomeAction" id="photoSearchToggle"><b>Найти фотографию</b><span>По человеку, месту, событию или подписи</span></button>
+<button class="photoHomeAction editorPhotoMode" id="photoClarifyAction" data-photo-work="clarify"><b>Разобрать неопознанные</b><span id="photoClarifyLabel">Снимки, которым нужны имена, место или дата</span></button>
+<button class="photoHomeAction editorPhotoMode" id="photoUploadToggle"><b>Добавить фотографии</b><span>Одна фотография или целая пачка</span></button>
 </div>
-<div class="photoToolbar" id="photoArchiveToolbar">
-<div class="filterRail">
-<button class="mini on" data-photofilter="all">Все</button>
-<button class="mini" data-photofilter="story">Связаны с историей</button>
-<button class="mini" data-photofilter="clarify">Нужно уточнить</button>
-<button class="mini" data-photofilter="unlinked">Без истории</button>
+<div class="photoToolbar photoSearchPanel" id="photoArchiveToolbar">
+<input id="photoSearch" placeholder="Кого или что ищем? Например: «Волга», «10Б», «поход»…">
+<button class="mini" id="photoSearchClose" type="button">Закрыть поиск</button>
 </div>
-<input id="photoSearch" placeholder="Поиск по фото, сюжету, описанию…">
+<div class="photoEditorModes" id="photoEditorModes">
+<button class="editorPhotoMode" data-photomode="registry">Визуальный реестр</button>
+<button class="editorPhotoMode" data-photomode="candidates">Внешние кандидаты</button>
 </div>
 <div id="photoStats" class="photoArchiveStats"></div>
 <div id="photoContributeBox" class="uploadBox" style="display:none">

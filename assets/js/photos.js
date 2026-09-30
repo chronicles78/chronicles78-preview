@@ -216,6 +216,7 @@ if($("photoClarifyAction"))$("photoClarifyAction").onclick=()=>{photoMode="archi
 if($("photoUploadToggle"))$("photoUploadToggle").onclick=()=>{const box=$("archiveUploadBox");if(!box)return;box.style.display=box.style.display==="none"?"block":"none";if(box.style.display!=="none")box.scrollIntoView({behavior:"smooth",block:"start"})};
 document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
  photoMode=b.dataset.photomode;mediaFocus=null;photoFilter="all";
+ if(b.classList.contains("photoHomeAction")){if($("photoArchiveToolbar"))$("photoArchiveToolbar").style.display="none";document.querySelectorAll(".photoHomeAction").forEach(x=>x.classList.toggle("on",x===b));}
  document.querySelectorAll("[data-photomode]").forEach(x=>x.classList.toggle("on",x===b));
  $("photoSearch").value="";
  $("photoSearch").placeholder=photoMode==="archive"?"Кого или что ищем?":photoMode==="registry"?"Поиск по визуальным темам…":"Поиск по кандидатам…";

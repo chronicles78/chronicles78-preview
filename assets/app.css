@@ -809,3 +809,5 @@ html[data-theme="dark"] #home{background:radial-gradient(ellipse at 50% 0,rgba(1
 .storySourceMeta{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:7px}
 .storySourceMeta b{font-family:Georgia,serif}.storySourceMeta span{font-size:12px;color:var(--muted)}
 .storySourceText{font-size:15px;line-height:1.62;white-space:normal}
+
+.storyPreparing{font-size:12px;color:var(--muted);font-style:italic;padding:8px 0}

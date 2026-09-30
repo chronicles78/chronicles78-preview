@@ -921,3 +921,10 @@ html[data-theme="dark"] .photoTileStory{color:#c99e5d}.photoPersonLink{color:inh
 html[data-theme="dark"] .photoAlbumHead{background:linear-gradient(90deg,rgba(201,158,93,.045),transparent 72%);border-bottom-color:rgba(201,158,93,.22)}html[data-theme="dark"] .photoAlbumHead small{color:#c99e5d}
 @media(max-width:980px){.photoAlbumGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:720px){.photoAlbumSection{margin-bottom:32px}.photoAlbumHead{margin-top:24px;padding:18px 8px 10px}.photoAlbumHead b{font-size:23px}.photoAlbumHead span{font-size:13px}.photoAlbumGrid{grid-template-columns:1fr!important;gap:10px}}
+
+.photoAlbumToc{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:15px 0 8px;border:1px solid rgba(78,60,43,.18);background:rgba(255,252,244,.24)}
+.photoAlbumToc button{appearance:none;min-width:0;border:0;border-right:1px solid rgba(78,60,43,.14);background:transparent;color:var(--ink);padding:11px 9px;text-align:left;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:start}.photoAlbumToc button:last-child{border-right:0}.photoAlbumToc button:hover{background:rgba(125,72,52,.05)}
+.photoAlbumToc small{font:700 9px/1.2 "Courier New",monospace;color:#8e4f43}.photoAlbumToc span{font:700 12px/1.2 Georgia,serif}.photoAlbumToc b{font:10px/1.2 "Courier New",monospace;color:var(--muted)}
+html[data-theme="dark"] .photoAlbumToc{background:rgba(201,158,93,.02);border-color:rgba(201,158,93,.16)}html[data-theme="dark"] .photoAlbumToc button{border-color:rgba(201,158,93,.12)}html[data-theme="dark"] .photoAlbumToc small{color:#c99e5d}
+@media(max-width:900px){.photoAlbumToc{grid-template-columns:repeat(3,minmax(0,1fr))}.photoAlbumToc button{border-bottom:1px solid rgba(78,60,43,.12)}}
+@media(max-width:600px){.photoAlbumToc{display:flex;overflow-x:auto}.photoAlbumToc button{flex:0 0 155px;grid-template-columns:auto 1fr;border-bottom:0}.photoAlbumToc b{grid-column:2}}

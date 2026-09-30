@@ -523,6 +523,61 @@ async function editArchiveCard(id){
    }
  );
 }
+async function uploadDirectDrivePhoto(file,index,total){
+ const mime=ensureImageFile(file);
+ const id=await nextMediaId();
+ const title=String(file.name||"Фотография").replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim()||id;
+ const {error:ie}=await sb.from("archive_media").insert({
+   id,title,category:"архивное фото",archive_file:file.name,linked_story:null,visibility:"members",quality_status:"оригинал",
+   provenance_type:"собственное документальное фото",attribution_confidence:"не проверено",publication_permission:"только внутренний архив",
+   data:{identification_status:"требует описания",people:[],bulk_import:true,bulk_imported_at:new Date().toISOString()}
+ });
+ if(ie)throw ie;
+ try{
+   $("driveBulkProgress").textContent="Файл "+index+" из "+total+": создаю канал Google Drive — "+file.name;
+   const {data:init,error:initError}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"init",mediaId:id,fileName:file.name,mimeType:mime,fileSize:file.size}});
+   if(initError||!init?.uploadUrl)throw new Error(initError?.message||init?.detail||init?.error||"Не удалось открыть загрузку Google Drive.");
+   $("driveBulkProgress").textContent="Файл "+index+" из "+total+": оригинал → Google Drive — "+file.name;
+   const put=await fetch(init.uploadUrl,{method:"PUT",headers:{"Content-Type":mime},body:file});
+   const drive=await put.json().catch(()=>null);
+   if(!put.ok||!drive?.id)throw new Error("Google Drive не подтвердил загрузку ("+put.status+").");
+   const {data:fin,error:finError}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"finalize",mediaId:id,fileId:drive.id,fileName:file.name,mimeType:mime,fileSize:file.size}});
+   if(finError||!fin?.ok)throw new Error(finError?.message||fin?.detail||fin?.error||"Не удалось зарегистрировать оригинал.");
+   $("driveBulkProgress").textContent="Файл "+index+" из "+total+": готовлю WebP-копию — "+file.name;
+   const p=await compressArchiveImageFallback(file);
+   const workingName=title+"."+p.ext;
+   const workingPath=id+"/bulk-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+p.ext;
+   const {error:ue}=await sb.storage.from("archive-media").upload(workingPath,p.blob,{contentType:p.outMime,upsert:false,cacheControl:"31536000"});
+   if(ue)throw new Error("Оригинал уже в Google Drive, но WebP-копия не загружена: "+ue.message);
+   const {error:re}=await sb.rpc("replace_archive_media_version",{p_media_id:id,p_storage_path:workingPath,p_file_name:workingName,p_version_type:"копия",p_reason:"Прямая массовая загрузка в Google Drive",p_source_note:""});
+   if(re){await sb.storage.from("archive-media").remove([workingPath]);throw new Error("Оригинал уже в Google Drive, но карточка WebP не создана: "+re.message)}
+   const {data:row}=await sb.from("archive_media").select("data").eq("id",id).maybeSingle();
+   await sb.from("archive_media").update({data:{...(row?.data||{}),source_width:p.sourceWidth,source_height:p.sourceHeight,optimized_format:p.ext,optimized_max_side:ARCHIVE_MAX_SIDE,optimized_quality:ARCHIVE_WEBP_QUALITY,processing_status:"direct_drive_bulk",processed_at:new Date().toISOString()},updated_at:new Date().toISOString()}).eq("id",id);
+   return {id,file:file.name,ok:true};
+ }catch(e){
+   const msg=e?.message||String(e);
+   await sb.from("archive_media").update({data:{identification_status:"ошибка массовой загрузки",people:[],bulk_import:true,bulk_error:msg},updated_at:new Date().toISOString()}).eq("id",id);
+   throw new Error(id+" · "+msg);
+ }
+}
+async function uploadDirectDriveBatch(){
+ if(profile?.role!=="admin")return;
+ const files=[...($("driveBulkFileInput")?.files||[])];
+ if(!files.length){$("driveBulkProgress").textContent="Выберите фотографии.";return}
+ const bad=files.find(f=>{try{ensureImageFile(f);return false}catch{return true}});
+ if(bad){$("driveBulkProgress").textContent="Неподдерживаемый файл: "+bad.name;return}
+ if(!confirm("Загрузить "+files.length+" фотографий напрямую в Google Drive и автоматически создать карточки фотоархива?"))return;
+ $("driveBulkUploadBtn").disabled=true;
+ let ok=0;const fail=[];
+ for(let i=0;i<files.length;i++){
+   try{await uploadDirectDrivePhoto(files[i],i+1,files.length);ok++}
+   catch(e){fail.push(files[i].name+" — "+(e.message||e))}
+ }
+ $("driveBulkUploadBtn").disabled=false;
+ $("driveBulkFileInput").value="";
+ $("driveBulkProgress").innerHTML='<b>Готово: '+ok+' из '+files.length+'.</b>'+(fail.length?'<br>Ошибки: '+esc(fail.join("; ")):'')+'<br>Новые карточки помечены «требует описания».';
+ await loadPhotos();
+}
 async function uploadArchiveMedia(){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
  const files=[...($("archiveFileInput").files||[])];
@@ -545,5 +600,5 @@ async function uploadArchiveMedia(){
  $("archiveFileInput").value="";
  await loadPhotos();
 }
-$("archiveUploadBtn").onclick=uploadArchiveMedia;
+$("archiveUploadBtn").onclick=uploadArchiveMedia;\nif($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile?.role==="admin"?"block":"none";\nif($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;
 

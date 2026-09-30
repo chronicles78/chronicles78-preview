@@ -95,7 +95,7 @@
 <div id="photoEditorBar" class="photoPrimaryNav">
   <button class="photoPrimaryTab on" id="photoAlbumsAction" type="button"><b>Альбомы</b><span id="photoAlbumsCount">Все разделы</span></button>
   <button class="photoPrimaryTab editorOnlyPhotoAction" id="photoClarifyAction" type="button"><b id="photoClarifyCount">0</b><span>Разобрать</span></button>
-  <button class="photoPrimaryTab editorOnlyPhotoAction" id="photoUploadToggle" type="button"><b>＋</b><span>Добавить</span></button>
+  <button class="photoPrimaryTab editorOnlyPhotoAction adminOnlyPhotoAction" id="photoUploadToggle" type="button"><b>Drive</b><span>Импорт</span></button>
 </div>
 <div class="photoBrowseBar">
   <div class="photoBrowseTitle"><b>Фотоархив</b><span>Выберите альбом или найдите снимок по человеку, месту или событию.</span></div>
@@ -115,14 +115,24 @@
 </div>
 <div id="photoWorkHeader" class="photoWorkHeader" hidden></div>
 <div id="photoStats" class="photoArchiveStats"></div>
-<div id="archiveUploadBox" class="photoDesk" style="display:none">
+<div id="archiveUploadBox" class="photoDesk driveImportDesk" style="display:none">
 <div class="photoDeskHead">
-  <div><span class="memoryEyebrow">РЕДАКТОРСКИЙ ФОТОСТОЛ</span><b>Добавить фотографию</b><p>Оригиналы после проверки сохраняются в Google Drive. Для сайта автоматически готовятся облегчённые WebP-копии.</p></div>
-  <button class="secondary photoDeskSingle" id="newArchivePhotoBtn">＋ Выбрать фото</button>
+  <div><span class="memoryEyebrow">GOOGLE DRIVE · ОРИГИНАЛЫ</span><b>Импорт в фотоархив</b><p>Скопируйте оригиналы в папку Google Drive. Сайт найдёт новые снимки, пропустит уже зарегистрированные и предупредит о возможных дублях.</p></div>
+  <a class="secondary photoDeskSingle" id="driveOriginalsLink" href="#" target="_blank" rel="noopener" style="display:none">Открыть Drive ↗</a>
 </div>
-<input id="newArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
+<div class="driveImportBody">
+  <div class="driveImportLead">
+    <div><b>Проверить папку оригиналов</b><span>Оригиналы не изменяются. Для сайта создаются WebP до 1920 px и миниатюры до 560 px.</span></div>
+    <button class="primary" id="driveImportScanBtn" type="button">Проверить Google Drive</button>
+  </div>
+  <div id="driveImportState" class="driveImportState">Проверка ещё не запускалась.</div>
+  <div id="driveImportResults" class="driveImportResults"></div>
+  <div id="driveImportActions" class="driveImportActions" hidden>
+    <div><b id="driveImportSummary"></b><span id="driveImportProgress">Готово к импорту.</span></div>
+    <button class="primary" id="driveImportRunBtn" type="button">Импортировать новые</button>
+  </div>
+</div>
 <input id="replaceArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
-
 </div>
 <div id="photosList" class="photoGrid"></div>
 <div id="photoContributeBox" class="uploadBox" style="display:none">

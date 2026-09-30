@@ -112,6 +112,13 @@
 <input id="archiveFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
 <button class="secondary" id="archiveUploadBtn">Загрузить в закрытый архив</button>
 <div id="archiveUploadMsg" class="small"></div>
+<div id="adminDriveBulkBox" class="adminDriveBulkBox" style="display:none">
+<div class="small" style="margin:14px 0 4px"><b>Прямая массовая загрузка в Google Drive</b></div>
+<div class="small" style="margin:6px 0">Только для администратора. Можно выбрать сразу много фотографий без MEDIA-ID. Оригиналы идут непосредственно в привязанную папку Google Drive; сайт создаёт карточки и облегчённые WebP-копии автоматически.</div>
+<input id="driveBulkFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
+<button class="secondary" id="driveBulkUploadBtn">Загрузить пачку прямо в Google Drive</button>
+<div id="driveBulkProgress" class="small"></div>
+</div>
 </div>
 <div id="photosList" class="photoGrid"></div></div></section>
 <section id="city" class="view"><div class="archiveList cityArchivePage">

@@ -263,7 +263,9 @@ document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
  renderPhotosSection();
 });
 if($("photoSearch"))$("photoSearch").oninput=()=>{
- mediaFocus=null;photoWorkspace="albums";photoMode="archive";photoFilter="all";photoAlbumFilter="all";
+ mediaFocus=null;
+ if(photoWorkspace==="service"){renderPhotosSection();return}
+ photoWorkspace="albums";photoMode="archive";photoFilter="all";photoAlbumFilter="all";
  if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
  renderPhotosSection();
 };

@@ -20,7 +20,7 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20260930-26">
+<link rel="stylesheet" href="assets/app.css?v=20260930-27">
 </head>
 <body>
 <header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">Хроники-78</div></div><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
@@ -168,8 +168,12 @@
 <button class="mini" data-qstatus="all">Все статусы</button>
 </div></div>
 <div id="questionsList"></div></div></section>
-<section id="profile" class="view"><div class="pad">
-<div class="card"><h2>Профиль</h2><div id="profileBox"></div></div>
+<section id="profile" class="view"><div class="pad profilePage">
+<div class="card profileIdentityCard">
+  <div class="memoryEyebrow">ЛИЧНЫЙ КАБИНЕТ · ХРОНИКИ-78</div>
+  <h2>Профиль</h2>
+  <div id="profileBox"></div>
+</div>
 <div class="card form" id="consentGateBox" style="display:none">
   <h2 style="margin-top:0">Один раз — и готово</h2>
   <div class="notice">В архиве есть имена, старые фотографии и личные воспоминания. Кроме того, для внутренней статистики сайт фиксирует время посещения, открытые разделы, тип устройства и активность в чате. IP‑адрес и цифровой fingerprint не сохраняются.</div>
@@ -178,34 +182,94 @@
   <button class="primary" id="acceptConsentBtn">Согласен(на) · продолжить в архив</button>
   <div id="consentGateMsg" class="small"></div>
 </div>
-<div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
-<div class="card form" id="privacyBox" style="display:none">
-  <b>Приватность</b>
-  <div id="privacyConsentState" class="small" style="margin-top:7px"></div>
-  <p class="small"><a href="consent.html" target="_blank" rel="noopener">Текст действующего согласия</a></p>
-  <button class="secondary" id="privacyRequestBtn" type="button">Отозвать согласие / изменить использование данных</button>
-</div>
-<div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
-<div class="card" id="adminUsersBox" style="display:none"><h2>Участники</h2><div id="adminUsersList" class="notice">Загрузка…</div></div>
-<div class="card" id="archiveStorageBox" style="display:none"><h2>Глубокий архив</h2><div id="archiveStorageState" class="notice">Загрузка…</div></div>
-<div class="card trafficAdminBox" id="trafficStatsBox" style="display:none">
-  <div class="trafficAdminHead"><div><h2>Посещаемость</h2><p>Внутренняя статистика сайта и чата. Зарегистрированные участники — по имени, гости — анонимно.</p></div><button class="secondary" id="trafficRefreshBtn" type="button">Обновить</button></div>
-  <div id="trafficStatsState" class="notice">Статистика ещё не загружена.</div>
-  <div id="trafficKpis" class="trafficKpis"></div>
-  <div class="trafficGrid">
-    <section class="trafficPanel"><h3>Сейчас на сайте</h3><div id="trafficOnlineList"></div></section>
-    <section class="trafficPanel"><h3>Чат</h3><div id="trafficChatStats"></div></section>
+
+<details class="profileSection" id="profilePersonalSection" style="display:none" open>
+  <summary>
+    <span class="profileSectionIcon">○</span>
+    <span class="profileSectionText"><b>Мой профиль</b><small>Имя, приватность и оформление</small></span>
+    <span class="profileSectionArrow">⌄</span>
+  </summary>
+  <div class="profileSectionBody">
+    <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
+    <div class="card form" id="privacyBox" style="display:none">
+      <b>Приватность</b>
+      <div id="privacyConsentState" class="small" style="margin-top:7px"></div>
+      <p class="small"><a href="consent.html" target="_blank" rel="noopener">Текст действующего согласия</a></p>
+      <button class="secondary" id="privacyRequestBtn" type="button">Отозвать согласие / изменить использование данных</button>
+    </div>
+    <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
   </div>
-  <div class="trafficGrid">
-    <section class="trafficPanel"><h3>Популярные разделы · 30 дней</h3><div id="trafficPopularViews"></div></section>
-    <section class="trafficPanel"><h3>Последние посещения</h3><div id="trafficRecentVisitors"></div></section>
+</details>
+
+<details class="profileSection" id="profileMySection" style="display:none">
+  <summary>
+    <span class="profileSectionIcon">▧</span>
+    <span class="profileSectionText"><b>Мои материалы</b><small>Отправленные фотографии и их состояние</small></span>
+    <span class="profileSectionArrow">⌄</span>
+  </summary>
+  <div class="profileSectionBody">
+    <div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
   </div>
-  <div class="trafficPrivacyNote">Гости считаются по анонимным сессиям. IP‑адреса и цифровой fingerprint устройства не сохраняются.</div>
-</div>
-<div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
-<div class="card" id="photoSubmissionReviewBox" style="display:none"><h2>Фотографии на проверке</h2><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div>
-<div class="card" id="identityReviewBox" style="display:none"><h2>Подписи к фотографиям</h2><div id="identityReviewList" class="notice">Загрузка…</div></div>
-<div class="card" id="moderationBox" style="display:none"><h2>Жалобы и модерация</h2><div id="moderationList" class="notice">Загрузка…</div></div>
+</details>
+
+<details class="profileSection" id="profileEditorialSection" style="display:none">
+  <summary>
+    <span class="profileSectionIcon">✎</span>
+    <span class="profileSectionText"><b>Работа редакции</b><small>Проверка материалов, подписей и жалоб</small></span>
+    <span class="profileSectionArrow">⌄</span>
+  </summary>
+  <div class="profileSectionBody">
+    <details class="profileSubsection">
+      <summary><span><b>Фотографии на проверке</b><small>Новые материалы участников</small></span><span>⌄</span></summary>
+      <div class="profileSubsectionBody"><div class="card" id="photoSubmissionReviewBox" style="display:none"><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div></div>
+    </details>
+    <details class="profileSubsection">
+      <summary><span><b>Подписи к фотографиям</b><small>Предложения по идентификации людей</small></span><span>⌄</span></summary>
+      <div class="profileSubsectionBody"><div class="card" id="identityReviewBox" style="display:none"><div id="identityReviewList" class="notice">Загрузка…</div></div></div>
+    </details>
+    <details class="profileSubsection">
+      <summary><span><b>Жалобы и модерация</b><small>Обращения, требующие решения редакции</small></span><span>⌄</span></summary>
+      <div class="profileSubsectionBody"><div class="card" id="moderationBox" style="display:none"><div id="moderationList" class="notice">Загрузка…</div></div></div>
+    </details>
+  </div>
+</details>
+
+<details class="profileSection profileAdminSection" id="profileAdminSection" style="display:none">
+  <summary>
+    <span class="profileSectionIcon">⚙</span>
+    <span class="profileSectionText"><b>Администрирование</b><small>Посещаемость, участники и хранилище</small></span>
+    <span class="profileSectionArrow">⌄</span>
+  </summary>
+  <div class="profileSectionBody">
+    <details class="profileSubsection" open>
+      <summary><span><b>Посещаемость</b><small>Кто заходил, онлайн, разделы и чат</small></span><span>⌄</span></summary>
+      <div class="profileSubsectionBody">
+        <div class="card trafficAdminBox" id="trafficStatsBox" style="display:none">
+          <div class="trafficAdminHead"><div><h2>Посещаемость</h2><p>Внутренняя статистика сайта и чата. Зарегистрированные участники — по имени, гости — анонимно.</p></div><button class="secondary" id="trafficRefreshBtn" type="button">Обновить</button></div>
+          <div id="trafficStatsState" class="notice">Статистика ещё не загружена.</div>
+          <div id="trafficKpis" class="trafficKpis"></div>
+          <div class="trafficGrid">
+            <section class="trafficPanel"><h3>Сейчас на сайте</h3><div id="trafficOnlineList"></div></section>
+            <section class="trafficPanel"><h3>Чат</h3><div id="trafficChatStats"></div></section>
+          </div>
+          <div class="trafficGrid">
+            <section class="trafficPanel"><h3>Популярные разделы · 30 дней</h3><div id="trafficPopularViews"></div></section>
+            <section class="trafficPanel"><h3>Последние посещения</h3><div id="trafficRecentVisitors"></div></section>
+          </div>
+          <div class="trafficPrivacyNote">Гости считаются по анонимным сессиям. IP‑адреса и цифровой fingerprint устройства не сохраняются.</div>
+        </div>
+      </div>
+    </details>
+    <details class="profileSubsection">
+      <summary><span><b>Участники</b><small>Доступ, роли и привязка к архиву</small></span><span>⌄</span></summary>
+      <div class="profileSubsectionBody"><div class="card" id="adminUsersBox" style="display:none"><div id="adminUsersList" class="notice">Загрузка…</div></div></div>
+    </details>
+    <details class="profileSubsection">
+      <summary><span><b>Глубокий архив</b><small>Google Drive и состояние хранения оригиналов</small></span><span>⌄</span></summary>
+      <div class="profileSubsectionBody"><div class="card" id="archiveStorageBox" style="display:none"><div id="archiveStorageState" class="notice">Загрузка…</div></div></div>
+    </details>
+  </div>
+</details>
 <div class="card form" id="loginBox">
   <b>Вход в архив</b>
   <div class="notice" style="margin-top:9px"><b>Пароль больше не нужен.</b><br>Введите e-mail — мы пришлём одноразовую ссылку для входа.</div>
@@ -262,7 +326,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20260930-5"></script>
+<script src="assets/js/core.js?v=20260930-6"></script>
 <script src="assets/js/chat.js?v=20260930-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20260930-6"></script>

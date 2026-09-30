@@ -883,3 +883,13 @@ html[data-theme="dark"] .storyLayerLabel{color:#c99e5d}html[data-theme="dark"] .
 html[data-theme="dark"] .personCard{box-shadow:0 4px 16px #0003}.personMemoryCount{border-top-color:rgba(201,158,93,.12)}
 @media(max-width:720px){.personMeta{padding:7px 7px 8px}.personMeta h3{font-size:13px}.personMemoryCount{font-size:10px;margin-top:6px;padding-top:5px}}
 @media(max-width:430px){.personMeta h3{font-size:14px}}
+
+/* 2026-09-30: compact personal archive dossier */
+.contextPreview:has(.personDossierSummary){display:flex;align-items:stretch;gap:12px;padding:4px 0 8px}
+.contextPreview:has(.personDossierSummary) .identitySuggestCrop{flex:0 0 112px;width:112px;aspect-ratio:4/5;border-radius:3px;border:1px solid var(--line)}
+.personDossierSummary{flex:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-self:stretch}
+.personDossierSummary>div{display:grid;place-content:center;text-align:center;border-top:1px solid rgba(78,60,43,.16);border-bottom:1px solid rgba(78,60,43,.16);background:rgba(125,72,52,.025)}
+.personDossierSummary b{font:700 30px/1 Georgia,serif}.personDossierSummary span{margin-top:5px;font:italic 12px/1.2 Georgia,serif;color:var(--muted)}
+.contextEyebrow{font-family:"Courier New",monospace;letter-spacing:.15em}.contextAction{border-radius:4px}.contextAction.primary{box-shadow:none}
+html[data-theme="dark"] .personDossierSummary>div{border-color:rgba(201,158,93,.14);background:rgba(201,158,93,.025)}
+@media(max-width:430px){.contextPreview:has(.personDossierSummary) .identitySuggestCrop{flex-basis:92px;width:92px}.personDossierSummary b{font-size:25px}.personDossierSummary span{font-size:11px}}

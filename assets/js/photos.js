@@ -87,6 +87,7 @@ function renderVisualCandidates(){
 }
 function renderPhotosSection(){
  if(!(profile?.role==="editor"||profile?.role==="admin")&&photoMode!=="archive")photoMode="archive";
+ const canEditPhotos=profile?.role==="editor"||profile?.role==="admin"; document.querySelectorAll(".photoHomeAction.editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?"block":"none");
  $("photoArchiveToolbar").style.display="none"; if($("photoEditorModes"))$("photoEditorModes").style.display=(profile?.role==="editor"||profile?.role==="admin")?"flex":"none";
  if(photoMode==="registry")renderVisualRegistry();
  else if(photoMode==="candidates")renderVisualCandidates();

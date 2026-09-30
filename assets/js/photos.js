@@ -123,7 +123,7 @@ function renderPhotoGallery(){
    const whenWhere=[m.approx_date_text,m.location_text].filter(Boolean).join(" · ");
    const origin=m.provenance_type||"";
    const readerCaption=whenWhere||(origin?origin:"Из архива «Хроник-78»");
-   const lead=!mediaFocus&&photoFilter==="all"&&!q&&idx===0&&!!mediaSigned[m.id];
+   const lead=false; // крупный снимок должен назначаться редакционно, а не позицией в массиве
    return '<article class="photoTile contextObject '+(lead?"photoAlbumLead":"")+'" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
      '<div class="photoTileImage">'+
        (mediaSigned[m.id]?'<img '+(lead?'loading="eager" fetchpriority="high"':'loading="lazy" fetchpriority="low"')+' decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография ещё не загружена</div>')+

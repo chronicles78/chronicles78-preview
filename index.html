@@ -101,24 +101,33 @@
 <input id="submitArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
 <div id="photoSubmitMsg" class="small"></div>
 </div>
-<div id="archiveUploadBox" class="uploadBox" style="display:none">
-<b>Работа с фотоархивом</b>
-<div class="small" style="margin:6px 0 10px">Исходник сохраняется отдельно в глубоком архиве. Для сайта автоматически создаётся WebP-копия не более 1920 px по большой стороне.</div>
-<button class="secondary" id="newArchivePhotoBtn">＋ Новое фото в архив</button>
+<div id="archiveUploadBox" class="photoDesk" style="display:none">
+<div class="photoDeskHead">
+  <div><span class="memoryEyebrow">РЕДАКТОРСКИЙ ФОТОСТОЛ</span><b>Добавить фотографии</b><p>Оригиналы после проверки сохраняются в Google Drive. Для сайта автоматически готовятся облегчённые WebP-копии.</p></div>
+  <button class="secondary photoDeskSingle" id="newArchivePhotoBtn">＋ Одно фото</button>
+</div>
 <input id="newArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
 <input id="replaceArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
-<div class="small" style="margin:10px 0 4px"><b>Служебная загрузка по существующим MEDIA-ID</b></div>
-<div class="small" style="margin:6px 0">Этот режим нужен только для замены/добавления файлов к уже созданным карточкам. Имя файла обязательно должно содержать ID, например MEDIA-012.jpeg.</div>
-<input id="archiveFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-<button class="secondary" id="archiveUploadBtn">Загрузить по существующим MEDIA-ID</button>
-<div id="archiveUploadMsg" class="small"></div>
-<div id="adminDriveBulkBox" class="adminDriveBulkBox" style="display:none">
-<div class="small" style="margin:14px 0 4px"><b>Прямая массовая загрузка в Google Drive</b></div>
-<div class="small" style="margin:6px 0">Только для администратора. Можно выбрать сразу много фотографий без MEDIA-ID. Оригиналы идут непосредственно в привязанную папку Google Drive; сайт создаёт карточки и облегчённые WebP-копии автоматически.</div>
-<input id="driveBulkFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-<button class="secondary" id="driveBulkUploadBtn">Загрузить пачку прямо в Google Drive</button>
-<div id="driveBulkProgress" class="small"></div>
+<div id="adminDriveBulkBox" class="photoDeskBulk" style="display:none">
+  <input id="driveBulkFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple hidden>
+  <button class="photoDeskDrop" id="driveBulkChooseBtn" type="button"><span>＋</span><b>Выбрать пачку фотографий</b><small>JPG, PNG или WebP · можно выбрать сразу много файлов</small></button>
+  <div id="driveBulkQueue" class="photoDeskQueue"></div>
+  <div id="driveBulkActions" class="photoDeskActions" hidden>
+    <div><b id="driveBulkSummary"></b><span id="driveBulkProgress" class="small"></span></div>
+    <button class="primary" id="driveBulkUploadBtn">Начать загрузку</button>
+  </div>
+  <div id="driveBulkDone" class="photoDeskDone" hidden></div>
 </div>
+<details class="photoDeskTools">
+ <summary>Служебные инструменты</summary>
+ <div class="photoDeskToolsBody">
+  <b>Загрузка по существующим MEDIA-ID</b>
+  <div class="small">Для замены или добавления файлов к уже созданным карточкам. Имя файла должно содержать ID, например MEDIA-012.jpeg.</div>
+  <input id="archiveFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
+  <button class="secondary" id="archiveUploadBtn">Загрузить по MEDIA-ID</button>
+  <div id="archiveUploadMsg" class="small"></div>
+ </div>
+</details>
 </div>
 <div id="photosList" class="photoGrid"></div></div></section>
 <section id="city" class="view"><div class="archiveList cityArchivePage">

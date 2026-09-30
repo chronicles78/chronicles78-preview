@@ -136,7 +136,8 @@ function renderPhotoGallery(){
  const editor=profile?.role==="editor"||profile?.role==="admin";
  $("photosList").className="photoGrid";
  const grouped=photoAlbums.map(album=>({album,items:arr.filter(m=>photoAlbumId(m)===album.id)})).filter(x=>x.items.length);
- $("photosList").innerHTML=grouped.map(({album,items},albumIndex)=>'<section class="photoAlbumSection" id="photo-album-'+esc(album.id)+'"><div class="photoAlbumHead"><div><small>АЛЬБОМ '+(albumIndex+1)+'</small><b>'+esc(album.title)+'</b><span>'+esc(album.note)+'</span></div><strong>'+items.length+'</strong></div><div class="photoAlbumGrid">'+items.map((m,idx)=>{
+ const albumToc=grouped.length>1?'<nav class="photoAlbumToc" aria-label="Альбомы фотоархива">'+grouped.map(({album,items},i)=>'<button type="button" data-photo-album="'+esc(album.id)+'"><small>'+String(i+1).padStart(2,"0")+'</small><span>'+esc(album.title)+'</span><b>'+items.length+'</b></button>').join("")+'</nav>':"";
+ $("photosList").innerHTML=albumToc+grouped.map(({album,items},albumIndex)=>'<section class="photoAlbumSection" id="photo-album-'+esc(album.id)+'"><div class="photoAlbumHead"><div><small>АЛЬБОМ '+(albumIndex+1)+'</small><b>'+esc(album.title)+'</b><span>'+esc(album.note)+'</span></div><strong>'+items.length+'</strong></div><div class="photoAlbumGrid">'+items.map((m,idx)=>{
    const names=mediaPeopleNames(m);
    const desc=m.data?.visual_description||"";
    const whenWhere=[m.approx_date_text,m.location_text].filter(Boolean).join(" · ");
@@ -161,6 +162,7 @@ function renderPhotoGallery(){
      '</div></article>';
  }).join("")+'</div></section>').join("")||'<div class="notice">По выбранному фильтру фотографий нет.</div>';
  $("photosList").querySelectorAll("[data-photo-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]"))return;openPhotoContext(el.dataset.photoContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPhotoContext(el.dataset.photoContext)}}});
+ $("photosList").querySelectorAll("[data-photo-album]").forEach(b=>b.onclick=()=>$("photo-album-"+b.dataset.photoAlbum)?.scrollIntoView({behavior:"smooth",block:"start"}));
 }
 async function openArchivePhoto(id){
  const m=mediaCache.find(x=>x.id===id);if(!m)return;

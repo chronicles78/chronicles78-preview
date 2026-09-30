@@ -1049,3 +1049,30 @@ html[data-theme="dark"] .photoPrimaryTab.on{background:rgba(201,158,93,.06);bord
   .photoTileImage{aspect-ratio:4/3}
   .photoMemoryFigure img,.photoDetailImage{max-height:62dvh}
 }
+
+/* Google Drive photo import */
+.driveImportDesk{overflow:visible}
+.driveImportBody{padding:18px 24px 22px}
+.driveImportLead{display:flex;align-items:center;justify-content:space-between;gap:22px}
+.driveImportLead>div{min-width:0}.driveImportLead>div>b{display:block;font:700 18px/1.2 Georgia,serif}.driveImportLead>div>span{display:block;margin-top:5px;max-width:680px;font:12px/1.45 Georgia,serif;color:var(--muted)}
+.driveImportLead>button{flex:0 0 auto;width:auto;margin:0;padding:10px 16px}
+.driveImportState{margin-top:16px;padding:12px 0;border-top:1px solid rgba(78,60,43,.13);font:13px/1.45 Georgia,serif;color:var(--muted)}
+.driveImportState b{color:var(--ink)}
+.driveImportResults{display:grid;gap:14px}
+.driveImportGroup{border-top:1px solid rgba(78,60,43,.13);padding-top:12px}.driveImportGroup>b{display:block;margin-bottom:6px;font:700 14px/1.2 Georgia,serif}
+.driveImportGroup.duplicate>b{color:#8e4f43}
+.driveImportFile{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px dotted rgba(78,60,43,.13)}
+.driveImportFile span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px/1.3 Georgia,serif}.driveImportFile small{font:10px/1.2 "Courier New",monospace;color:var(--muted);text-align:right}
+.driveImportActions{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(78,60,43,.14)}
+.driveImportActions[hidden]{display:none}.driveImportActions>div{display:grid;gap:3px}.driveImportActions>div>b{font:700 16px/1.2 Georgia,serif}.driveImportActions>div>span{font:11px/1.35 Georgia,serif;color:var(--muted)}
+.driveImportActions>button{width:auto;margin:0;padding:10px 16px}
+.driveImportOutcome{margin:12px 0;padding:12px 14px;border:1px solid rgba(82,108,84,.25);background:rgba(82,108,84,.055);display:grid;gap:4px}
+.driveImportOutcome.warn{border-color:rgba(142,79,67,.25);background:rgba(142,79,67,.05)}
+.driveImportOutcome>b{font:700 14px/1.2 Georgia,serif}.driveImportOutcome>span{font:12px/1.4 Georgia,serif;color:var(--muted)}.driveImportOutcome>button{justify-self:start;border:0;border-bottom:1px solid currentColor;background:transparent;color:#8e4f43;padding:3px 0;font:700 12px/1.2 Georgia,serif;cursor:pointer}
+html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGroup,html[data-theme="dark"] .driveImportActions{border-color:rgba(201,158,93,.13)}
+@media(max-width:650px){
+ .driveImportBody{padding:14px}
+ .driveImportLead,.driveImportActions{align-items:stretch;flex-direction:column}
+ .driveImportLead>button,.driveImportActions>button{width:100%}
+ .driveImportFile{grid-template-columns:1fr;gap:2px}.driveImportFile small{text-align:left}
+}

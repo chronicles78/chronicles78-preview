@@ -600,5 +600,7 @@ async function uploadArchiveMedia(){
  $("archiveFileInput").value="";
  await loadPhotos();
 }
-$("archiveUploadBtn").onclick=uploadArchiveMedia;\nif($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile?.role==="admin"?"block":"none";\nif($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;
+$("archiveUploadBtn").onclick=uploadArchiveMedia;
+if($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile?.role==="admin"?"block":"none";
+if($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;
 

@@ -1,5 +1,6 @@
 const archiveSignedCache=new Map();
 let photoWorkspace="albums",photoAlbumFilter="all";
+let mediaThumbSigned={},driveImportSnapshot=null,driveImportBusy=false;
 function photoPlural(n,one,few,many){
  const x=Math.abs(Number(n)||0),n10=x%10,n100=x%100;
  if(n10===1&&n100!==11)return one;
@@ -73,7 +74,6 @@ function renderVisualRegistry(){
      '</div></article>').join("")+
    (!rows.length?'<div class="notice">Поиск ничего не нашёл.</div>':'');
  $("photosList").querySelectorAll("[data-visual-own]").forEach(b=>b.onclick=()=>{photoWorkspace="albums";photoMode="archive";mediaFocus=null;photoFilter="all";photoAlbumFilter="all";$("photoSearch").value=b.dataset.visualOwn||"";renderPhotosSection()});
- $("photosList").querySelectorAll("[data-visual-add]").forEach(b=>b.onclick=()=>{pendingVisualTopicId=b.dataset.visualAdd;$("newArchivePhotoInput").value="";$("newArchivePhotoInput").click()});
 }
 function renderVisualCandidates(){
  const q=($("photoSearch")?.value||"").trim().toLowerCase();
@@ -100,7 +100,7 @@ function renderPhotoWorkspaceHeader(){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Редакторская очередь</b><span>'+n+' '+photoPlural(n,"снимок требует","снимка требуют","снимков требуют")+' уточнения</span></div>';return;
  }
  if(photoWorkspace==="upload"){
-  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Добавление фотографии</b><span>Выберите один снимок. После сохранения он появится в архиве и при необходимости попадёт в редакторскую очередь.</span></div>';return;
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Импорт из Google Drive</b><span>Оригиналы остаются в Drive; сайт создаёт рабочие WebP и ставит новые снимки в очередь на описание.</span></div>';return;
  }
  if(photoWorkspace==="service"){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+(photoMode==="registry"?"Визуальный реестр":"Внешние кандидаты")+'</b><span>Служебный редакционный раздел</span></div>';return;
@@ -119,13 +119,15 @@ function setPhotoWorkspace(mode){
  renderPhotosSection();
 }
 function renderPhotosSection(){
- const canEditPhotos=profile?.role==="editor"||profile?.role==="admin";
+ const canEditPhotos=profile?.role==="editor"||profile?.role==="admin",isAdmin=profile?.role==="admin";
  if(!canEditPhotos&&(photoWorkspace!=="albums"||photoMode!=="archive")){photoWorkspace="albums";photoMode="archive";photoFilter="all"}
+ if(!isAdmin&&photoWorkspace==="upload")photoWorkspace="albums";
  if($("photoEditorBar"))$("photoEditorBar").style.display="grid";
  document.querySelectorAll(".editorOnlyPhotoAction").forEach(x=>x.style.display=canEditPhotos?"flex":"none");
+ document.querySelectorAll(".adminOnlyPhotoAction").forEach(x=>x.style.display=isAdmin?"flex":"none");
  if($("photoServiceRow"))$("photoServiceRow").style.display=canEditPhotos?"block":"none";
  if(document.querySelector(".photoBrowseBar"))document.querySelector(".photoBrowseBar").style.display=photoWorkspace==="albums"?"grid":"none";
- if($("archiveUploadBox"))$("archiveUploadBox").style.display=(canEditPhotos&&photoWorkspace==="upload")?"block":"none";
+ if($("archiveUploadBox"))$("archiveUploadBox").style.display=(isAdmin&&photoWorkspace==="upload")?"block":"none";
  if($("photosList"))$("photosList").style.display=photoWorkspace==="upload"?"none":"";
  if($("photoContributeBox"))$("photoContributeBox").style.display=photoWorkspace==="albums"?"block":"none";
  if($("photoStats"))$("photoStats").style.display=photoWorkspace==="upload"?"none":"";
@@ -196,6 +198,7 @@ function renderPhotoGallery(){
    const whenWhere=[m.approx_date_text,m.location_text].filter(Boolean).join(" · ");
    const origin=m.provenance_type||"";
    const readerCaption=whenWhere||(origin?origin:"Из архива «Хроник-78»");
+   const tileUrl=mediaThumbSigned[m.id]||mediaSigned[m.id];
    return '<article class="photoTile contextObject" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
      '<div class="photoTileImage">'+
        (mediaSigned[m.id]?'<img loading="lazy" fetchpriority="low" decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография загружается…</div>')+
@@ -257,9 +260,14 @@ async function loadPhotos(){
  ]);
  if(mediaRes.error||topicRes.error||candidateRes.error){$("photosList").className="";$("photosList").innerHTML='<div class="notice">'+esc(mediaRes.error?.message||topicRes.error?.message||candidateRes.error?.message)+'</div>';return}
  mediaCache=mediaRes.data||[];visualTopicCache=topicRes.data||[];visualCandidateCache=candidateRes.data||[];
- mediaSigned={};
+ mediaSigned={};mediaThumbSigned={};
  renderPhotosSection();
- Promise.all(mediaCache.map(async m=>{if(m.current_storage_path)mediaSigned[m.id]=await archiveSignedImage(m.current_storage_path)})).then(()=>{if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery()});
+ Promise.all(mediaCache.map(async m=>{
+   const jobs=[];
+   if(m.current_storage_path)jobs.push(archiveSignedImage(m.current_storage_path).then(u=>{if(u)mediaSigned[m.id]=u}));
+   if(m.data?.thumbnail_storage_path)jobs.push(archiveSignedImage(m.data.thumbnail_storage_path).then(u=>{if(u)mediaThumbSigned[m.id]=u}));
+   await Promise.all(jobs);
+ })).then(()=>{if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery()});
 }
 document.addEventListener("click",e=>{
  const b=e.target.closest("#photoAlbumsAction,#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;
@@ -267,7 +275,7 @@ document.addEventListener("click",e=>{
  if(b.matches("[data-photo-album]")){photoAlbumFilter=b.dataset.photoAlbum;photoWorkspace="albums";photoMode="archive";photoFilter="all";mediaFocus=null;renderPhotosSection();requestAnimationFrame(()=>$("photosList")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
  if(b.id==="photoSearchClear"){if($("photoSearch"))$("photoSearch").value="";photoAlbumFilter="all";setPhotoWorkspace("albums");return}
  if(b.id==="photoClarifyAction"){setPhotoWorkspace("clarify");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
- if(b.id==="photoUploadToggle"){setPhotoWorkspace("upload");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
+ if(b.id==="photoUploadToggle"){if(profile?.role!=="admin")return;setPhotoWorkspace("upload");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
 });
 document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
  photoWorkspace="service";photoMode=b.dataset.photomode;mediaFocus=null;photoFilter="all";photoAlbumFilter="all";
@@ -483,44 +491,60 @@ async function uploadArchiveVersion(mediaId,file,type,reason,sourceNote){
  await sb.from("archive_media").update({data:nextData,updated_at:now}).eq("id",mediaId);
  return {ok:true,mediaId,originalPath,workingPath,width:f.width,height:f.height,originalBytes:file.size,workingBytes:f.blob.size,format:f.ext,processing:"browser_fallback"};
 }
-$("newArchivePhotoBtn").onclick=()=>{pendingVisualTopicId=null;$("newArchivePhotoInput").value="";$("newArchivePhotoInput").click()};
-$("newArchivePhotoInput").onchange=async()=>{
- const file=$("newArchivePhotoInput").files?.[0];if(!file)return;
- const {stories,people}=await archiveFormLookups();
- openPhotoModal("Новое фото в архив",
-   '<div class="notice">Файл: <b>'+esc(file.name)+'</b></div>'+
-   '<label>Название</label><input id="pfTitle" placeholder="Например: Поход, 8 класс">'+
-   '<label>Качество / тип версии</label>'+qualitySelectHtml("оригинал")+
-   '<label>Источник / кто предоставил</label><input id="pfSource" placeholder="Имя, семейный архив, альбом…">'+
-   '<label>Визуальная тема</label>'+visualTopicSelectHtml(pendingVisualTopicId||"")+
-   '<label>Тип происхождения</label><select id="pfProvenance"><option>собственное документальное фото</option><option>внешнее атмосферное фото</option><option>предметная иллюстрация</option></select>'+
-   '<label>Владелец оригинала</label><input id="pfOwner" placeholder="ФИО / семейный архив">'+
-   '<label>Примерный год</label><input id="pfApproxDate" placeholder="Например: 1982 или 1982–1983">'+
-   '<label>Место</label><input id="pfLocation" placeholder="Куйбышев, школа №78…">'+
-   '<label>Уверенность атрибуции</label><select id="pfConfidence"><option>не проверено</option><option>предположительно</option><option>высокая</option><option>подтверждено</option></select>'+
-   '<label>Разрешение на публикацию</label><select id="pfPermission"><option>не уточнено</option><option>получено</option><option>только внутренний архив</option><option>нельзя публиковать</option></select>'+
-   '<label>Правовой статус</label><input id="pfLegal" placeholder="Например: согласие владельца получено">'+
-   '<label>Связанная история</label>'+storySelectHtml(stories,"")+
-   '<label>Статус идентификации</label><select id="pfIdent"><option>требует описания</option><option>частично идентифицировано</option><option>идентифицировано</option><option>дата/место требуют уточнения</option></select>'+
-   '<label>Люди на фотографии</label>'+peopleChecksHtml(people,[]),
-   async()=>{
-     const title=$("pfTitle").value.trim();if(!title)throw new Error("Укажите название.");
-     const id=await nextMediaId();
-     const source=$("pfSource").value.trim(), quality=$("pfQuality").value;
-     const {error}=await sb.from("archive_media").insert({
-       id,title,category:"архивное фото",archive_file:file.name,linked_story:$("pfStory").value||null,
-       data:{identification_status:$("pfIdent").value,people:selectedPeople()},visibility:"members",quality_status:quality,source_note:source,
-       visual_topic_id:$("pfVisualTopic").value||null,provenance_type:$("pfProvenance").value||null,
-       original_owner:$("pfOwner").value.trim()||null,approx_date_text:$("pfApproxDate").value.trim()||null,
-       location_text:$("pfLocation").value.trim()||null,attribution_confidence:$("pfConfidence").value||null,
-       publication_permission:$("pfPermission").value||null,legal_status:$("pfLegal").value.trim()||null
-     });if(error)throw error;
-     await uploadArchiveVersion(id,file,quality,"Первое поступление в архив",source);
-     mediaFocus=id;pendingVisualTopicId=null;photoMode="archive";document.querySelectorAll("[data-photomode]").forEach(x=>x.classList.toggle("on",x.dataset.photomode==="archive"));await loadPhotos();
-     $("newArchivePhotoInput").value="";
-   }
- );
-};
+async function driveImportError(error,data){
+ let detail=data?.detail||data?.error||error?.message||"Неизвестная ошибка";
+ if(error?.context?.json)try{const j=await error.context.json();detail=j?.detail||j?.error||detail}catch{}
+ return String(detail);
+}
+function renderDriveImportSnapshot(snap){
+ driveImportSnapshot=snap||null;
+ const state=$("driveImportState"),results=$("driveImportResults"),actions=$("driveImportActions"),link=$("driveOriginalsLink");
+ if(link&&snap?.folderUrl){link.href=snap.folderUrl;link.style.display="inline-flex"}
+ if(!state||!results||!actions)return;
+ const nNew=snap?.newFiles?.length||0,nDup=snap?.duplicates?.length||0,nReg=Number(snap?.registered||0);
+ state.innerHTML='<b>'+Number(snap?.total||0)+'</b> файлов в папке · <b>'+nReg+'</b> уже в архиве · <b>'+nNew+'</b> новых'+(nDup?' · <b>'+nDup+'</b> возможный '+photoPlural(nDup,"дубль","дубля","дублей"):'');
+ const newHtml=nNew?'<section class="driveImportGroup"><b>Новые</b>'+snap.newFiles.map(f=>'<div class="driveImportFile"><span>'+esc(f.name)+'</span><small>'+fmtFileSize(f.size)+'</small></div>').join("")+'</section>':'';
+ const dupHtml=nDup?'<section class="driveImportGroup duplicate"><b>Не импортируются: возможные дубли</b>'+snap.duplicates.map(f=>'<div class="driveImportFile"><span>'+esc(f.name)+'</span><small>'+fmtFileSize(f.size)+' · уже есть '+esc(f.duplicateOf?.mediaId||"в архиве")+'</small></div>').join("")+'</section>':'';
+ results.innerHTML=newHtml+dupHtml+(!nNew&&!nDup?'<div class="notice">Новых фотографий в Google Drive нет.</div>':'');
+ actions.hidden=!nNew;
+ if($("driveImportSummary"))$("driveImportSummary").textContent=nNew?nNew+" "+photoPlural(nNew,"новая фотография","новые фотографии","новых фотографий"):"";
+ if($("driveImportProgress"))$("driveImportProgress").textContent="Готово к импорту.";
+}
+async function scanDrivePhotos(){
+ if(profile?.role!=="admin"||driveImportBusy)return;
+ const btn=$("driveImportScanBtn"),state=$("driveImportState");
+ if(btn)btn.disabled=true;if(state)state.textContent="Проверяю Google Drive…";
+ const {data,error}=await sb.functions.invoke("drive-photo-import",{body:{action:"scan"}});
+ if(btn)btn.disabled=false;
+ if(error||!data?.ok){if(state)state.innerHTML='<span class="err">'+esc(await driveImportError(error,data))+'</span>';return}
+ renderDriveImportSnapshot(data);
+}
+async function importDrivePhotos(){
+ if(profile?.role!=="admin"||driveImportBusy||!driveImportSnapshot?.newFiles?.length)return;
+ const files=[...driveImportSnapshot.newFiles],run=$("driveImportRunBtn"),scan=$("driveImportScanBtn"),progress=$("driveImportProgress");
+ driveImportBusy=true;if(run)run.disabled=true;if(scan)scan.disabled=true;
+ let ok=0;const imported=[],failed=[];
+ for(let i=0;i<files.length;i++){
+  const file=files[i];if(progress)progress.textContent=(i+1)+" из "+files.length+" · "+file.name;
+  try{
+   const mediaId=await nextMediaId();
+   const {data,error}=await sb.functions.invoke("drive-photo-import",{body:{action:"import",fileId:file.id,mediaId}});
+   if(error||!data?.ok)throw new Error(await driveImportError(error,data));
+   ok++;imported.push(data.mediaId||mediaId);
+  }catch(e){failed.push(file.name+" — "+(e?.message||String(e)))}
+ }
+ driveImportBusy=false;if(run)run.disabled=false;if(scan)scan.disabled=false;
+ await loadPhotos();await scanDrivePhotos();
+ const state=$("driveImportState");
+ if(state){
+  const msg='<div class="driveImportOutcome '+(failed.length?"warn":"ok")+'"><b>Импортировано: '+ok+' из '+files.length+'</b>'+(failed.length?'<span>Ошибки: '+esc(failed.join("; "))+'</span>':'<span>Новые снимки созданы и поставлены в очередь на описание.</span>')+(imported.length?'<button type="button" id="driveReviewImported">Перейти к разбору →</button>':'')+'</div>';
+  state.insertAdjacentHTML("afterend",msg);
+  $("driveReviewImported")?.addEventListener("click",()=>setPhotoWorkspace("clarify"),{once:true});
+ }
+}
+if($("driveImportScanBtn"))$("driveImportScanBtn").onclick=scanDrivePhotos;
+if($("driveImportRunBtn"))$("driveImportRunBtn").onclick=importDrivePhotos;
+
 $("replaceArchivePhotoInput").onchange=async()=>{
  const file=$("replaceArchivePhotoInput").files?.[0];if(!file||!archiveReplaceId)return;
  const id=archiveReplaceId; archiveReplaceId=null;

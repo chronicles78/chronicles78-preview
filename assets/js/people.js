@@ -113,7 +113,7 @@ function renderClassPhotoPanel(arr){
 function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
  const arr=peopleCache.filter(p=>(peopleGroup==="all"||p.group_name===peopleGroup)&&(!q||(p.canonical_name||"").toLowerCase().includes(q)||(p.aliases||[]).join(" ").toLowerCase().includes(q)));
- if(q&&arr.length===1&&peopleGroup==="10Б")selectedPersonId=arr[0].id;
+ if(q&&arr.length===1&&["10А","10Б"].includes(peopleGroup))selectedPersonId=arr[0].id;
  const cards=arr.map(p=>{
    const linkedStories=(p.story_refs||[]);
    const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
@@ -286,5 +286,12 @@ $("classPhotoInput").onchange=async()=>{
  renderPeople();
  loadClassPhoto();
 });
-$("peopleSearch").addEventListener("input",renderPeople);
+$("peopleSearch").addEventListener("input",()=>{
+ renderPeople();
+ const q=$("peopleSearch").value.trim();
+ if(q&&["10А","10Б"].includes(peopleGroup)){
+   const matches=peopleCache.filter(p=>p.group_name===peopleGroup&&((p.canonical_name||"").toLowerCase().includes(q.toLowerCase())||(p.aliases||[]).join(" ").toLowerCase().includes(q.toLowerCase())));
+   if(matches.length===1)setTimeout(()=>$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),80);
+ }
+});
 

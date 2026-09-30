@@ -66,6 +66,7 @@ function renderStoriesCatalog(){
    const evidence=s.data?.chapter?.evidence?.length||0;
    const media=(s.data?.media_ids||[]).length;
    const state=storyState(s);
+   const readable=!!String(s.data?.story_text||"").trim();
    const featured=state==="готовая история";
    const room=s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general";
    const cover=storyCoverFor(s);

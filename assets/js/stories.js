@@ -86,10 +86,12 @@ function renderStoriesCatalog(){
          (media?'<span class="badge">фото '+media+'</span>':'')+
        '</div>':'')+
        (kws?'<div class="storyCatalogTags">'+kws+'</div>':'')+
-       '<div class="storyCatalogActions"><span class="small">Нажмите, чтобы выбрать действие</span></div>'+
+       '<div class="storyCatalogActions"><button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Читать историю</button>'+(profile?.role==="editor"||profile?.role==="admin"?'<button class="editorialLink" data-story-edit="'+esc(s.id)+'">Исправить сведения</button>':'')+'</div>'+
      '</div></article>';
  }).join("")||'<div class="notice">По выбранному фильтру историй нет.</div>';
- $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});
+ $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag],[data-story-read],[data-story-edit]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});
+ $("storiesList").querySelectorAll("[data-story-read]").forEach(b=>b.onclick=e=>{e.stopPropagation();openStory(b.dataset.storyRead)});
+ $("storiesList").querySelectorAll("[data-story-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editStoryInfo(b.dataset.storyEdit)});
 }
 async function loadStories(){
  if(!user||!profile?.is_active){$("storiesList").className="";$("storiesList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
@@ -126,6 +128,21 @@ function personGroupHtml(title,arr){
  return '<section class="storySection"><div class="sectionTitle">'+esc(title)+'</div><div class="participantGrid">'+
    arr.map(p=>'<div class="participantCard"><b>'+esc(p.name||p.id)+'</b>'+(p.basis?'<div class="small">'+esc(p.basis)+'</div>':'')+'</div>').join("")+
  '</div></section>';
+}
+async function editStoryInfo(id){
+ if(!(profile?.role==="editor"||profile?.role==="admin"))return;
+ const st=storyCache.find(x=>x.id===id);if(!st)return;
+ const current=(st.data?.people||[])[0]||"";
+ const opts=peopleCache.slice().sort((a,b)=>(a.canonical_name||"").localeCompare(b.canonical_name||"","ru")).map(x=>'<option value="'+esc(x.id)+'" '+(x.id===current?"selected":"")+'>'+esc(x.canonical_name||x.id)+' · '+esc(x.group_name||"")+'</option>').join("");
+ openPhotoModal("Исправить сведения об истории",
+  '<label>Название</label><input id="pfStoryTitle" value="'+esc(st.title||"")+'"><label>Период</label><input id="pfStoryPeriod" value="'+esc(st.period||"")+'"><label>Автор / основной рассказчик</label><select id="pfStoryPerson"><option value="">Не указан</option>'+opts+'</select><label>Краткое описание</label><textarea id="pfStorySummary" style="min-height:120px">'+esc(st.data?.editorial_summary||"")+'</textarea>',
+  async()=>{
+   const title=$("pfStoryTitle").value.trim();if(!title)throw new Error("Укажите название.");
+   const period=$("pfStoryPeriod").value.trim(),personId=$("pfStoryPerson").value,summary=$("pfStorySummary").value.trim();
+   const nextData={...(st.data||{}),people:personId?[personId]:[],editorial_summary:summary};
+   const {error}=await sb.from("archive_stories").update({title,period:period||null,data:nextData,updated_at:new Date().toISOString()}).eq("id",id);
+   if(error)throw error;closePhotoModal();await loadStories();
+  });
 }
 async function openStory(id){
  openStoryId=id;

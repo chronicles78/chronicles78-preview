@@ -481,23 +481,42 @@ function subscribe(){
  unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);unsubRead=null;
 }
 
-let voiceRecognition=null,voiceListening=false,voiceBaseText="";
-function toggleVoiceDictation(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+let voiceRecorder=null,voiceChunks=[],voiceTimer=null,voiceStartedAt=0;
+async function toggleVoiceDictation(){
  const btn=$("voiceInputBtn");
- if(!SR){alert("Голосовой ввод не поддерживается этим браузером. Откройте сайт в актуальном Chrome или Edge.");return}
- if(voiceListening&&voiceRecognition){voiceRecognition.stop();return}
- voiceBaseText=$("composer").value.trim();
- const r=new SR();voiceRecognition=r;r.lang="ru-RU";r.interimResults=true;r.continuous=true;
- r.onstart=()=>{voiceListening=true;if(btn){btn.classList.add("recording");btn.textContent="■ Стоп";btn.title="Остановить запись"}};
- r.onresult=e=>{
-   let finalText="",interim="";
-   for(let i=0;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t+" ";else interim+=t}
-   $("composer").value=(voiceBaseText+(voiceBaseText?" ":"")+finalText+interim).trimStart();
-   $("composer").dispatchEvent(new Event("input"));
- };
- r.onerror=e=>{if(e.error!=="aborted")alert("Не удалось распознать речь: "+e.error)};
- r.onend=()=>{voiceListening=false;voiceRecognition=null;if(btn){btn.classList.remove("recording");btn.textContent="🎙 Голос";btn.title="Продиктовать сообщение"}};
- r.start();
+ if(voiceRecorder&&voiceRecorder.state==="recording"){voiceRecorder.stop();return}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){alert("Этот браузер не поддерживает запись с микрофона.");return}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  voiceChunks=[];voiceStartedAt=Date.now();
+  const preferred=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"";
+  voiceRecorder=new MediaRecorder(stream,preferred?{mimeType:preferred}:undefined);
+  voiceRecorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data)};
+  voiceRecorder.onstart=()=>{
+   btn.classList.add("recording");btn.textContent="■ Стоп";btn.title="Остановить и перевести в текст";
+   voiceTimer=setInterval(()=>{const sec=Math.floor((Date.now()-voiceStartedAt)/1000);btn.textContent="■ "+Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")},1000);
+  };
+  voiceRecorder.onstop=async()=>{
+   clearInterval(voiceTimer);stream.getTracks().forEach(t=>t.stop());
+   btn.classList.remove("recording");btn.disabled=true;btn.textContent="… Распознаю";
+   try{
+    const type=voiceRecorder.mimeType||voiceChunks[0]?.type||"audio/webm";
+    const ext=type.includes("mp4")?"m4a":type.includes("ogg")?"ogg":"webm";
+    const blob=new Blob(voiceChunks,{type});
+    if(!blob.size)throw new Error("Запись пуста.");
+    const fd=new FormData();fd.append("audio",blob,"voice."+ext);
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session)throw new Error("Нужно войти в архив.");
+    const res=await fetch(SUPABASE_URL+"/functions/v1/voice-transcribe",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_ANON_KEY},body:fd});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||"Не удалось распознать речь.");
+    const text=String(data.text||"").trim();
+    if(text){const old=$("composer").value.trim();$("composer").value=(old+(old?" ":"")+text).trim();$("composer").focus();$("composer").dispatchEvent(new Event("input"))}
+   }catch(e){alert(e.message||String(e))}
+   finally{btn.disabled=false;btn.textContent="🎙 Голос";btn.title="Записать голосом и перевести в текст";voiceRecorder=null;voiceChunks=[]}
+  };
+  voiceRecorder.start();
+ }catch(e){alert(e.name==="NotAllowedError"?"Разрешите сайту доступ к микрофону.":(e.message||String(e)))}
 }
 if($("voiceInputBtn"))$("voiceInputBtn").onclick=toggleVoiceDictation;

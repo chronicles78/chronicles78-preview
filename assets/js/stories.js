@@ -86,7 +86,7 @@ function renderStoriesCatalog(){
          (media?'<span class="badge">фото '+media+'</span>':'')+
        '</div>':'')+
        (kws?'<div class="storyCatalogTags">'+kws+'</div>':'')+
-       '<div class="storyCatalogActions"><button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Читать историю</button>'+(profile?.role==="editor"||profile?.role==="admin"?'<button class="editorialLink" data-story-edit="'+esc(s.id)+'">Исправить сведения</button>':'')+'</div>'+
+       '<div class="storyCatalogActions">'+(readable?'<button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Читать историю</button>':'<span class="storyPreparing">Текст готовится из найденных первоисточников</span>')+(profile?.role==="editor"||profile?.role==="admin"?'<button class="editorialLink" data-story-edit="'+esc(s.id)+'">Исправить сведения</button>':'')+'</div>'+
      '</div></article>';
  }).join("")||'<div class="notice">По выбранному фильтру историй нет.</div>';
  $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag],[data-story-read],[data-story-edit]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});

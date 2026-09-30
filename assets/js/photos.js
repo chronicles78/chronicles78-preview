@@ -100,7 +100,7 @@ function renderPhotoWorkspaceHeader(){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Редакторская очередь</b><span>'+n+' '+photoPlural(n,"снимок требует","снимка требуют","снимков требуют")+' уточнения</span></div>';return;
  }
  if(photoWorkspace==="upload"){
-  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Добавление фотографий</b><span>Загрузите один снимок или целую пачку. После загрузки фотографии попадут в редакторскую очередь.</span></div>';return;
+  head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>Добавление фотографии</b><span>Выберите один снимок. После сохранения он появится в архиве и при необходимости попадёт в редакторскую очередь.</span></div>';return;
  }
  if(photoWorkspace==="service"){
   head.hidden=false;head.innerHTML='<button type="button" data-photo-back>← Все альбомы</button><div><b>'+(photoMode==="registry"?"Визуальный реестр":"Внешние кандидаты")+'</b><span>Служебный редакционный раздел</span></div>';return;

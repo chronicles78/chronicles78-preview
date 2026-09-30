@@ -28,13 +28,14 @@ function openStoryContext(id){
  const room=s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general";
  const cover=storyCoverFor(s);
  const preview=cover?.url?'<img src="'+esc(cover.url)+'" alt="'+esc(s.title)+'">':"";
+ const fragment=storyState(s)==="фрагмент памяти";
  openContextSheet({
-   eyebrow:"ИСТОРИЯ",
+   eyebrow:fragment?"ФРАГМЕНТ ПАМЯТИ":"ИСТОРИЯ",
    title:s.title,
-   meta:[s.period,storyState(s),s.kind].filter(Boolean).join(" · "),
+   meta:[s.period,fragment?(s.data?.fragment_type||storyState(s)):storyState(s),s.kind].filter(Boolean).join(" · "),
    preview,
    actions:[
-     {icon:"▤",label:"Читать историю",kind:"primary",run:()=>openStory(id)},
+     {icon:fragment?"?":"▤",label:fragment?"Что известно":"Читать историю",kind:"primary",run:()=>openStory(id)},
      {icon:"💬",label:"Обсудить",hint:"Открыть связанную комнату чата",run:()=>{currentRoom=room;renderRooms();showView("chat");subscribe()}},
      ...(s.data?.media_ids?.length?[{icon:"▧",label:"Связанные фотографии",hint:s.data.media_ids.length+" фото",run:()=>{mediaFocus=null;photoMode="archive";photoFilter="story";showView("photos");$("photoSearch").value=s.title;renderPhotosSection()}}]:[])
    ]

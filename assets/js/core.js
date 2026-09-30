@@ -25,7 +25,7 @@ const authReturn=(()=>{
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const PASSWORD_RESET_REDIRECT=SITE_URL;
 const CONSENT_CODE="archive_personal_data";
-const CONSENT_VERSION="2026-09-22-v2";
+const CONSENT_VERSION="2026-09-30-v3";
 const START_PARAMS=new URLSearchParams(location.search);
 const OPEN_LOGIN_ON_START=START_PARAMS.get("login")==="1";
 const OPEN_REGISTER_ON_START=START_PARAMS.get("register")==="1";
@@ -822,7 +822,7 @@ function renderProfile(){
     if($("photoEditorBar"))$("photoEditorBar").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
-   if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";
+   if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("trafficStatsBox"))$("trafficStatsBox").style.display="none";
    if($("identityReviewBox"))$("identityReviewBox").style.display="none";
    if($("moderationBox"))$("moderationBox").style.display="none";
    if($("notifyBtn"))$("notifyBtn").style.display="none";
@@ -855,7 +855,7 @@ function renderProfile(){
     if($("photoEditorBar"))$("photoEditorBar").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
-   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
+   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("trafficStatsBox"))$("trafficStatsBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
  }
 }
 async function init(){

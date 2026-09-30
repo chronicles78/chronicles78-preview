@@ -107,10 +107,10 @@
 <button class="secondary" id="newArchivePhotoBtn">＋ Новое фото в архив</button>
 <input id="newArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
 <input id="replaceArchivePhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
-<div class="small" style="margin:10px 0 4px"><b>Массовая загрузка по MEDIA-ID</b></div>
-<div class="small" style="margin:6px 0">Можно выбрать сразу несколько файлов. Имя файла должно содержать ID, например MEDIA-012.jpeg.</div>
+<div class="small" style="margin:10px 0 4px"><b>Служебная загрузка по существующим MEDIA-ID</b></div>
+<div class="small" style="margin:6px 0">Этот режим нужен только для замены/добавления файлов к уже созданным карточкам. Имя файла обязательно должно содержать ID, например MEDIA-012.jpeg.</div>
 <input id="archiveFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-<button class="secondary" id="archiveUploadBtn">Загрузить в закрытый архив</button>
+<button class="secondary" id="archiveUploadBtn">Загрузить по существующим MEDIA-ID</button>
 <div id="archiveUploadMsg" class="small"></div>
 <div id="adminDriveBulkBox" class="adminDriveBulkBox" style="display:none">
 <div class="small" style="margin:14px 0 4px"><b>Прямая массовая загрузка в Google Drive</b></div>
@@ -226,7 +226,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20260930-3"></script>
+<script src="assets/js/core.js?v=20260930-4"></script>
 <script src="assets/js/chat.js?v=20260930-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20260930-6"></script>

@@ -275,7 +275,7 @@ document.addEventListener("click",e=>{
  if(b.matches("[data-photo-album]")){photoAlbumFilter=b.dataset.photoAlbum;photoWorkspace="albums";photoMode="archive";photoFilter="all";mediaFocus=null;renderPhotosSection();requestAnimationFrame(()=>$("photosList")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
  if(b.id==="photoSearchClear"){if($("photoSearch"))$("photoSearch").value="";photoAlbumFilter="all";setPhotoWorkspace("albums");return}
  if(b.id==="photoClarifyAction"){setPhotoWorkspace("clarify");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
- if(b.id==="photoUploadToggle"){if(profile?.role!=="admin")return;setPhotoWorkspace("upload");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
+ if(b.id==="photoUploadToggle"){if(profile?.role!=="admin")return;setPhotoWorkspace("upload");scanDrivePhotos();requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
 });
 document.querySelectorAll("[data-photomode]").forEach(b=>b.onclick=()=>{
  photoWorkspace="service";photoMode=b.dataset.photomode;mediaFocus=null;photoFilter="all";photoAlbumFilter="all";
@@ -522,6 +522,7 @@ async function scanDrivePhotos(){
 async function importDrivePhotos(){
  if(profile?.role!=="admin"||driveImportBusy||!driveImportSnapshot?.newFiles?.length)return;
  const files=[...driveImportSnapshot.newFiles],run=$("driveImportRunBtn"),scan=$("driveImportScanBtn"),progress=$("driveImportProgress");
+ document.querySelectorAll(".driveImportOutcome").forEach(x=>x.remove());
  driveImportBusy=true;if(run)run.disabled=true;if(scan)scan.disabled=true;
  let ok=0;const imported=[],failed=[];
  for(let i=0;i<files.length;i++){

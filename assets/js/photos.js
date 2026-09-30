@@ -563,6 +563,8 @@ async function uploadDirectDrivePhoto(file,index,total){
    }
    const {data:registered}=await sb.from("archive_original_objects").select("external_file_id,external_url,source_deleted_at,mirror_status").eq("id",obj.id).maybeSingle();
    if(registered?.mirror_status!=="mirrored"||!registered?.external_file_id)throw new Error("Google Drive не подтвердил сохранение оригинала.");
+   const {data:released,error:releaseErr}=await sb.functions.invoke("direct-drive-photo-upload",{body:{action:"release-temp",objectId:obj.id}});
+   if(releaseErr||!released?.ok)throw new Error(released?.detail||released?.error||releaseErr?.message||"Оригинал сохранён в Google Drive, но временную копию Supabase удалить не удалось.");
    const {data:row}=await sb.from("archive_media").select("data").eq("id",id).maybeSingle();
    await sb.from("archive_media").update({data:{...(row?.data||{}),bulk_error:null,identification_status:"требует описания",original_storage_backend:"google_drive",original_drive_file_id:registered.external_file_id,original_drive_url:registered.external_url||null,original_file_name:file.name,original_file_size:file.size,original_registered_at:new Date().toISOString()},updated_at:new Date().toISOString()}).eq("id",id);
    return {id,file:file.name,ok:true};

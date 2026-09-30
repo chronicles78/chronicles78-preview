@@ -110,7 +110,8 @@ function renderClassPhotoPanel(arr){
  }
  return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);const unknown=personIdentityUnknown(p);const editor=profile?.role==="editor"||profile?.role==="admin";return '<div class="classSelection contextObject" data-selected-person-context="'+esc(p.id)+'">'+portrait+'<div class="classSelectionText"><b>'+esc(personDisplayName(p))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(unknown?'<div class="small">Лицо выбрано.</div>'+(editor?'<button class="secondary personAssignDirect" data-person-assign="'+esc(p.id)+'">Назначить имя</button>':'<button class="secondary personAssignDirect" data-person-suggest="'+esc(p.id)+'">Предложить имя</button>'):'')+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div></div>'})():'')+'</div>';
 }
-let peopleSearchScrollTimer=null;\nfunction renderPeople(){
+let peopleSearchScrollTimer=null;
+function renderPeople(){
  const q=($("peopleSearch")?.value||"").trim().toLowerCase();
  const arr=peopleCache.filter(p=>(peopleGroup==="all"||p.group_name===peopleGroup)&&(!q||(p.canonical_name||"").toLowerCase().includes(q)||(p.aliases||[]).join(" ").toLowerCase().includes(q)));
  if(q&&arr.length===1&&["10А","10Б"].includes(peopleGroup))selectedPersonId=arr[0].id;

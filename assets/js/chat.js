@@ -480,3 +480,24 @@ function subscribe(){
  const ch2=sb.channel("react-"+room+"-"+Date.now()).on("postgres_changes",{event:"*",schema:"public",table:"reactions"},()=>{if(currentRoom===room)scheduleRoomReload(160)}).subscribe();
  unsubMsg=()=>sb.removeChannel(ch1);unsubReact=()=>sb.removeChannel(ch2);unsubRead=null;
 }
+
+let voiceRecognition=null,voiceListening=false,voiceBaseText="";
+function toggleVoiceDictation(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const btn=$("voiceInputBtn");
+ if(!SR){alert("Голосовой ввод не поддерживается этим браузером. Откройте сайт в актуальном Chrome или Edge.");return}
+ if(voiceListening&&voiceRecognition){voiceRecognition.stop();return}
+ voiceBaseText=$("composer").value.trim();
+ const r=new SR();voiceRecognition=r;r.lang="ru-RU";r.interimResults=true;r.continuous=true;
+ r.onstart=()=>{voiceListening=true;if(btn){btn.classList.add("recording");btn.textContent="■ Стоп";btn.title="Остановить запись"}};
+ r.onresult=e=>{
+   let finalText="",interim="";
+   for(let i=0;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t+" ";else interim+=t}
+   $("composer").value=(voiceBaseText+(voiceBaseText?" ":"")+finalText+interim).trimStart();
+   $("composer").dispatchEvent(new Event("input"));
+ };
+ r.onerror=e=>{if(e.error!=="aborted")alert("Не удалось распознать речь: "+e.error)};
+ r.onend=()=>{voiceListening=false;voiceRecognition=null;if(btn){btn.classList.remove("recording");btn.textContent="🎙 Голос";btn.title="Продиктовать сообщение"}};
+ r.start();
+}
+if($("voiceInputBtn"))$("voiceInputBtn").onclick=toggleVoiceDictation;

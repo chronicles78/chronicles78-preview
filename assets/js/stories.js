@@ -87,7 +87,7 @@ function renderStoriesCatalog(){
        (coverUrl?'<img src="'+coverUrl+'" alt="'+esc(cover.title||s.title)+'">':'<div class="storyCatalogCoverNo">'+esc(s.period||"Из памяти класса")+'</div>')+
      '</div>'+
      '<div class="storyCatalogBody">'+
-       '<div class="storyCatalogKicker"><span>'+esc(s.period||"")+'</span><span>·</span><span>'+esc(status)+'</span></div>'+
+       '<div class="storyCatalogKicker"><span>'+esc(status)+'</span>'+(s.period?'<span>'+esc(s.period)+'</span>':'')+'</div>'+
        '<h3>'+esc(s.title)+'</h3>'+
        (summary?'<div class="storyCatalogSummary">'+esc(summary.length>420?summary.slice(0,417)+"…":summary)+'</div>':'')+
        (people.length?'<div class="storyCatalogPeople"><b>Голоса:</b> '+esc(people.slice(0,6).join(", "))+(people.length>6?"…":"")+'</div>':'')+

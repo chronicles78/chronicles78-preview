@@ -819,6 +819,7 @@ function renderProfile(){
    $("composerWrap").style.display="none";
    if($("photoContributeBox"))$("photoContributeBox").style.display="none";
    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
+    if($("photoEditorBar"))$("photoEditorBar").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
    if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";
@@ -839,7 +840,7 @@ function renderProfile(){
    if($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile.role==="admin"?"block":"none"; if(profile.role==="admin"&&typeof restoreRecentBulkPhotos==="function")restoreRecentBulkPhotos();
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
    loadMyPhotoSubmissions();
-    {const canEditPhotos=profile.role==="editor"||profile.role==="admin";document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?(x.classList.contains("photoHomeAction")?"block":"inline-block"):"none")}if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
+    {const canEditPhotos=profile.role==="editor"||profile.role==="admin";document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?"inline-block":"none")}if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
    if($("archiveStorageBox"))$("archiveStorageBox").style.display=profile.role==="admin"?"block":"none";
    const canModerate=profile.role==="editor"||profile.role==="admin";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";

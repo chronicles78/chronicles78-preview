@@ -115,12 +115,18 @@ function setPhotoWorkspace(mode){
 function renderPhotosSection(){
  const canEditPhotos=profile?.role==="editor"||profile?.role==="admin";
  if(!canEditPhotos&&(photoWorkspace!=="albums"||photoMode!=="archive")){photoWorkspace="albums";photoMode="archive";photoFilter="all"}
- if($("photoEditorBar"))$("photoEditorBar").style.display=canEditPhotos?"flex":"none";
+ if($("photoEditorBar"))$("photoEditorBar").style.display="grid";
+ document.querySelectorAll(".editorOnlyPhotoAction").forEach(x=>x.style.display=canEditPhotos?"flex":"none");
+ if($("photoServiceRow"))$("photoServiceRow").style.display=canEditPhotos?"block":"none";
+ if(document.querySelector(".photoBrowseBar"))document.querySelector(".photoBrowseBar").style.display=photoWorkspace==="albums"?"grid":"none";
  if($("archiveUploadBox"))$("archiveUploadBox").style.display=(canEditPhotos&&photoWorkspace==="upload")?"block":"none";
  if($("photosList"))$("photosList").style.display=photoWorkspace==="upload"?"none":"";
  if($("photoContributeBox"))$("photoContributeBox").style.display=photoWorkspace==="albums"?"block":"none";
  if($("photoStats"))$("photoStats").style.display=photoWorkspace==="upload"?"none":"";
  const clarify=mediaCache.filter(photoNeedsClarification).length;if($("photoClarifyCount"))$("photoClarifyCount").textContent=clarify;
+ const albumCount=photoAlbums.filter(a=>mediaCache.some(m=>photoAlbumId(m)===a.id)).length;
+ if($("photoAlbumsCount"))$("photoAlbumsCount").textContent=albumCount+" "+plural(albumCount,"раздел","раздела","разделов");
+ [["photoAlbumsAction",photoWorkspace==="albums"],["photoClarifyAction",photoWorkspace==="clarify"],["photoUploadToggle",photoWorkspace==="upload"]].forEach(([id,on])=>$(id)?.classList.toggle("on",on));
  renderPhotoWorkspaceHeader();
  if(photoWorkspace==="upload")return;
  if(photoMode==="registry")renderVisualRegistry();
@@ -250,8 +256,8 @@ async function loadPhotos(){
  Promise.all(mediaCache.map(async m=>{if(m.current_storage_path)mediaSigned[m.id]=await archiveSignedImage(m.current_storage_path)})).then(()=>{if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery()});
 }
 document.addEventListener("click",e=>{
- const b=e.target.closest("#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;
- if(b.matches("[data-photo-back]")){photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value="";setPhotoWorkspace("albums");return}
+ const b=e.target.closest("#photoAlbumsAction,#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;
+ if(b.matches("[data-photo-back]")||b.id==="photoAlbumsAction"){photoAlbumFilter="all";if($("photoSearch"))$("photoSearch").value="";setPhotoWorkspace("albums");return}
  if(b.matches("[data-photo-album]")){photoAlbumFilter=b.dataset.photoAlbum;photoWorkspace="albums";photoMode="archive";photoFilter="all";mediaFocus=null;renderPhotosSection();requestAnimationFrame(()=>$("photosList")?.scrollIntoView({behavior:"smooth",block:"start"}));return}
  if(b.id==="photoSearchClear"){if($("photoSearch"))$("photoSearch").value="";photoAlbumFilter="all";setPhotoWorkspace("albums");return}
  if(b.id==="photoClarifyAction"){setPhotoWorkspace("clarify");requestAnimationFrame(()=>$("photoWorkHeader")?.scrollIntoView({behavior:"smooth",block:"start"}));return}

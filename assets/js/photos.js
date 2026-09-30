@@ -607,9 +607,7 @@ async function uploadDirectDriveBatch(){
    catch(e){const msg=e.message||String(e);fail.push(files[i].name+" — "+msg);states[i]={state:"fail",label:"ошибка"};setDriveBulkState(i,"fail","ошибка")}
    finally{done++;$("driveBulkProgress").textContent=done+" / "+files.length+" · "+(files.length-done?"обработка продолжается":"завершено")}
  };
- let cursor=0;
- const worker=async()=>{while(true){const i=cursor++;if(i>=files.length)return;await runOne(i)}};
- await Promise.all(Array.from({length:Math.min(3,files.length)},worker));
+ for(let i=0;i<files.length;i++)await runOne(i);
  $("driveBulkUploadBtn").disabled=false;$("driveBulkChooseBtn").disabled=false;
  $("driveBulkFileInput").value="";driveBulkSelectedFiles=[];
  const doneBox=$("driveBulkDone");doneBox.hidden=false;
@@ -645,5 +643,17 @@ $("archiveUploadBtn").onclick=uploadArchiveMedia;
 if($("adminDriveBulkBox"))$("adminDriveBulkBox").style.display=profile?.role==="admin"?"block":"none";
 if($("driveBulkChooseBtn"))$("driveBulkChooseBtn").onclick=()=>$("driveBulkFileInput")?.click();
 if($("driveBulkFileInput"))$("driveBulkFileInput").onchange=()=>{driveBulkSelectedFiles=[...($("driveBulkFileInput").files||[])];if($("driveBulkDone"))$("driveBulkDone").hidden=true;renderDriveBulkQueue();};
+async function restoreRecentBulkPhotos(){
+ if(profile?.role!=="admin"||!$("driveBulkDone"))return;
+ const since=new Date(Date.now()-6*60*60*1000).toISOString();
+ const {data:rows}=await sb.from("archive_media").select("id,archive_file,data,updated_at").gte("updated_at",since).order("updated_at",{ascending:false}).limit(50);
+ const recent=(rows||[]).filter(r=>r.data?.bulk_import&&r.data?.original_drive_file_id&&!r.data?.bulk_error);
+ if(!recent.length)return;
+ driveBulkNewIds=recent.map(r=>r.id);
+ const box=$("driveBulkDone");box.hidden=false;
+ box.innerHTML='<b>Последняя загрузка сохранена</b><span>'+recent.length+' '+plural(recent.length,"фотография","фотографии","фотографий")+' находятся в архиве. Можно продолжить их описание.</span><button type="button" id="reviewBulkPhotosBtn">Разобрать фотографии →</button>';
+ if($("reviewBulkPhotosBtn"))$("reviewBulkPhotosBtn").onclick=()=>{const id=driveBulkNewIds[0];if(id)editArchiveCard(id)};
+}
 if($("driveBulkUploadBtn"))$("driveBulkUploadBtn").onclick=uploadDirectDriveBatch;
+restoreRecentBulkPhotos();
 

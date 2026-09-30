@@ -58,7 +58,7 @@ function renderStoriesCatalog(){
  const fragments=storyCache.filter(s=>storyState(s)==="фрагмент памяти").length;
  $("storyStats").innerHTML='<b>'+storyCache.length+'</b> историй · <b>'+ready+'</b> готово · <b>'+working+'</b> в работе · <b>'+fragments+'</b> фрагментов';
  $("storiesList").className="storyCatalogGrid";
- $("storiesList").innerHTML=arr.map(s=>{
+ const renderCard=s=>{
    const people=(s.data?.people||[]).map(storyPersonName).filter(Boolean);
    const kws=(s.data?.keywords||[]).slice(0,4).map(x=>'<button class="badge tagLink" data-tag="'+esc(x)+'">'+esc(x)+'</button>').join("");
    const summary=s.data?.editorial_summary||(s.data?.chapter?.subtitle||"");
@@ -71,7 +71,7 @@ function renderStoriesCatalog(){
    const room=s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general";
    const cover=storyCoverFor(s);
    const coverUrl=cover?.url||null;
-   const status=state==="готовая история"?"готовая история":state==="фрагмент памяти"?"фрагмент памяти":"история в работе";
+   const status=state==="готовая история"?"готовая история":state==="фрагмент памяти"?(s.data?.fragment_type||"фрагмент памяти"):"история в работе";
    return '<article class="storyCatalogCard contextObject '+(featured?"featured":"")+'" data-story-context="'+esc(s.id)+'" tabindex="0">'+
      '<div class="storyCatalogCover">'+
        (coverUrl?'<img src="'+coverUrl+'" alt="'+esc(cover.title||s.title)+'">':'<div class="storyCatalogCoverNo">'+esc(s.period||"Из памяти класса")+'</div>')+
@@ -89,7 +89,13 @@ function renderStoriesCatalog(){
        (kws?'<div class="storyCatalogTags">'+kws+'</div>':'')+
        '<div class="storyCatalogActions">'+(readable?'<button class="secondary storyReadDirect" data-story-read="'+esc(s.id)+'">Читать историю</button>':'<span class="storyPreparing">Текст готовится из найденных первоисточников</span>')+(profile?.role==="editor"||profile?.role==="admin"?'<button class="editorialLink" data-story-edit="'+esc(s.id)+'">Исправить сведения</button>':'')+'</div>'+
      '</div></article>';
- }).join("")||'<div class="notice">По выбранному фильтру историй нет.</div>';
+ };
+ const stories=arr.filter(s=>storyState(s)!=="фрагмент памяти");
+ const fragmentArr=arr.filter(s=>storyState(s)==="фрагмент памяти");
+ let catalogHtml='';
+ if(stories.length)catalogHtml+='<div class="storyShelfHead"><div><b>Истории</b><span>Готовые рассказы и реконструкции по воспоминаниям участников.</span></div><strong>'+stories.length+'</strong></div>'+stories.map(renderCard).join('');
+ if(fragmentArr.length)catalogHtml+='<div class="storyShelfHead fragmentShelf"><div><b>Фрагменты и открытые вопросы</b><span>Фотографии, версии и детали, которые ещё уточняются или не требуют превращения в отдельный рассказ.</span></div><strong>'+fragmentArr.length+'</strong></div>'+fragmentArr.map(renderCard).join('');
+ $("storiesList").innerHTML=catalogHtml||'<div class="notice">По выбранному фильтру историй нет.</div>';
  $("storiesList").querySelectorAll("[data-story-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag],[data-story-read],[data-story-edit]"))return;openStoryContext(el.dataset.storyContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openStoryContext(el.dataset.storyContext)}}});
  $("storiesList").querySelectorAll("[data-story-read]").forEach(b=>b.onclick=e=>{e.stopPropagation();openStory(b.dataset.storyRead)});
  $("storiesList").querySelectorAll("[data-story-edit]").forEach(b=>b.onclick=e=>{e.stopPropagation();editStoryInfo(b.dataset.storyEdit)});

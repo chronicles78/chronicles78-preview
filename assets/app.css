@@ -984,3 +984,29 @@ html[data-theme="dark"] .photoEditorBar,html[data-theme="dark"] .photoWorkHeader
 html[data-theme="dark"] .photoServiceMenu[open] div{background:#24201c;border-color:rgba(201,158,93,.16)}
 html[data-theme="dark"] .photoSearchInline button:hover,html[data-theme="dark"] .photoEditorAction:hover{background:rgba(201,158,93,.06)!important}
 @media(max-width:760px){.photoBrowseBar{grid-template-columns:1fr;gap:10px}.photoEditorBar{align-items:flex-start;flex-wrap:wrap}.photoServiceMenu{margin-left:0}.photoWorkHeader{flex-direction:column;gap:8px}}
+
+/* Photo archive: explicit primary modes */
+.photoPrimaryNav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 10px}
+.photoPrimaryTab{appearance:none;display:flex;align-items:baseline;justify-content:center;gap:6px;min-height:46px;padding:10px 12px;border:1px solid rgba(78,60,43,.16);border-radius:3px;background:rgba(255,252,244,.30);color:var(--ink);cursor:pointer;box-shadow:none}
+.photoPrimaryTab b{font:700 15px/1.1 Georgia,serif}.photoPrimaryTab span{font:11px/1.2 Georgia,serif;color:var(--muted)}
+.photoPrimaryTab.on{border-color:rgba(142,79,67,.50);background:rgba(142,79,67,.06)}.photoPrimaryTab.on b{color:#8e4f43}
+.photoPrimaryTab:hover{background:rgba(125,72,52,.05)}
+.editorOnlyPhotoAction{display:none}
+.photoServiceRow{margin:0 0 8px;text-align:right}
+.photoServiceRow .photoServiceMenu{display:inline-block;margin:0}
+html[data-theme="dark"] .photoPrimaryTab{background:rgba(201,158,93,.02);border-color:rgba(201,158,93,.14)}
+html[data-theme="dark"] .photoPrimaryTab.on{background:rgba(201,158,93,.06);border-color:rgba(201,158,93,.30)}
+@media(max-width:600px){
+ .photoPrimaryNav{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:12px 0 10px}
+ .photoPrimaryTab{min-height:52px;padding:8px 5px;display:grid;justify-items:center;align-content:center;gap:3px}
+ .photoPrimaryTab b{font-size:15px}.photoPrimaryTab span{font-size:10px;text-align:center}
+ .photoAlbumToc.photoAlbumChooser{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;overflow:visible!important}
+ .photoAlbumToc.photoAlbumChooser button{width:auto!important;min-width:0!important;min-height:72px!important;display:grid!important;grid-template-columns:auto 1fr auto!important;border-right:1px solid rgba(78,60,43,.14)!important;border-bottom:1px solid rgba(78,60,43,.12)!important}
+ .photoAlbumToc.photoAlbumChooser button:nth-child(2n){border-right:0!important}
+ .photoAlbumToc.photoAlbumChooser b{grid-column:auto!important}
+}
+@media(max-width:380px){
+ .photoPrimaryTab b{font-size:14px}.photoPrimaryTab span{font-size:9px}
+ .photoAlbumToc.photoAlbumChooser{grid-template-columns:1fr!important}
+ .photoAlbumToc.photoAlbumChooser button{border-right:0!important}
+}

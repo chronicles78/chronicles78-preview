@@ -819,3 +819,14 @@ html[data-theme="dark"] #home{background:radial-gradient(ellipse at 50% 0,rgba(1
 @media(max-width:760px){.storyShelfHead{align-items:start;margin-top:10px}.storyShelfHead b{font-size:19px}.storyShelfHead span{font-size:12px}.storyShelfHead strong{font-size:21px}}
 
 .storySourceType{display:inline-block;margin:4px 0 9px;padding:3px 7px;border:1px solid rgba(78,60,43,.18);border-radius:999px;font-size:11px;line-height:1.25;color:var(--muted);background:rgba(255,252,244,.45)}
+
+/* 2026-09-30: story catalog as book chapters */
+.storyShelfHead.thematicShelf{position:relative;margin-top:38px;padding:26px 18px 13px;border-top:1px solid rgba(78,60,43,.12);border-bottom:2px solid rgba(125,72,52,.28);background:linear-gradient(90deg,rgba(125,72,52,.055),transparent 72%)}
+.storyShelfHead.thematicShelf:first-child{margin-top:12px}
+.storyShelfHead.thematicShelf small{font:700 10px/1.2 "Courier New",monospace;letter-spacing:.16em;color:#8e4f43;text-transform:uppercase}
+.storyShelfHead.thematicShelf b{font-size:28px;letter-spacing:-.015em;color:var(--ink)}
+.storyShelfHead.thematicShelf span{font-family:Georgia,serif;font-size:14px;line-height:1.5;max-width:760px}
+.storyShelfHead.thematicShelf strong{align-self:center;min-width:42px;text-align:center;padding:8px 10px;border:1px solid rgba(78,60,43,.18);border-radius:50%;font-size:18px;background:rgba(255,252,244,.34)}
+html[data-theme="dark"] .storyShelfHead.thematicShelf{background:linear-gradient(90deg,rgba(201,158,93,.06),transparent 72%);border-bottom-color:rgba(201,158,93,.24)}
+html[data-theme="dark"] .storyShelfHead.thematicShelf small{color:#c99e5d}
+@media(max-width:760px){.storyShelfHead.thematicShelf{margin-top:26px;padding:20px 10px 11px}.storyShelfHead.thematicShelf b{font-size:23px}.storyShelfHead.thematicShelf span{font-size:13px}.storyShelfHead.thematicShelf strong{font-size:15px;min-width:36px;padding:7px}}

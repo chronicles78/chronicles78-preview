@@ -183,7 +183,7 @@ async function openStory(id){
      if(s.data?.story_text)html+='<section class="storySection storyReadingText"><div class="sectionTitle">История</div><div class="storyProse">'+esc(s.data.story_text).replace(/\n/g,"<br>")+'</div></section>';
      if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
        html+='<section class="storySection storySources"><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Исходные сообщения участников — отдельно от редакционного текста.</p>';
-       s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div><div class="storySourceText">'+esc(src.text||"").replace(/\n/g,"<br>")+'</div></article>'});
+       s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+(src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+'<div class="storySourceText">'+esc(src.text||"").replace(/\n/g,"<br>")+'</div></article>'});
        html+='</section>';
      }
      if(s.data?.highlights?.length){

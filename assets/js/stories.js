@@ -81,7 +81,7 @@ function renderStoriesCatalog(){
    const room=s.id==="S-006"?"tanin":s.id==="S-001"?"upk":"general";
    const cover=storyCoverFor(s);
    const coverUrl=cover?.url||null;
-   const status=state==="готовая история"?"готовая история":state==="фрагмент памяти"?(s.data?.fragment_type||"фрагмент памяти"):"история в работе";
+   const status=state==="готовая история"?"из воспоминаний":state==="фрагмент памяти"?(s.data?.fragment_type||"фрагмент памяти"):"история в работе";
    return '<article class="storyCatalogCard contextObject '+(featured?"featured":"")+'" data-story-context="'+esc(s.id)+'" tabindex="0">'+
      '<div class="storyCatalogCover">'+
        (coverUrl?'<img src="'+coverUrl+'" alt="'+esc(cover.title||s.title)+'">':'<div class="storyCatalogCoverNo">'+esc(s.period||"Из памяти класса")+'</div>')+

@@ -65,14 +65,29 @@ function openPersonContext(id){
  const p=peopleCache.find(x=>x.id===id);if(!p)return;
  selectedPersonId=id;renderPeople();
  const unknown=personIdentityUnknown(p),editor=profile?.role==="editor"||profile?.role==="admin";
- const preview=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
+ const stories=p.story_refs||[],media=p.data?.media_links||[];
+ const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
+ const archiveSummary='<div class="personDossierSummary">'+
+   '<div><b>'+(stories.length||0)+'</b><span>'+(stories.length===1?'история':stories.length<5?'истории':'историй')+'</span></div>'+
+   '<div><b>'+(media.length||0)+'</b><span>фото</span></div>'+
+ '</div>';
+ const preview=portrait+archiveSummary;
+ const openStories=()=>{
+   if(stories.length===1){showView("stories");openStory(stories[0].id);return}
+   showPersonLinks(p);
+ };
+ const openPhotos=()=>{
+   if(media.length===1){mediaFocus=media[0].media_id;showView("photos");setTimeout(()=>openArchivePhoto(media[0].media_id),120);return}
+   showPersonLinks(p);
+ };
  const actions=[
-   {icon:"◎",label:"Показать на общей фотографии",hint:p.group_name+" · позиция № "+(p.number??""),kind:"primary",run:()=>{selectedPersonId=id;renderPeople();setTimeout(()=>$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),50)}},
-   (p.story_refs?.length||p.data?.media_links?.length)?{icon:"⌁",label:"Истории и фотографии",hint:[p.story_refs?.length?((p.story_refs.length)+" историй"):"",p.data?.media_links?.length?((p.data.media_links.length)+" фото"):""].filter(Boolean).join(" · "),run:()=>showPersonLinks(p)}:null,
+   stories.length?{icon:"≡",label:"Читать истории",hint:stories.length===1?(stories[0].title||"1 история"):stories.length+" "+(stories.length<5?"истории":"историй"),kind:"primary",run:openStories}:null,
+   media.length?{icon:"▧",label:"Смотреть фотографии",hint:media.length+" фото",run:openPhotos}:null,
+   {icon:"◎",label:"Найти на общей фотографии",hint:p.group_name+" · позиция № "+(p.number??""),run:()=>{selectedPersonId=id;renderPeople();setTimeout(()=>$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),50)}},
    unknown&&!editor?{icon:"✎",label:"Предложить имя",hint:"Редактор проверит подпись",run:()=>suggestPersonIdentity(id)}:null,
-   editor?{icon:"✎",label:unknown?"Назначить имя":"Исправить подпись",hint:"Имя, статус и подтверждение",run:()=>editPersonIdentity(id)}:null
+   editor?{icon:"✎",label:unknown?"Назначить имя":"Редактировать сведения",hint:"Имя, статус и подтверждение",run:()=>editPersonIdentity(id)}:null
  ];
- openContextSheet({eyebrow:"УЧАСТНИК КЛАССА",title:personDisplayName(p),meta:[p.group_name,"позиция № "+(p.number??""),p.person_role].filter(Boolean).join(" · "),preview,actions});
+ openContextSheet({eyebrow:"ЛИЧНОЕ ДОСЬЕ",title:personDisplayName(p),meta:[p.group_name,"позиция № "+(p.number??""),p.person_role].filter(Boolean).join(" · "),preview,actions});
 }
 function renderClassPhotoPanel(arr){
  if(!["10А","10Б"].includes(peopleGroup))return "";

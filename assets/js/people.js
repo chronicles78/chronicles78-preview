@@ -53,7 +53,7 @@ function personThumbHtml(p,className="personPortrait"){
  if(!r||!cp||!url)return "";
  const aspect=className==="classSelectionPortrait"?64/82:4/5;
  const label=personDisplayName(p)||("Позиция № "+(p.number??""));
- return cropImageHtml(url,cp,r,className,aspect,0,0,'aria-label="'+esc(label)+'"',label);
+ return cropImageHtml(url,cp,r,className,aspect,0,0,"",label);
 }
 function selectPerson(id,scrollList=true){
  selectedPersonId=id;
@@ -315,4 +315,16 @@ $("peopleSearch").addEventListener("input",()=>{
    },450);
  }
 });
+
+function refreshClassPhotoAfterResume(){
+ if(activeViewId()!=="people"||!["10А","10Б"].includes(peopleGroup))return;
+ const cached=classPhotoStateCache.get(peopleGroup);
+ if(!cached||Date.now()-Number(cached.cachedAt||0)>=45*60*1000){
+   classPhotoStateCache.delete(peopleGroup);
+   classPhotoState=null;
+   loadClassPhoto();
+ }
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshClassPhotoAfterResume()});
+window.addEventListener("pageshow",refreshClassPhotoAfterResume);
 

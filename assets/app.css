@@ -1194,3 +1194,78 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
     aspect-ratio:auto;
   }
 }
+
+
+/* City: stable photo geometry on all devices, especially iOS Safari */
+.cityGrid{
+  width:100%;
+  min-width:0;
+}
+.cityCard{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+.cityCardImage{
+  width:100%;
+  max-width:100%;
+  aspect-ratio:16 / 9;
+  overflow:hidden;
+  background:var(--image-bg);
+}
+.cityCardImage img{
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+}
+.cityCardBody{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+.cityEssayBody,
+.cityEssayText,
+.cityInlinePhoto{
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.cityInlinePhoto{
+  width:100%;
+  aspect-ratio:4 / 3;
+  overflow:hidden;
+  background:var(--image-bg);
+  border-radius:12px;
+}
+.cityInlinePhoto img{
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:100%;
+  max-height:none;
+  object-fit:contain;
+  object-position:center;
+  border-radius:0;
+}
+@media(max-width:760px){
+  .cityArchivePage,
+  .cityGrid,
+  .cityCard,
+  .cityCardImage,
+  .cityCardBody,
+  .cityEssayHeader,
+  .cityEssayBody,
+  .cityEssayText,
+  .cityInlinePhoto{
+    width:100%;
+    min-width:0;
+    max-width:100%;
+  }
+  .cityCardImage{aspect-ratio:16 / 9;}
+  .cityInlinePhoto{aspect-ratio:4 / 3;}
+}

@@ -546,11 +546,11 @@ async function scanDrivePhotos(){
  if(error||!data?.ok){if(state)state.innerHTML='<span class="err">'+esc(await driveImportError(error,data))+'</span>';return}
  renderDriveImportSnapshot(data);
 }
-async function importDrivePhotos(){
+async function importDrivePhotos(limit=0){
  if(profile?.role!=="admin"||driveImportBusy||!driveImportSnapshot?.newFiles?.length)return;
- const files=[...driveImportSnapshot.newFiles],run=$("driveImportRunBtn"),scan=$("driveImportScanBtn"),progress=$("driveImportProgress");
+ const allFiles=[...driveImportSnapshot.newFiles],files=limit>0?allFiles.slice(0,limit):allFiles,run=$("driveImportRunBtn"),test=$("driveImportTestBtn"),scan=$("driveImportScanBtn"),progress=$("driveImportProgress");
  document.querySelectorAll(".driveImportOutcome").forEach(x=>x.remove());
- driveImportBusy=true;if(run)run.disabled=true;if(scan)scan.disabled=true;
+ driveImportBusy=true;if(run)run.disabled=true;if(test)test.disabled=true;if(scan)scan.disabled=true;
  let ok=0;const imported=[],failed=[];
  for(let i=0;i<files.length;i++){
   const file=files[i];if(progress)progress.textContent=(i+1)+" из "+files.length+" · "+(file.folderPath?file.folderPath+" / ":"")+file.name;
@@ -568,7 +568,7 @@ async function importDrivePhotos(){
    }
   }
  }
- driveImportBusy=false;if(run)run.disabled=false;if(scan)scan.disabled=false;
+ driveImportBusy=false;if(run)run.disabled=false;if(test)test.disabled=false;if(scan)scan.disabled=false;
  await loadPhotos();await scanDrivePhotos();
  const state=$("driveImportState");
  if(state){
@@ -578,7 +578,8 @@ async function importDrivePhotos(){
  }
 }
 if($("driveImportScanBtn"))$("driveImportScanBtn").onclick=scanDrivePhotos;
-if($("driveImportRunBtn"))$("driveImportRunBtn").onclick=importDrivePhotos;
+if($("driveImportTestBtn"))$("driveImportTestBtn").onclick=()=>importDrivePhotos(1);
+if($("driveImportRunBtn"))$("driveImportRunBtn").onclick=()=>importDrivePhotos(0);
 
 $("replaceArchivePhotoInput").onchange=async()=>{
  const file=$("replaceArchivePhotoInput").files?.[0];if(!file||!archiveReplaceId)return;

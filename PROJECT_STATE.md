@@ -978,3 +978,21 @@ Google Drive содержит отдельную папку:
 - `drive-photo-import` переопубликован как **v6 ACTIVE, verify_jwt=false** без изменения исходного кода.
 - Защита не ослаблена до публичного импорта: без валидной пользовательской сессии handler возвращает `authentication_required/invalid_session`, а без admin-роли — `admin_required`.
 - Google OAuth secrets и Drive folder IDs при исправлении не изменялись.
+
+
+## 51. Drive photo import — устранён WORKER_ERROR ImageMagick, 2026-10-01
+
+- После перевода `drive-photo-import` на `verify_jwt=false` ошибка клиента сохранилась.
+- Точная причина установлена по `function_edge_logs/function_logs`:
+  - preflight `OPTIONS /functions/v1/drive-photo-import` возвращал HTTP 500;
+  - `sb-error-code=WORKER_ERROR`;
+  - uncaught exception: локальный файл `@imagemagick/magick-wasm@0.0.43/dist/magick.wasm` отсутствовал в API-deployment bundle.
+- Следовательно, OAuth, Drive folder ID и пользовательская сессия не являлись причиной этой ошибки.
+- По текущей документации Supabase WASM/static files должны явно включаться в deployment; static_files не поддерживаются при API-only deployment. Наш MCP deployment не гарантирует упаковку npm asset-файла `magick.wasm`.
+- Исправление:
+  - убрана top-level загрузка WASM через `Deno.readFile(...import.meta.resolve(...))`;
+  - `drive-photo-import` теперь стартует без ImageMagick/WASM;
+  - операция `scan` вообще не инициализирует ImageMagick;
+  - WASM загружается лениво только для `import` конкретного фото по pinned CDN URL версии 0.0.43 и передаётся в `initializeImageMagick(bytes)`.
+- Функция переопубликована как **v7 ACTIVE, verify_jwt=false**.
+- Внутренняя проверка JWT + active admin остаётся обязательной.

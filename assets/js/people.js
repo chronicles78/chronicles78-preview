@@ -24,7 +24,7 @@ function cropImageHtml(url,photo,region,className,aspect,padX=0,padY=0,attrs="",
  const width=(r.sw/r.w*100).toFixed(4);
  const left=(-r.x/r.w*100).toFixed(4);
  const top=(-r.y/r.h*100).toFixed(4);
- return '<div class="'+className+' archiveCrop"'+(attrs?' '+attrs:'')+'><img src="'+esc(url)+'" alt="'+esc(alt)+'" style="width:'+width+'%;height:auto;left:'+left+'%;top:'+top+'%"></div>';
+ return '<div class="'+className+' archiveCrop"'+(attrs?' '+attrs:'')+'><img loading="lazy" decoding="async" draggable="false" src="'+esc(url)+'" alt="'+esc(alt)+'" style="width:'+width+'%;height:auto;left:'+left+'%;top:'+top+'%"></div>';
 }
 function personIdentityUnknown(p){
  const name=String(p?.canonical_name||"").trim().toLowerCase();
@@ -119,8 +119,7 @@ function renderPeople(){
    const linkedStories=(p.story_refs||[]);
    const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
    const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
-   const mobilePortraitLite=window.matchMedia?.("(max-width:760px)")?.matches;
-   const thumb=!mobilePortraitLite&&["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
+   const thumb=["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
      ?personThumbHtml(p,"personPortrait")
      :'<div class="personNo">'+esc(p.number??"")+'</div>';
    const editor=profile?.role==="editor"||profile?.role==="admin";

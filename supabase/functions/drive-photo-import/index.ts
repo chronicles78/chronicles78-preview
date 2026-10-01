@@ -3,8 +3,16 @@ import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.110.7/cors";
 import { ImageMagick, initializeImageMagick, MagickFormat } from "npm:@imagemagick/magick-wasm@0.0.43";
 
-const wasmBytes=await Deno.readFile(new URL("magick.wasm",import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.43")));
-await initializeImageMagick(wasmBytes);
+let magickReady=false;
+async function ensureImageMagick(){
+ if(magickReady)return;
+ const wasmUrl="https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.43/dist/magick.wasm";
+ const r=await fetch(wasmUrl);
+ if(!r.ok)throw new Error("magick_wasm_download_failed: "+r.status);
+ const bytes=new Uint8Array(await r.arrayBuffer());
+ await initializeImageMagick(bytes);
+ magickReady=true;
+}
 
 const WORK_BUCKET="archive-media";
 const FULL_MAX=1920, FULL_QUALITY=82, THUMB_MAX=560, THUMB_QUALITY=76;
@@ -166,7 +174,11 @@ Deno.serve(async(req:Request)=>{
  const size=Number(file.size||0);if(size>25*1024*1024)return response({error:"original_too_large",maxBytes:25*1024*1024},413);
 
  let inputBytes:Uint8Array;try{inputBytes=await downloadDriveFile(token,fileId)}catch(e){return response({error:"drive_download_failed",detail:e instanceof Error?e.message:String(e)},422)}
- let full,thumb;try{full=makeWebp(inputBytes,FULL_MAX,FULL_QUALITY);thumb=makeWebp(full.data,THUMB_MAX,THUMB_QUALITY)}catch(e){return response({error:"image_processing_failed",detail:e instanceof Error?e.message:String(e)},422)}
+ let full,thumb;try{
+  await ensureImageMagick();
+  full=makeWebp(inputBytes,FULL_MAX,FULL_QUALITY);
+  thumb=makeWebp(full.data,THUMB_MAX,THUMB_QUALITY);
+ }catch(e){return response({error:"image_processing_failed",detail:e instanceof Error?e.message:String(e)},422)}
  const stamp=Date.now(),base=safeBaseName(file.name);
  const fullPath=mediaId+"/web-drive-"+stamp+"-"+base+".webp";
  const thumbPath=mediaId+"/thumb-drive-"+stamp+"-"+base+".webp";

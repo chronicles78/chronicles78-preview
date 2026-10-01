@@ -17,6 +17,9 @@ function storyMatchesFilter(s){
 }
 
 function storyCoverFor(story){
+ if(story.data?.cover_mode==="none")return null;
+ const explicit=story.data?.cover_media_id;
+ if(explicit&&storyCoverMedia[explicit])return storyCoverMedia[explicit];
  const direct=storyCoverMedia[story.id];
  if(direct)return direct;
  const mids=Array.isArray(story.data?.media_ids)?story.data.media_ids:[];
@@ -167,13 +170,30 @@ async function editStoryInfo(id){
  if(!(profile?.role==="editor"||profile?.role==="admin"))return;
  const st=storyCache.find(x=>x.id===id);if(!st)return;
  const current=(st.data?.people||[])[0]||"";
- const opts=peopleCache.slice().sort((a,b)=>(a.canonical_name||"").localeCompare(b.canonical_name||"","ru")).map(x=>'<option value="'+esc(x.id)+'" '+(x.id===current?"selected":"")+'>'+esc(x.canonical_name||x.id)+' · '+esc(x.group_name||"")+'</option>').join("");
+ const opts=peopleCache.slice().sort((a,b)=>(a.canonical_name||"").localeCompare(b.canonical_name||"","ru")).map(x=>'<option value="'+esc(x.id)+'" '+(x.id===current?'selected':'')+'>'+esc(x.canonical_name||x.id)+' · '+esc(x.group_name||"")+'</option>').join("");
+ const {data:mediaRows,error:mediaError}=await sb.from("archive_media")
+   .select("id,title,current_storage_path,media_type")
+   .eq("media_type","photo")
+   .not("current_storage_path","is",null)
+   .order("id");
+ if(mediaError){alert(mediaError.message);return}
+ const coverMode=st.data?.cover_mode==="none"?"none":(st.data?.cover_media_id||"auto");
+ const coverOpts=(mediaRows||[]).map(m=>'<option value="'+esc(m.id)+'" '+(coverMode===m.id?'selected':'')+'>'+esc(m.id+" — "+m.title)+'</option>').join("");
  openPhotoModal("Исправить сведения об истории",
-  '<label>Название</label><input id="pfStoryTitle" value="'+esc(st.title||"")+'"><label>Период</label><input id="pfStoryPeriod" value="'+esc(st.period||"")+'"><label>Автор / основной рассказчик</label><select id="pfStoryPerson"><option value="">Не указан</option>'+opts+'</select><label>Краткое описание</label><textarea id="pfStorySummary" style="min-height:120px">'+esc(st.data?.editorial_summary||"")+'</textarea><label>Текст истории</label><textarea id="pfStoryText" style="min-height:260px" placeholder="Редакторский текст для чтения">'+esc(st.data?.story_text||"")+'</textarea>',
+  '<label>Название</label><input id="pfStoryTitle" value="'+esc(st.title||"")+'">'+
+  '<label>Период</label><input id="pfStoryPeriod" value="'+esc(st.period||"")+'">'+
+  '<label>Автор / основной рассказчик</label><select id="pfStoryPerson"><option value="">Не указан</option>'+opts+'</select>'+
+  '<label>Обложка истории</label><select id="pfStoryCover"><option value="auto" '+(coverMode==="auto"?'selected':'')+'>Автоматически — первое связанное фото</option><option value="none" '+(coverMode==="none"?'selected':'')+'>Без обложки</option>'+coverOpts+'</select>'+
+  '<div class="formHint">Можно выбрать любое фото из действующего фотоархива. После сохранения оно станет обложкой карточки и самой истории.</div>'+
+  '<label>Краткое описание</label><textarea id="pfStorySummary" style="min-height:120px">'+esc(st.data?.editorial_summary||"")+'</textarea>'+
+  '<label>Текст истории</label><textarea id="pfStoryText" style="min-height:260px" placeholder="Редакторский текст для чтения">'+esc(st.data?.story_text||"")+'</textarea>',
   async()=>{
    const title=$("pfStoryTitle").value.trim();if(!title)throw new Error("Укажите название.");
-   const period=$("pfStoryPeriod").value.trim(),personId=$("pfStoryPerson").value,summary=$("pfStorySummary").value.trim(),storyText=$("pfStoryText").value.trim();
+   const period=$("pfStoryPeriod").value.trim(),personId=$("pfStoryPerson").value,summary=$("pfStorySummary").value.trim(),storyText=$("pfStoryText").value.trim(),coverChoice=$("pfStoryCover").value;
    const nextData={...(st.data||{}),people:personId?[personId]:[],editorial_summary:summary,story_text:storyText};
+   if(coverChoice==="none"){nextData.cover_mode="none";nextData.cover_media_id=null}
+   else if(coverChoice==="auto"){delete nextData.cover_mode;delete nextData.cover_media_id}
+   else{nextData.cover_mode="manual";nextData.cover_media_id=coverChoice}
    const {error}=await sb.from("archive_stories").update({title,period:period||null,data:nextData,updated_at:new Date().toISOString()}).eq("id",id);
    if(error)throw error;closePhotoModal();await loadStories();
   });

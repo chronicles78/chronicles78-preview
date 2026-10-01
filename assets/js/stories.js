@@ -274,15 +274,17 @@ async function openStory(id){
  $("storyDetailBody").innerHTML=html;
  $("storyDetail").classList.add("open");
  $("storyDetail").scrollTop=0;
+ if(typeof updateContextBack==="function")updateContextBack();
 }
 $("closeStory").onclick=()=>{
  if(history.state?.chronicles78Tag){history.back();return}
  $("storyDetail").classList.remove("open");openStoryId=null;
+ if(typeof updateContextBack==="function")updateContextBack();
 };
 document.addEventListener("keydown",e=>{
  if(e.key==="Escape"){
    document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
-   if($("storyDetail")?.classList.contains("open"))$("storyDetail").classList.remove("open");
+   if($("storyDetail")?.classList.contains("open")){$("storyDetail").classList.remove("open");openStoryId=null;if(typeof updateContextBack==="function")updateContextBack()}
  }
 });
 

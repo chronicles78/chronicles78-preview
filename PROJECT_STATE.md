@@ -1012,3 +1012,21 @@ Google Drive содержит отдельную папку:
 - В интерфейс добавлена кнопка `Импортировать 1 для проверки`; после успешного теста можно нажать `Импортировать все новые`.
 - Проверено: после неудачного запуска новых записей в `archive_original_objects` не появилось; частичного импорта не было.
 - Frontend cache: `assets/js/photos.js?v=20261001-3`.
+
+
+## 53. Drive photo import — перенос обработки изображений в браузер, 2026-10-01
+
+- Тест одного файла `Unknown-84.jpg` после исправления пути WASM дошёл до Edge Function, но завершился non-2xx.
+- Точная причина по логам `drive-photo-import v8`: `CPU Time exceeded`, worker остановлен после ~2.06 s CPU. Это лимит Edge Runtime при ImageMagick/WASM, а не ошибка конкретного JPG.
+- Серверное перекодирование Drive-фотографий через ImageMagick прекращено.
+- Новая схема:
+  1. `drive-photo-import` сканирует Google Drive и проверяет admin-сессию.
+  2. Авторизованный GET `drive-photo-import?fileId=...` потоково отдаёт только администратору исходное изображение из папки оригиналов.
+  3. Браузер создаёт рабочую копию до 1920 px и миниатюру до 560 px через Canvas; основной формат WebP, JPEG — резервный вариант браузера.
+  4. Браузер загружает обе облегчённые копии в private bucket `archive-media`.
+  5. POST action `register_client_processed` повторно проверяет admin, наличие исходника в дереве оригиналов, существование загруженных рабочих файлов и только затем создаёт `archive_media`, версию и `archive_original_objects`.
+- Оригинал не копируется из Google Drive в Supabase и не изменяется.
+- `drive-photo-import` переопубликован как **v9 ACTIVE, verify_jwt=false** с собственной строгой проверкой user JWT + active admin.
+- Scan теперь возвращает `folderId/folderName/folderPath` для новых файлов.
+- Frontend: `assets/js/photos.js?v=20261001-4`; синтаксис проверен.
+- После CPU-timeout теста частичной регистрации оригинала не обнаружено.

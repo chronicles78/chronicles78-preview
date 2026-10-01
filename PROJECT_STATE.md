@@ -996,3 +996,19 @@ Google Drive содержит отдельную папку:
   - WASM загружается лениво только для `import` конкретного фото по pinned CDN URL версии 0.0.43 и передаётся в `initializeImageMagick(bytes)`.
 - Функция переопубликована как **v7 ACTIVE, verify_jwt=false**.
 - Внутренняя проверка JWT + active admin остаётся обязательной.
+
+
+## 52. Массовый Drive-фотоимпорт — исправление WASM 0.0.43, 2026-10-01
+
+- После восстановления scan Google Drive обнаружил 84 новых изображения, но import завершился 0/84 с одинаковой ошибкой `magick_wasm_download_failed: 404`.
+- Точная причина: в `@imagemagick/magick-wasm@0.0.43` бинарник расположен в `dist/x86/magick.wasm`; прежний URL `dist/magick.wasm` отсутствует.
+- `drive-photo-import`:
+  - URL исправлен на pinned `0.0.43/dist/x86/magick.wasm`;
+  - добавлен fallback через unpkg;
+  - перед инициализацией проверяются размер и WASM magic bytes `00 61 73 6d`;
+  - функция остаётся ACTIVE v8, `verify_jwt=false`, с собственной JWT + active admin проверкой.
+- Для обычной загрузки фото аналогичная скрытая проблема устранена в `process-archive-photo`; функция ACTIVE v20, `verify_jwt=true`.
+- Массовый импорт теперь прекращается после первой системной ошибки `magick_wasm_download_failed`, Edge transport error, Google auth error или server configuration error — одинаковая ошибка больше не повторяется десятки раз.
+- В интерфейс добавлена кнопка `Импортировать 1 для проверки`; после успешного теста можно нажать `Импортировать все новые`.
+- Проверено: после неудачного запуска новых записей в `archive_original_objects` не появилось; частичного импорта не было.
+- Frontend cache: `assets/js/photos.js?v=20261001-3`.

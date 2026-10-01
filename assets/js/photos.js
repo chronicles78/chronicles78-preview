@@ -546,6 +546,69 @@ async function scanDrivePhotos(){
  if(error||!data?.ok){if(state)state.innerHTML='<span class="err">'+esc(await driveImportError(error,data))+'</span>';return}
  renderDriveImportSnapshot(data);
 }
+async function compressDriveImageVariant(blob,maxSide,quality){
+ const url=URL.createObjectURL(blob);
+ try{
+  const img=new Image();img.decoding="async";
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error("Браузер не смог прочитать изображение."));img.src=url});
+  const sourceWidth=img.naturalWidth||img.width,sourceHeight=img.naturalHeight||img.height;
+  if(!(sourceWidth>0&&sourceHeight>0))throw new Error("Не удалось определить размер изображения.");
+  const scale=Math.min(1,maxSide/Math.max(sourceWidth,sourceHeight));
+  const width=Math.max(1,Math.round(sourceWidth*scale)),height=Math.max(1,Math.round(sourceHeight*scale));
+  const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext("2d",{alpha:false});if(!ctx)throw new Error("Браузер не может подготовить рабочую копию.");
+  ctx.drawImage(img,0,0,width,height);
+  let out=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",quality));
+  let outMime="image/webp",ext="webp";
+  if(!out||out.type!=="image/webp"){
+    out=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",Math.min(.9,quality+.02)));
+    outMime="image/jpeg";ext="jpg";
+  }
+  if(!out)throw new Error("Не удалось сжать изображение.");
+  return {blob:out,outMime,ext,width,height,sourceWidth,sourceHeight};
+ }finally{URL.revokeObjectURL(url)}
+}
+async function fetchDriveOriginalForBrowser(file){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session?.access_token)throw new Error("Сессия истекла. Войдите в архив снова.");
+ const r=await fetch(SUPABASE_URL+"/functions/v1/drive-photo-import?fileId="+encodeURIComponent(file.id),{
+   method:"GET",
+   headers:{Authorization:"Bearer "+session.access_token,apikey:SUPABASE_KEY}
+ });
+ if(!r.ok){
+   let detail="Не удалось получить оригинал из Google Drive.";
+   try{const j=await r.json();detail=j?.detail||j?.error||detail}catch{}
+   throw new Error(detail);
+ }
+ return await r.blob();
+}
+async function importDrivePhotoInBrowser(file,mediaId){
+ const original=await fetchDriveOriginalForBrowser(file);
+ const full=await compressDriveImageVariant(original,1920,.82);
+ const thumbSource=new Blob([full.blob],{type:full.outMime});
+ const thumb=await compressDriveImageVariant(thumbSource,560,.76);
+ const stamp=Date.now(),base=String(file.name||"photo").replace(/\.[^.]+$/,"").replace(/[^a-zA-Z0-9._-]+/g,"_").replace(/^_+|_+$/g,"").slice(0,80)||"photo";
+ const fullPath=mediaId+"/web-drive-"+stamp+"-"+base+"."+full.ext;
+ const thumbPath=mediaId+"/thumb-drive-"+stamp+"-"+base+"."+thumb.ext;
+ const {error:fu}=await sb.storage.from("archive-media").upload(fullPath,full.blob,{contentType:full.outMime,cacheControl:"31536000",upsert:false});
+ if(fu)throw new Error("Рабочая копия не загружена: "+fu.message);
+ const {error:tu}=await sb.storage.from("archive-media").upload(thumbPath,thumb.blob,{contentType:thumb.outMime,cacheControl:"31536000",upsert:false});
+ if(tu){await sb.storage.from("archive-media").remove([fullPath]);throw new Error("Миниатюра не загружена: "+tu.message)}
+ try{
+  const {data,error}=await sb.functions.invoke("drive-photo-import",{body:{
+    action:"register_client_processed",fileId:file.id,mediaId,fullPath,thumbPath,
+    fullWidth:full.width,fullHeight:full.height,fullSize:full.blob.size,
+    thumbWidth:thumb.width,thumbHeight:thumb.height,thumbSize:thumb.blob.size,
+    sourceWidth:full.sourceWidth,sourceHeight:full.sourceHeight,format:full.ext
+  }});
+  if(error||!data?.ok)throw new Error(await driveImportError(error,data));
+  return data;
+ }catch(e){
+  await sb.storage.from("archive-media").remove([fullPath,thumbPath]);
+  throw e;
+ }
+}
+
 async function importDrivePhotos(limit=0){
  if(profile?.role!=="admin"||driveImportBusy||!driveImportSnapshot?.newFiles?.length)return;
  const allFiles=[...driveImportSnapshot.newFiles],files=limit>0?allFiles.slice(0,limit):allFiles,run=$("driveImportRunBtn"),test=$("driveImportTestBtn"),scan=$("driveImportScanBtn"),progress=$("driveImportProgress");
@@ -556,13 +619,11 @@ async function importDrivePhotos(limit=0){
   const file=files[i];if(progress)progress.textContent=(i+1)+" из "+files.length+" · "+(file.folderPath?file.folderPath+" / ":"")+file.name;
   try{
    const mediaId=await nextMediaId();
-   const {data,error}=await sb.functions.invoke("drive-photo-import",{body:{action:"import",fileId:file.id,mediaId}});
-   if(error||!data?.ok)throw new Error(await driveImportError(error,data));
+   const data=await importDrivePhotoInBrowser(file,mediaId);
    ok++;imported.push(data.mediaId||mediaId);
   }catch(e){
-   const msg=e?.message||String(e);
-   failed.push(file.name+" — "+msg);
-   if(/magick_wasm_download_failed|Failed to send a request to the Edge Function|google_drive_auth_failed|server_configuration_error/i.test(msg)){
+   const msg=e?.message||String(e);failed.push(file.name+" — "+msg);
+   if(/Сессия истекла|Failed to fetch|google_drive_auth_failed|server_configuration_error|drive_file_outside_originals_folder/i.test(msg)){
     failed.push("Массовый импорт остановлен после системной ошибки; остальные файлы не запускались.");
     break;
    }

@@ -220,6 +220,26 @@ async function loadCityEssays(){
  const {data,error}=await sb.from("city_essays").select("*").order("sort_order").order("id");
  if(error){$("cityList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  cityCache=data||[];
+
+ // City cards must not render before their signed image URLs are ready.
+ const cityMediaIds=new Set();
+ cityCache.forEach(x=>{
+   (Array.isArray(x.media_ids)?x.media_ids:[]).forEach(id=>id&&cityMediaIds.add(id));
+   if(typeof cityEssayPhotoIds==="function")cityEssayPhotoIds(x.body||"").forEach(id=>id&&cityMediaIds.add(id));
+ });
+ const cityMedia=mediaCache.filter(m=>cityMediaIds.has(m.id));
+ if(cityMedia.length){
+   if(typeof prefetchArchiveMediaUrls==="function"){
+     await prefetchArchiveMediaUrls(cityMedia);
+   }else{
+     await Promise.all(cityMedia.map(async m=>{
+       if(m.current_storage_path&&!mediaSigned[m.id]){
+         const u=await archiveSignedImage(m.current_storage_path);
+         if(u)mediaSigned[m.id]=u;
+       }
+     }));
+   }
+ }
  const confirmed=cityCache.filter(x=>x.source_status==="подтверждённая редакция").length;
  const restore=cityCache.filter(x=>x.source_status==="требует восстановления").length;
  if($("cityStats")){
@@ -233,7 +253,8 @@ function openCityContext(id){
  const x=cityCache.find(a=>a.id===id);if(!x)return;
  const editor=profile?.role==="editor"||profile?.role==="admin";
  const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
- const preview=imgId&&mediaSigned[imgId]?'<img src="'+esc(mediaSigned[imgId])+'" alt="'+esc(x.title)+'">':"";
+ const previewUrl=imgId?(mediaThumbSigned?.[imgId]||mediaSigned[imgId]||null):null;
+ const preview=previewUrl?'<img src="'+esc(previewUrl)+'" alt="'+esc(x.title)+'">':"";
  const actions=[
    x.body?{icon:"⌘",label:"Читать этюд",kind:"primary",run:()=>openCityEssay(id)}:null,
    !x.body&&editor?{icon:"✎",label:"Внести авторский текст",kind:"primary",run:()=>editCityEssay(id)}:null,
@@ -250,8 +271,9 @@ function renderCityEssays(){
  $("cityList").innerHTML=arr.map((x,idx)=>{
    const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
    const m=imgId?mediaCache.find(z=>z.id===imgId):null;
-   const img=m&&mediaSigned[m.id]
-     ?'<div class="cityCardImage"><img loading="lazy" decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(x.title)+'"></div>'
+   const cardUrl=m?(mediaThumbSigned?.[m.id]||mediaSigned[m.id]||null):null;
+   const img=cardUrl
+     ?'<div class="cityCardImage"><img loading="lazy" decoding="async" src="'+esc(cardUrl)+'" alt="'+esc(x.title)+'"></div>'
      :'<div class="cityCardImage cityCardImageEmpty">'+esc(x.location_text||x.period||"Куйбышев")+'</div>';
    const lead=!q&&cityTheme==="all"&&idx===0&&!!x.body;
    const kicker=[x.theme,x.period].filter(Boolean).join(" · ");

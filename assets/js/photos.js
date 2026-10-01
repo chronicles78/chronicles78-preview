@@ -402,7 +402,7 @@ async function loadPhotoSubmissionReview(){
  $("photoSubmissionReviewList").className="";
  $("photoSubmissionReviewList").innerHTML=rows.map(x=>{
    const meta=[x.approx_date_text,x.location_text].filter(Boolean).join(" · ");
-   return '<div class="photoSubmissionCard">'+
+   return '<div class="photoSubmissionCard" data-photo-submission-id="'+esc(x.id)+'">'+
      '<div class="photoSubmissionTop">'+
        '<div class="photoSubmissionPreview">'+(urls[x.preview_storage_path]?'<img loading="lazy" src="'+esc(urls[x.preview_storage_path])+'" alt="'+esc(x.title)+'">':'')+'</div>'+
        '<div><div class="photoSubmissionTitle">'+esc(x.title)+'</div>'+

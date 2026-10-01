@@ -7,10 +7,43 @@ import {
   MagickFormat,
 } from "npm:@imagemagick/magick-wasm@0.0.43";
 
-const wasmBytes = await Deno.readFile(
-  new URL("magick.wasm", import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.43")),
-);
-await initializeImageMagick(wasmBytes);
+let magickReady = false;
+async function ensureImageMagick() {
+  if (magickReady) return;
+  const urls = [
+    "https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.43/dist/x86/magick.wasm",
+    "https://unpkg.com/@imagemagick/magick-wasm@0.0.43/dist/x86/magick.wasm",
+  ];
+  const errors: string[] = [];
+  for (const wasmUrl of urls) {
+    try {
+      const r = await fetch(wasmUrl);
+      if (!r.ok) {
+        errors.push(new URL(wasmUrl).host + " HTTP " + r.status);
+        continue;
+      }
+      const bytes = new Uint8Array(await r.arrayBuffer());
+      if (
+        bytes.length < 1024 ||
+        bytes[0] !== 0x00 ||
+        bytes[1] !== 0x61 ||
+        bytes[2] !== 0x73 ||
+        bytes[3] !== 0x6d
+      ) {
+        errors.push(new URL(wasmUrl).host + " invalid_wasm");
+        continue;
+      }
+      await initializeImageMagick(bytes);
+      magickReady = true;
+      return;
+    } catch (e) {
+      errors.push(
+        new URL(wasmUrl).host + " " + (e instanceof Error ? e.message : String(e)),
+      );
+    }
+  }
+  throw new Error("magick_wasm_download_failed: " + errors.join("; "));
+}
 
 const MAX_SIDE = 1920;
 const QUALITY = 82;
@@ -293,6 +326,7 @@ Deno.serve(async (req: Request) => {
   let optimized: Uint8Array;
 
   try {
+    await ensureImageMagick();
     optimized = ImageMagick.read(inputBytes, (img): Uint8Array => {
       img.autoOrient();
       sourceWidth = img.width;

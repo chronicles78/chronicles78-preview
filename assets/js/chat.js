@@ -58,7 +58,10 @@ async function loadRoom(){
    if(unread.length){
      const now=new Date().toISOString();
      readRows.push(...unread.map(x=>({...x,read_at:now})));
-     setTimeout(()=>sb.from("message_reads").insert(unread).then(()=>{}),0);
+     setTimeout(async()=>{
+       const {error:re}=await sb.from("message_reads").upsert(unread,{onConflict:"message_id,user_id",ignoreDuplicates:true});
+       if(!re&&typeof loadChatUnreadCount==="function")loadChatUnreadCount();
+     },0);
    }
  }
  if(seq!==chatLoadSeq||room!==currentRoom)return;
@@ -121,7 +124,8 @@ async function loadRoom(){
        (editor?'<div class="menuSep"></div><button class="menuBtn" data-evidence="'+m.id+'">'+(m.is_evidence?"★ Убрать из свидетельств":"☆ В свидетельство")+'</button><button class="menuBtn" data-link="'+m.id+'">🔗 Связать с историей</button><button class="menuBtn" data-question="'+m.id+'">? Создать вопрос</button><button class="menuBtn" data-hide="'+m.id+'">'+(m.is_hidden_from_publication?"Вернуть в публикацию":"Не публиковать")+'</button>':'')+
      '</div>';
 
-   const time=new Date(m.created_at).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
+   const created=new Date(m.created_at);
+   const time=created.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric"})+" · "+created.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
    const receipt=mine?'<span class="receiptChecks '+(isRead?"read":"")+'">'+(isRead?"✓✓":"✓")+'</span>':"";
    const editTitle=m.edited_at?' title="Сообщение изменено"':"";
 

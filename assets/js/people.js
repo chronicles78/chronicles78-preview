@@ -21,10 +21,25 @@ function cropRectFor(region,photo,aspect,padX=0,padY=0){
 function cropImageHtml(url,photo,region,className,aspect,padX=0,padY=0,attrs="",alt=""){
  const r=cropRectFor(region,photo,aspect,padX,padY);
  if(!url||!r)return "";
- const width=(r.sw/r.w*100).toFixed(4);
- const left=(-r.x/r.w*100).toFixed(4);
- const top=(-r.y/r.h*100).toFixed(4);
- return '<div class="'+className+' archiveCrop"'+(attrs?' '+attrs:'')+'><img loading="lazy" decoding="async" draggable="false" src="'+esc(url)+'" alt="'+esc(alt)+'" style="width:'+width+'%;height:auto;left:'+left+'%;top:'+top+'%"></div>';
+ const sizeX=(r.sw/r.w*100).toFixed(4);
+ const sizeY=(r.sh/r.h*100).toFixed(4);
+ const posX=(r.sw-r.w)>0?(r.x/(r.sw-r.w)*100).toFixed(4):"50";
+ const posY=(r.sh-r.h)>0?(r.y/(r.sh-r.h)*100).toFixed(4):"50";
+ const style="background-image:url('"+esc(url)+"');background-size:"+sizeX+"% "+sizeY+"%;background-position:"+posX+"% "+posY+"%;background-repeat:no-repeat;";
+ return '<div class="'+className+' archiveCrop" role="img"'+(attrs?' '+attrs:'')+' aria-label="'+esc(alt)+'" style="'+style+'"></div>';
+}
+function preloadClassPhotoUrl(url){
+ return new Promise(resolve=>{
+  if(!url){resolve(false);return}
+  const img=new Image();let done=false;
+  const finish=ok=>{if(done)return;done=true;clearTimeout(timer);img.onload=null;img.onerror=null;resolve(ok)};
+  const timer=setTimeout(()=>finish(false),8000);
+  img.onload=()=>finish(true);
+  img.onerror=()=>finish(false);
+  img.decoding="async";
+  img.src=url;
+  if(img.complete&&img.naturalWidth)finish(true);
+ });
 }
 function personIdentityUnknown(p){
  const name=String(p?.canonical_name||"").trim().toLowerCase();
@@ -202,11 +217,12 @@ async function loadClassPhoto(){
  const group=peopleGroup;
  if(!["10А","10Б"].includes(group)){classPhotoState=null;return}
  const cached=classPhotoStateCache.get(group);
- if(cached){
+ if(cached&&Date.now()-Number(cached.cachedAt||0)<50*60*1000){
    classPhotoState=cached;
    if(activeViewId()==="people")renderPeople();
    return;
  }
+ if(cached)classPhotoStateCache.delete(group);
  classPhotoState={photo:null,regions:{},url:null,loading:true};
  if(activeViewId()==="people")renderPeople();
  const classId=group==="10А"?"CLASS-10A":"CLASS-10B";
@@ -221,7 +237,9 @@ async function loadClassPhoto(){
  if(!cp.storage_path){classPhotoState.loading=false;return}
  const url=await archiveSignedImage(cp.storage_path);
  if(seq!==classPhotoLoadSeq||group!==peopleGroup)return;
- classPhotoState={photo:cp,regions:map,url,loading:false};
+ await preloadClassPhotoUrl(url);
+ if(seq!==classPhotoLoadSeq||group!==peopleGroup)return;
+ classPhotoState={photo:cp,regions:map,url,loading:false,cachedAt:Date.now()};
  classPhotoStateCache.set(group,classPhotoState);
  if(activeViewId()==="people")renderPeople();
 }

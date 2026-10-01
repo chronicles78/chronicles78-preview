@@ -251,7 +251,7 @@ function renderCityEssays(){
    const imgId=Array.isArray(x.media_ids)&&x.media_ids.length?x.media_ids[0]:null;
    const m=imgId?mediaCache.find(z=>z.id===imgId):null;
    const img=m&&mediaSigned[m.id]
-     ?'<div class="cityCardImage"><img src="'+mediaSigned[m.id]+'" alt="'+esc(x.title)+'"></div>'
+     ?'<div class="cityCardImage"><img loading="lazy" decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(x.title)+'"></div>'
      :'<div class="cityCardImage cityCardImageEmpty">'+esc(x.location_text||x.period||"Куйбышев")+'</div>';
    const lead=!q&&cityTheme==="all"&&idx===0&&!!x.body;
    const kicker=[x.theme,x.period].filter(Boolean).join(" · ");

@@ -545,6 +545,25 @@ function openMoreNav(){
 function activeViewId(){
  return document.querySelector(".view.active")?.id||"home";
 }
+let appNavTrail=[];
+let appNavRestoring=false;
+let appNavEnabled=false;
+function navStateSignature(state){
+ try{return JSON.stringify({
+  view:state?.view||null,storyOpen:!!state?.storyOpen,storyId:state?.storyId||null,
+  peopleGroup:state?.peopleGroup||null,selectedPersonId:state?.selectedPersonId||null,
+  storyFilter:state?.storyFilter||null,photoFilter:state?.photoFilter||null,mediaFocus:state?.mediaFocus||null,
+  cityTheme:state?.cityTheme||null,questionPriority:state?.questionPriority||null,questionStatus:state?.questionStatus||null
+ })}catch(e){return ""}
+}
+function pushAppNavState(){
+ const state=captureNavState();
+ if(!state?.view)return;
+ const sig=navStateSignature(state),last=appNavTrail.at(-1);
+ if(last&&navStateSignature(last)===sig)return;
+ appNavTrail.push(state);
+ if(appNavTrail.length>30)appNavTrail.shift();
+}
 function captureNavState(){
  return {
    view:activeViewId(),
@@ -561,7 +580,13 @@ function syncHistoryEntry(){
 }
 function updateContextBack(){
  const tagged=!!history.state?.chronicles78Tag;
- $("contextBackBtn")?.classList.toggle("show",tagged);
+ const storyOpen=!!$("storyDetail")?.classList.contains("open");
+ const hasTrail=appNavTrail.length>0;
+ const btn=$("contextBackBtn");
+ if(btn){
+  btn.classList.toggle("show",tagged||storyOpen||hasTrail);
+  btn.textContent=storyOpen?"← К историям":"← Назад";
+ }
 }
 function navigateFromTag(targetState,runner){
  syncHistoryEntry();
@@ -581,7 +606,7 @@ async function restoreNavState(state){
  cityTheme=state.cityTheme||cityTheme;
  questionPriority=state.questionPriority||questionPriority;
  questionStatus=state.questionStatus||questionStatus;
- showView(state.view||"home");
+ showView(state.view||"home",{track:false});
  await new Promise(r=>setTimeout(r,180));
  if(state.storyOpen&&state.storyId){
    await openStory(state.storyId);
@@ -594,12 +619,16 @@ async function restoreNavState(state){
 window.addEventListener("popstate",async e=>{
  closePhotoModal();
  closeMoreNav();
- await restoreNavState(e.state?.nav||{view:"home",scrollY:0});
+ appNavRestoring=true;
+ try{await restoreNavState(e.state?.nav||{view:"home",scrollY:0})}
+ finally{appNavRestoring=false}
  updateContextBack();
 });
 setTimeout(()=>{syncHistoryEntry();updateContextBack()},0);
-function showView(v){
+function showView(v,{track=true}={}){
  if(!v)return;
+ const current=activeViewId();
+ if(appNavEnabled&&track&&!appNavRestoring&&current&&current!==v)pushAppNavState();
  closeMoreNav();
  if($("storyDetail")?.classList.contains("open")){$("storyDetail").classList.remove("open");openStoryId=null;}
  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));
@@ -619,6 +648,7 @@ function showView(v){
     if(profile.role==="admin"&&typeof loadTrafficStats==="function")loadTrafficStats();
  }
   if(typeof trackSiteView==="function")trackSiteView(v);
+ updateContextBack();
 }
 document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>{if(b.dataset.view==="chat")enableBrowserChatNotifications();showView(b.dataset.view)});
 $("mobileMoreBtn").onclick=()=>{
@@ -628,7 +658,20 @@ $("mobileMoreBtn").onclick=()=>{
 $("moreNavClose").onclick=closeMoreNav;
 $("moreNavShade").onclick=closeMoreNav;
 document.querySelectorAll("[data-more-view]").forEach(b=>b.onclick=()=>showView(b.dataset.moreView));
-$("contextBackBtn").onclick=()=>history.back();
+$("contextBackBtn").onclick=async()=>{
+ if($("storyDetail")?.classList.contains("open")){
+  $("storyDetail").classList.remove("open");openStoryId=null;updateContextBack();return;
+ }
+ if(history.state?.chronicles78Tag){history.back();return}
+ const prev=appNavTrail.pop();
+ if(prev){
+  appNavRestoring=true;
+  try{await restoreNavState(prev)}finally{appNavRestoring=false}
+  updateContextBack();
+  return;
+ }
+ showView("home",{track:false});
+};
 function closeOverflowMenus(except=null){
  document.querySelectorAll("details.overflowMenu[open]").forEach(d=>{if(d!==except)d.removeAttribute("open")});
 }
@@ -935,6 +978,8 @@ async function init(){
   else if(profile&&typeof trackSiteView==="function")trackSiteView(activeViewId()||"home");
  if(OPEN_REGISTER_ON_START&&!user)setTimeout(openQuickRegistration,120);
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
+ appNavEnabled=true;
+ updateContextBack();
 }
 async function login(){
  $("loginError").className="";

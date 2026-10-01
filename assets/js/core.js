@@ -222,7 +222,7 @@ function cityEssayBodyHtml(body){
    const media=mediaCache.find(x=>x.id===id);
    if(media&&mediaSigned[id]){
      const caption=media.title||id;
-     out+='<figure class="cityInlinePhoto"><img loading="lazy" src="'+esc(mediaSigned[id])+'" alt="'+esc(caption)+'"><figcaption>'+esc(caption)+'</figcaption></figure>';
+     out+='<figure class="cityInlinePhoto"><div class="cityInlinePhotoFrame"><img loading="lazy" decoding="async" src="'+esc(mediaSigned[id])+'" alt="'+esc(caption)+'"></div><figcaption>'+esc(caption)+'</figcaption></figure>';
    } else {
      out+='<div class="notice">Фото '+esc(id)+' пока недоступно.</div>';
    }

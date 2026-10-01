@@ -593,8 +593,9 @@ function navigateFromTag(targetState,runner){
  try{
    history.pushState({chronicles78:true,chronicles78Tag:true,nav:targetState},document.title,location.href);
  }catch(e){}
+ const wasRestoring=appNavRestoring;appNavRestoring=true;
+ try{runner()}finally{appNavRestoring=wasRestoring}
  updateContextBack();
- runner();
 }
 async function restoreNavState(state){
  if(!state)return;

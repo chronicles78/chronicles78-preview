@@ -357,39 +357,77 @@ function qualitySelectHtml(value="копия"){
  return '<select id="pfQuality">'+opts.map(x=>'<option '+(x===value?"selected":"")+'>'+x+'</option>').join("")+'</select>';
 }
 
+function setChatUnreadBadge(n){
+ const chatNav=document.querySelector('.nav[data-view="chat"]');
+ if(!chatNav)return;
+ let badge=chatNav.querySelector(".chatUnreadBadge");
+ if(!badge){badge=document.createElement("span");badge.className="chatUnreadBadge";chatNav.appendChild(badge)}
+ const count=Math.max(0,Number(n)||0);
+ badge.textContent=count>99?"99+":String(count);
+ badge.style.display=count?"inline-flex":"none";
+}
+async function loadChatUnreadCount(){
+ if(!user||!profile?.is_active){setChatUnreadBadge(0);return}
+ const {data:msgs,error}=await sb.from("messages").select("id,author_id").neq("author_id",user.id);
+ if(error)return;
+ const ids=(msgs||[]).map(x=>x.id);
+ if(!ids.length){setChatUnreadBadge(0);return}
+ const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",user.id).in("message_id",ids);
+ if(re)return;
+ const seen=new Set((reads||[]).map(x=>x.message_id));
+ setChatUnreadBadge(ids.filter(id=>!seen.has(id)).length);
+}
 async function loadNotificationCount(){
- if(!user||!profile?.is_active){if($("notifyBtn"))$("notifyBtn").style.display="none";return}
+ if(!user||!profile?.is_active){if($("notifyBtn"))$("notifyBtn").style.display="none";setChatUnreadBadge(0);return}
  $("notifyBtn").style.display="grid";
  const {count,error}=await sb.from("notifications").select("id",{count:"exact",head:true}).eq("is_read",false);
  if(error)return;
  const n=count||0;
  $("notifyBadge").textContent=n>99?"99+":String(n);
  $("notifyBadge").style.display=n?"block":"none";
- const chatNav=document.querySelector('.nav[data-view="chat"]');
- if(chatNav){
-   let badge=chatNav.querySelector(".chatUnreadBadge");
-   if(!badge){badge=document.createElement("span");badge.className="chatUnreadBadge";chatNav.appendChild(badge)}
-   badge.textContent=n>99?"99+":String(n);badge.style.display=n?"inline-flex":"none";
- }
 }
 async function openNotifications(){
  if(!user||!profile?.is_active)return;
  const {data,error}=await sb.from("notifications").select("*").order("created_at",{ascending:false}).limit(50);
  if(error){alert(error.message);return}
  const rows=data||[];
+ const unreadIds=rows.filter(n=>!n.is_read).map(n=>n.id);
+ if(unreadIds.length){
+   const {error:ue}=await sb.from("notifications").update({is_read:true}).in("id",unreadIds);
+   if(!ue)rows.forEach(n=>{if(unreadIds.includes(n.id))n.is_read=true});
+ }
+ await loadNotificationCount();
  openPhotoModal("Уведомления",
-   '<div class="notificationActions"><button class="secondary" type="button" id="markAllNotifications">Отметить всё прочитанным</button></div>'+
-   '<div id="notificationList">'+(rows.map(n=>'<div class="notificationItem '+(!n.is_read?'unread':'')+'">'+
+   '<div class="notificationActions"><button class="secondary" type="button" id="markAllNotifications">Отметить всё прочитанным</button><button class="secondary" type="button" id="deleteReadNotifications">Удалить прочитанные</button></div>'+
+   '<div id="notificationList">'+(rows.map(n=>'<div class="notificationItem '+(!n.is_read?'unread':'')+'" data-notification-row="'+n.id+'">'+
      '<div class="notificationTitle">'+esc(n.title)+'</div>'+
      (n.body?'<div class="notificationBody">'+esc(n.body)+'</div>':'')+
      '<div class="small">'+new Date(n.created_at).toLocaleString("ru-RU")+'</div>'+
-     '<div class="notificationActions"><button class="secondary" type="button" data-open-notification="'+n.id+'" data-etype="'+esc(n.entity_type||"")+'" data-eid="'+esc(n.entity_id||"")+'">Открыть</button></div></div>').join("")||'<div class="notice">Новых уведомлений нет.</div>')+'</div>',
+     '<div class="notificationActions"><button class="secondary" type="button" data-open-notification="'+n.id+'" data-kind="'+esc(n.kind||"")+'" data-etype="'+esc(n.entity_type||"")+'" data-eid="'+esc(n.entity_id||"")+'">Открыть</button><button class="secondary" type="button" data-delete-notification="'+n.id+'">Удалить</button></div></div>').join("")||'<div class="notice">Уведомлений нет.</div>')+'</div>',
    async()=>{}
  );
  $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
- $("markAllNotifications").onclick=async()=>{await sb.from("notifications").update({is_read:true}).eq("is_read",false);await loadNotificationCount();closePhotoModal()};
+ $("markAllNotifications").onclick=async()=>{
+   const {error:e}=await sb.from("notifications").update({is_read:true}).eq("is_read",false);
+   if(e){alert(e.message);return}
+   document.querySelectorAll(".notificationItem.unread").forEach(x=>x.classList.remove("unread"));
+   await loadNotificationCount();
+ };
+ $("deleteReadNotifications").onclick=async()=>{
+   const {error:e}=await sb.from("notifications").delete().eq("is_read",true);
+   if(e){alert(e.message);return}
+   await loadNotificationCount();await openNotifications();
+ };
+ document.querySelectorAll("[data-delete-notification]").forEach(b=>b.onclick=async()=>{
+   const id=Number(b.dataset.deleteNotification);
+   const {error:e}=await sb.from("notifications").delete().eq("id",id);
+   if(e){alert(e.message);return}
+   b.closest("[data-notification-row]")?.remove();
+   await loadNotificationCount();
+   if(!$("notificationList")?.children.length)$("notificationList").innerHTML='<div class="notice">Уведомлений нет.</div>';
+ });
  document.querySelectorAll("[data-open-notification]").forEach(b=>b.onclick=async()=>{
-   const id=Number(b.dataset.openNotification),type=b.dataset.etype,eid=b.dataset.eid;
+   const id=Number(b.dataset.openNotification),kind=b.dataset.kind,type=b.dataset.etype,eid=b.dataset.eid;
    await sb.from("notifications").update({is_read:true}).eq("id",id);
    await loadNotificationCount();closePhotoModal();
    if(type==="message"){
@@ -397,16 +435,33 @@ async function openNotifications(){
      if(m?.room_id){currentRoom=m.room_id;renderRooms();showView("chat");setTimeout(()=>document.querySelector('.bubble[data-mid="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),260)}
    }else if(type==="city_essay"){
      showView("city");setTimeout(()=>openCityEssay(eid),120);
+   }else if(type==="person"&&kind==="identity_suggestion"){
+     showView("profile");
+     setTimeout(async()=>{await loadIdentityReview();openProfileBox("identityReviewBox")},80);
    }else if(type==="person"){
      activateTag(eid);
    }else if(type==="photo_submission"){
-     showView("profile");
-     const box=(profile?.role==="editor"||profile?.role==="admin")?$("photoSubmissionReviewBox"):$("myPhotoSubmissionsBox");
-     setTimeout(()=>box?.scrollIntoView({behavior:"smooth",block:"start"}),120);
+     const {data:sub}=await sb.from("photo_submissions").select("id,status,media_id").eq("id",eid).maybeSingle();
+     if(sub?.status==="pending"&&(profile?.role==="editor"||profile?.role==="admin")){
+       showView("profile");
+       setTimeout(async()=>{await loadPhotoSubmissionReview();openProfileBox("photoSubmissionReviewBox");setTimeout(()=>document.querySelector('[data-photo-submission-id="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80)},80);
+     }else if(sub?.status==="accepted"&&sub.media_id){
+       mediaFocus=sub.media_id;showView("photos");setTimeout(()=>openArchivePhoto(sub.media_id),120);
+     }else{
+       showView("profile");setTimeout(()=>openProfileBox("profileEditorialSection"),80);
+     }
    }else if(type==="moderation_report"){
-     showView("profile");setTimeout(()=>$("moderationBox")?.scrollIntoView({behavior:"smooth",block:"start"}),120);
+     showView("profile");setTimeout(()=>openProfileBox("moderationBox"),120);
    }
  });
+}
+function openProfileBox(id){
+ const el=$(id);if(!el)return;
+ const section=el.closest("details.profileSection");
+ const subsection=el.closest("details.profileSubsection");
+ if(section)section.open=true;
+ if(subsection)subsection.open=true;
+ setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),40);
 }
 function showChatToast(n){
  let t=document.getElementById("chatNewToast");
@@ -429,7 +484,7 @@ function subscribeNotifications(){
    .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"user_id=eq."+user.id},payload=>{
       loadNotificationCount();
       const n=payload.new||{};
-      if(n.entity_type==="message"){
+      if(n.entity_type==="message"){loadChatUnreadCount();
         if(document.hidden&&"Notification" in window&&Notification.permission==="granted"){
           new Notification(n.title||"Новое сообщение в «Хрониках-78»",{body:n.body||"Откройте чат, чтобы прочитать."});
         }else if(activeViewId()!=="chat"){
@@ -440,6 +495,7 @@ function subscribeNotifications(){
    .subscribe();
  unsubNotif=()=>sb.removeChannel(ch);
  loadNotificationCount();
+ loadChatUnreadCount();
 }
 $("notifyBtn").onclick=openNotifications;
 

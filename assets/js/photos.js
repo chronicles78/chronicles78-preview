@@ -559,7 +559,14 @@ async function importDrivePhotos(){
    const {data,error}=await sb.functions.invoke("drive-photo-import",{body:{action:"import",fileId:file.id,mediaId}});
    if(error||!data?.ok)throw new Error(await driveImportError(error,data));
    ok++;imported.push(data.mediaId||mediaId);
-  }catch(e){failed.push(file.name+" — "+(e?.message||String(e)))}
+  }catch(e){
+   const msg=e?.message||String(e);
+   failed.push(file.name+" — "+msg);
+   if(/magick_wasm_download_failed|Failed to send a request to the Edge Function|google_drive_auth_failed|server_configuration_error/i.test(msg)){
+    failed.push("Массовый импорт остановлен после системной ошибки; остальные файлы не запускались.");
+    break;
+   }
+  }
  }
  driveImportBusy=false;if(run)run.disabled=false;if(scan)scan.disabled=false;
  await loadPhotos();await scanDrivePhotos();

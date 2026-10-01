@@ -17,6 +17,37 @@ async function archiveSignedImage(path){
  if(url)archiveSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
  return url;
 }
+async function prefetchArchiveMediaUrls(rows){
+ const now=Date.now();
+ const paths=[];
+ for(const m of rows||[]){
+  if(m.current_storage_path)paths.push(m.current_storage_path);
+  if(m.data?.thumbnail_storage_path)paths.push(m.data.thumbnail_storage_path);
+ }
+ const unique=[...new Set(paths.filter(Boolean))];
+ const missing=unique.filter(path=>{
+  const hit=archiveSignedCache.get(path);
+  return !(hit&&hit.expires>now);
+ });
+ for(let i=0;i<missing.length;i+=100){
+  const chunk=missing.slice(i,i+100);
+  const {data,error}=await sb.storage.from("archive-media").createSignedUrls(chunk,3600);
+  if(error){
+   console.warn("archive-media signed URL batch failed",error);
+   continue;
+  }
+  (data||[]).forEach((row,index)=>{
+   const path=chunk[index],url=row?.signedUrl||null;
+   if(url&&path)archiveSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
+  });
+ }
+ for(const m of rows||[]){
+  const full=m.current_storage_path?archiveSignedCache.get(m.current_storage_path):null;
+  const thumb=m.data?.thumbnail_storage_path?archiveSignedCache.get(m.data.thumbnail_storage_path):null;
+  if(full?.url)mediaSigned[m.id]=full.url;
+  if(thumb?.url)mediaThumbSigned[m.id]=thumb.url;
+ }
+}
 async function prefetchClassPhotoUrls(){
  if(!profile?.is_active)return;
  try{
@@ -223,7 +254,7 @@ function renderPhotoGallery(){
    const tileUrl=mediaThumbSigned[m.id]||mediaSigned[m.id];
    return '<article class="photoTile contextObject" data-photo-context="'+esc(m.id)+'" tabindex="0">'+
      '<div class="photoTileImage">'+
-       (mediaSigned[m.id]?'<img loading="lazy" fetchpriority="low" decoding="async" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография загружается…</div>')+
+       (tileUrl?'<img loading="lazy" fetchpriority="low" decoding="async" src="'+tileUrl+'" alt="'+esc(m.title)+'">':'<div class="photoTileMissing">Фотография загружается…</div>')+
      '</div>'+
      '<div class="photoTileBody"><div class="photoTileCaption">'+esc(readerCaption)+'</div><h3>'+esc(m.title)+'</h3>'+
        (desc?'<div class="photoTileDesc">'+esc(desc)+'</div>':'')+
@@ -286,12 +317,9 @@ async function loadPhotos(){
  mediaSigned={};mediaThumbSigned={};
  if(typeof prepareVideoArchive==="function")void prepareVideoArchive();
  renderPhotosSection();
- Promise.all(mediaCache.map(async m=>{
-   const jobs=[];
-   if(m.current_storage_path)jobs.push(archiveSignedImage(m.current_storage_path).then(u=>{if(u)mediaSigned[m.id]=u}));
-   if(m.data?.thumbnail_storage_path)jobs.push(archiveSignedImage(m.data.thumbnail_storage_path).then(u=>{if(u)mediaThumbSigned[m.id]=u}));
-   await Promise.all(jobs);
- })).then(()=>{if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery()});
+ prefetchArchiveMediaUrls(mediaCache).then(()=>{
+   if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery();
+ }).catch(e=>console.warn("archive media URL prefetch failed",e));
 }
 document.addEventListener("click",e=>{
  const b=e.target.closest("#photoAlbumsAction,#videoArchiveAction,#photoClarifyAction,#photoUploadToggle,#photoSearchClear,[data-photo-album],[data-photo-back]");if(!b)return;

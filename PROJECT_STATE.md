@@ -959,3 +959,22 @@ Google Drive содержит отдельную папку:
   - `assets/js/stories.js?v=20261001-1`.
 - Синтаксис всех четырёх JS-файлов проверен: OK.
 - Supabase Security Advisor после изменений не показал новых предупреждений, связанных с добавленными private trigger functions; остаются ранее существовавшие INFO/WARN по traffic tables, публичным SECURITY DEFINER RPC и leaked-password protection.
+
+
+## 50. Исправление вызова drive-photo-import — 2026-10-01
+
+- Симптом на сайте: «Проверить папку оригиналов» → «Failed to send a request to the Edge Function».
+- Проверено фактически:
+  - `drive-photo-import` был ACTIVE v5;
+  - deployed source полностью совпадал с GitHub;
+  - в Edge logs отсутствовали входящие вызовы в момент ошибки, то есть запрос блокировался до выполнения handler;
+  - функция была развёрнута с `verify_jwt=true`.
+- Внутри `drive-photo-import` уже есть собственная строгая авторизация:
+  - требует Authorization Bearer token;
+  - валидирует JWT через `admin.auth.getUser(jwt)`;
+  - загружает профиль;
+  - требует `is_active=true` и `role='admin'`.
+- По текущей документации Supabase platform-level `verify_jwt` может отклонить запрос до выполнения кода; для функций с собственной проверкой пользователя допустим режим `verify_jwt=false`.
+- `drive-photo-import` переопубликован как **v6 ACTIVE, verify_jwt=false** без изменения исходного кода.
+- Защита не ослаблена до публичного импорта: без валидной пользовательской сессии handler возвращает `authentication_required/invalid_session`, а без admin-роли — `admin_required`.
+- Google OAuth secrets и Drive folder IDs при исправлении не изменялись.

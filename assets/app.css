@@ -1237,12 +1237,23 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
 }
 .cityInlinePhoto{
   width:100%;
+  max-width:760px;
+  margin:20px auto;
+  overflow:visible;
+  background:transparent;
+  border-radius:0;
+}
+.cityInlinePhotoFrame{
+  width:100%;
   aspect-ratio:4 / 3;
   overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   background:var(--image-bg);
   border-radius:12px;
 }
-.cityInlinePhoto img{
+.cityInlinePhotoFrame img{
   display:block;
   width:100%;
   max-width:100%;
@@ -1267,5 +1278,6 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
     max-width:100%;
   }
   .cityCardImage{aspect-ratio:16 / 9;}
-  .cityInlinePhoto{aspect-ratio:4 / 3;}
+  .cityInlinePhoto{aspect-ratio:auto;}
+  .cityInlinePhotoFrame{aspect-ratio:4 / 3;}
 }

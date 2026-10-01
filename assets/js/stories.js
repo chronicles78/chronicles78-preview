@@ -252,13 +252,23 @@ async function openStory(id){
      (ch.place?'<span class="badge">Место: '+esc(ch.place)+'</span>':'')+
      (ch.event_status?'<span class="badge">Статус: '+esc(ch.event_status)+'</span>':'')+
      '</div>'+
+     '</div></div>';
+
+   // A chapter is the reconstruction dossier, not a replacement for the story itself.
+   // Always show the readable editorial story first when story_text exists.
+   if(String(s.data?.story_text||"").trim()){
+     html+='<section class="storySection storyReadingText"><div class="storyLayerLabel">САМА ИСТОРИЯ</div><div class="sectionTitle">Читать историю</div><div class="storyProse">'+esc(s.data.story_text).replace(/\\n/g,"<br>")+'</div></section>';
+   }
+
+   html+='<section class="storySection storyReconstruction"><div class="storyLayerLabel">РЕКОНСТРУКЦИЯ ПО СВИДЕТЕЛЬСТВАМ</div><div class="sectionTitle">Что удалось восстановить</div>'+
      (ch.editorial_note?'<div class="storySource">'+esc(ch.editorial_note)+'</div>':'')+
-     '</div></div>'+
+     '</section>'+
      personGroupHtml("Подтверждённые участники",ch.participants?.confirmed)+
      personGroupHtml("Возможные участники",ch.participants?.possible)+
      personGroupHtml("Отсутствовали / не подтверждены",ch.participants?.absent||ch.participants?.absent_or_not_on_photo);
+
    if(ch.claims?.length){
-     html+='<section class="storySection"><div class="sectionTitle">Что удалось восстановить</div>'+
+     html+='<section class="storySection"><div class="sectionTitle">Факты и версии</div>'+
        ch.claims.map(c=>'<div class="storyFact"><b>'+esc(c.title)+'</b><div>'+(c.status?'<span class="badge">'+esc(c.status)+'</span>':'')+(c.certainty?'<span class="badge">'+esc(c.certainty)+'</span>':'')+'</div><div class="small">'+esc(c.summary||"")+'</div></div>').join("")+
      '</section>';
    }
@@ -267,6 +277,13 @@ async function openStory(id){
        ch.evidence.map(e=>'<div class="storyEvidence"><b>'+esc(e.author||"")+'</b> '+(e.kind?'<span class="badge">'+esc(e.kind)+'</span>':'')+(e.date?'<div class="small">'+esc(e.date)+'</div>':'')+(e.quote?'<div class="quote">«'+esc(e.quote)+'»</div>':'')+(e.editorial_summary&&e.editorial_summary!==e.quote?'<div class="small" style="margin-top:7px">'+esc(e.editorial_summary)+'</div>':'')+'</div>').join("")+
      '</section>';
    }
+
+   if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
+     html+='<section class="storySection storySources"><div class="storyLayerLabel">ПЕРВОИСТОЧНИКИ</div><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Слова участников сохранены отдельно от редакционной реконструкции.</p>';
+     s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+(src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+'<div class="storySourceText">'+esc(src.text||"").replace(/\\n/g,"<br>")+'</div></article>'});
+     html+='</section>';
+   }
+
    if(ch.open_questions?.length){
      html+='<section class="storySection"><div class="sectionTitle">Что ещё не установлено</div>'+ch.open_questions.map(q=>'<div class="storyQuestion">'+esc(q)+'</div>').join("")+'</section>';
    }

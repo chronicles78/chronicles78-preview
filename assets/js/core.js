@@ -13,6 +13,7 @@ if(mq)mq.addEventListener?.("change",()=>{if(getTheme()==="auto")applyTheme("aut
 const SUPABASE_URL="https://fnwpkmjjdhflnqghnogj.supabase.co";
 const SUPABASE_KEY="sb_publishable_m_oI5Ahniod1rd3wTV-i4A_so7lUVvX";
 const SITE_URL="https://chronicles78.github.io/chronicles78-preview/";
+const APP_STANDALONE=window.matchMedia?.("(display-mode: standalone)")?.matches||window.navigator.standalone===true;
 const authReturn=(()=>{
  const q=new URLSearchParams(location.search);
  const h=new URLSearchParams(location.hash.replace(/^#/,""));
@@ -95,11 +96,16 @@ function showSignupConfirmationState(){
    $("photoModalSave").textContent="Перейти в архив";
    photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("home")};
  }else if(user){
+   const pendingText=consentRequired
+     ?"E-mail подтверждён. Подтвердите согласие, после этого заявка останется на рассмотрении администратора."
+     :(pendingProfile?.access_blocked
+       ?"E-mail подтверждён, но доступ не предоставлен или был отключён администратором."
+       :"E-mail подтверждён. Заявка передана администратору. Архив откроется после его решения.");
    openPhotoModal("E-mail подтверждён",
-     '<div class="notice"><b>Адрес подтверждён.</b><br>Ручное одобрение редактора больше не требуется. Если появится экран согласия — подтвердите его один раз, и архив откроется.</div>',
+     '<div class="notice"><b>Адрес подтверждён.</b><br>'+esc(pendingText)+'</div>',
      async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
    );
-   $("photoModalSave").textContent="Продолжить";
+   $("photoModalSave").textContent="Перейти в профиль";
    photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
  }else{
    openPhotoModal("E-mail подтверждён",
@@ -450,6 +456,10 @@ async function openNotifications(){
      }else{
         await showView("profile");openProfileBox("profileEditorialSection");
      }
+   }else if(type==="access_candidate"){
+      await showView("profile");
+      await loadAdminUsers();
+      openProfileBox("adminUsersBox");
    }else if(type==="moderation_report"){
       await showView("profile");openProfileBox("moderationBox");
    }
@@ -921,9 +931,21 @@ function setProfileSections({personal=false,my=false,editorial=false,admin=false
 }
 function renderProfile(){
  if(user&&pendingProfile&&!profile){
+   const pendingMessage=consentRequired
+     ?"Нужно подтвердить действующее согласие. Это необходимо для участия, но само по себе не включает доступ."
+     :(pendingProfile.access_blocked
+       ?"Администратор не предоставил доступ либо ранее отключил его."
+       :"Заявка зарегистрирована и ожидает решения администратора.");
    $("profileBox").innerHTML='<b>'+esc(pendingProfile.display_name||"Участник")+'</b><br>'+
-     '<span class="small">'+(consentRequired?"Нужно подтвердить обновлённое согласие: теперь в нём прямо указана внутренняя статистика посещений без IP и fingerprint.":(pendingProfile.access_blocked?"Доступ временно отключён администратором.":"Доступ пока недоступен."))+'</span>'+
+     '<span class="small">'+esc(pendingMessage)+'</span>'+
+     (!consentRequired&&!pendingProfile.access_blocked?'<button class="secondary" id="checkAccessBtn">Проверить решение</button>':'')+
      '<button class="secondary" id="logoutPendingBtn">Выйти</button>';
+   if($("checkAccessBtn"))$("checkAccessBtn").onclick=async()=>{
+     $("checkAccessBtn").disabled=true;$("checkAccessBtn").textContent="Проверяю…";
+     const ok=await syncAuthState({render:false});
+     renderProfile();
+     if(ok){subscribe();subscribeNotifications();await showView("home");await loadHome()}
+   };
    $("logoutPendingBtn").onclick=logout;
    $("loginBox").style.display="none";
    $("nameBox").style.display="none";
@@ -940,7 +962,7 @@ function renderProfile(){
    if($("moderationBox"))$("moderationBox").style.display="none";
    if($("notifyBtn"))$("notifyBtn").style.display="none";
    setProfileSections();
-   setStatus(consentRequired?"Нужно согласие":"Доступ ограничен");
+   setStatus(consentRequired?"Нужно согласие":(pendingProfile.access_blocked?"Доступ не предоставлен":"Ожидает допуска"));
    return;
  }
  if(user&&profile){
@@ -965,7 +987,10 @@ function renderProfile(){
    if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
    subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";$("consentGateBox").style.display="none";$("nameBox").style.display="none";$("privacyBox").style.display="none";$("composerWrap").style.display="none";
+   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";
+   if($("loginContextHint"))$("loginContextHint").textContent=APP_STANDALONE
+     ?"Сейчас сайт открыт как отдельное приложение с экрана «Домой». Его вход хранится отдельно от Safari."
+     :"Сейчас сайт открыт в браузере. На iPhone ярлык с экрана «Домой» имеет отдельную сессию входа.";$("consentGateBox").style.display="none";$("nameBox").style.display="none";$("privacyBox").style.display="none";$("composerWrap").style.display="none";
    if($("photoContributeBox"))$("photoContributeBox").style.display="none";
    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
     if($("photoEditorBar"))$("photoEditorBar").style.display="none";
@@ -1000,7 +1025,7 @@ async function login(){
   });
   if(error)throw error;
   $("loginError").className="ok";
-  $("loginError").innerHTML="<b>Письмо отправлено.</b><br>Откройте его на этом устройстве и нажмите «Войти в Хроники-78». Пароль вводить не нужно.";
+  $("loginError").innerHTML="<b>Письмо отправлено.</b><br>Откройте одноразовую ссылку. Для уже допущенного участника это и есть обычный вход; пароль не требуется.";
  }catch(e){
   $("loginError").className="err";
   $("loginError").textContent=(e.message||String(e)).includes("Signups not allowed")
@@ -1030,8 +1055,8 @@ $("passwordLoginBtn").onclick=passwordLogin;
 $("forgotPasswordBtn").onclick=openForgotPassword;
 
 function openQuickRegistration(){
- openPhotoModal("Создать доступ",
-   '<div class="notice"><b>Имя + e-mail. Пароль не нужен.</b><br>Мы пришлём одноразовую ссылку. После перехода по ней сайт запомнит вход на этом устройстве.</div>'+
+ openPhotoModal("Запросить доступ",
+   '<div class="notice"><b>Новый участник проходит три шага.</b><br>1. Имя, e-mail и согласие. 2. Подтверждение e-mail по одноразовой ссылке. 3. Решение администратора о допуске.</div>'+
    '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
    '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
     '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку данных для работы закрытого архива, включая внутреннюю статистику посещений и разделов без сохранения IP‑адреса и цифрового fingerprint. <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
@@ -1052,13 +1077,13 @@ function openQuickRegistration(){
      });
      if(error)throw error;
      $("photoModalBody").innerHTML=
-       '<div class="notice"><b>Готово.</b><br>На '+esc(email)+' отправлено письмо. Откройте его и нажмите ссылку — вы сразу войдёте в «Хроники-78».</div>'+
-       '<div class="formHint">Пароль придумывать и запоминать не нужно. Дополнительного одобрения администратора тоже нет.</div>';
+       '<div class="notice"><b>Заявка создана.</b><br>На '+esc(email)+' отправлено письмо. Откройте одноразовую ссылку, чтобы подтвердить адрес. После этого заявка появится у администратора.</div>'+
+       '<div class="formHint">Архив откроется только после допуска администратором. Пароль для обычного входа не нужен.</div>';
      $("photoModalSave").textContent="Понятно";
      photoModalSubmit=async()=>{closePhotoModal();showView("profile")};
    }
  );
- $("photoModalSave").textContent="Получить ссылку";
+ $("photoModalSave").textContent="Отправить заявку";
 }
 $("goRegisterBtn").onclick=openQuickRegistration;
 

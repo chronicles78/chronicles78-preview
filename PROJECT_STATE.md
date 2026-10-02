@@ -1588,3 +1588,34 @@ Syntax-check `core.js`: ok.
 3. вернуться в приложение;
 4. убедиться, что после «Подтвердить код» сразу появляется «Проверяю…»;
 5. проверить Auth log: должен появиться новый POST `/verify`.
+
+
+## 71. Email OTP — обход NULL expires_at в hosted Auth — 2026-10-02
+
+Диагностика по реальному участнику показала:
+- свежий `POST /otp` проходит с 200;
+- свежий код через 48 секунд получает `POST /verify -> 403 otp_expired`;
+- `auth.one_time_tokens` содержит свежий `recovery_token`;
+- у всех текущих `confirmation_token` и `recovery_token` в проекте `expires_at IS NULL`;
+- исходники Supabase Auth новой OTT-ветки `verifyOneTimeToken()` считают запись с `expires_at=NULL` просроченной немедленно;
+- обычный `verifyOtp({email,token,type:"email"})` попадает в эту OTT-ветку;
+- документированная форма `verifyOtp({token_hash,type:"email"})` идёт через `verifyTokenHash()`, где для Email OTP проверяются confirmation/recovery token и TTL по `ConfirmationSentAt/RecoverySentAt`.
+
+Исправление frontend:
+- добавлена локальная SHA-224 функция, совпадающая с Supabase `GenerateTokenHash(emailOrPhone, otp)`;
+- 6-значный код не меняется для пользователя;
+- перед verify сайт вычисляет `SHA-224(lowercase(email)+otp)`;
+- вызывается `sb.auth.verifyOtp({token_hash,type:"email"})`;
+- решение едино для существующих участников и новых кандидатов;
+- auth schema/внутренние таблицы не модифицировались.
+
+Контроль SHA-224:
+- `sha224("abc") = 23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7`.
+
+Публикация:
+- `b950ef84d1634ea49123113a2cad395dc8cc6408` — Verify email OTP via token hash;
+- `e39d5e7376f9f560f046406d654f6b5de600229a` — Publish OTP token hash verification;
+- frontend cache/build marker: `20261002-9`;
+- syntax-check `core.js`: ok.
+
+Следующий контроль: дождаться GitHub Pages build, увидеть «Версия входа: 20261002-9», запросить один новый код и подтвердить его один раз.

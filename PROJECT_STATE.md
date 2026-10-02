@@ -1991,3 +1991,29 @@ UX:
 - build marker: 20261002-19;
 - app.css?v=20261002-39;
 - CSS brace check: 1724 / 1724.
+
+
+## 83. Desktop — Фото и Профиль во всю ширину — 2026-10-02
+
+По просьбе пользователя расширены оставшиеся desktop-разделы «Фото» и «Профиль».
+
+Проблема:
+- «Фото» всё ещё попадал под старый глобальный лимит `main>.view:not(#home){max-width:760px}`;
+- `photoArchivePage` дополнительно имел собственный max-width;
+- «Профиль» был отдельно ограничен `#profile{max-width:1120px!important}` и поздним `#profile>.pad{max-width:1060px}`.
+
+Исправлено для desktop от 1024 px:
+- `#photos` и `#profile` получают `width:100%` и `max-width:none!important`;
+- у «Фото» сняты ограничения с archiveList / photoArchivePage / photoAlbumSection / photoGrid;
+- фото-сетка занимает всю доступную рабочую область;
+- от 1280 px — 4 колонки, от 1560 px — 5;
+- у «Профиля» сняты ограничения с самого view, внутреннего pad, profilePage, identity card, consent gate и horizontal workspace;
+- горизонтальная Supabase-подобная структура Профиля сохраняется, но теперь использует всю ширину desktop;
+- мобильная версия не затронута.
+
+Публикация:
+- 4027d7af76656efb1b6dedab183169940204967a — Expand photos and profile to full desktop width;
+- ddd28206a38c76bd9129d74333eabaae636db5c1 — Publish full-width photos and profile;
+- build marker: 20261002-20;
+- app.css?v=20261002-40;
+- CSS brace check: 1734 / 1734.

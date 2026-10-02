@@ -439,7 +439,7 @@ async function openNotifications(){
       await showView("profile");
       await loadIdentityReview();openProfileBox("identityReviewBox");
    }else if(type==="person"){
-     activateTag(eid);
+     await activateTag(eid);
    }else if(type==="photo_submission"){
      const {data:sub}=await sb.from("photo_submissions").select("id,status,media_id").eq("id",eid).maybeSingle();
      if(sub?.status==="pending"&&(profile?.role==="editor"||profile?.role==="admin")){
@@ -695,14 +695,14 @@ async function activateTag(tag){
 
  // Direct entity links.
  if(/^S-\d+$/i.test(tag)){
-   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:tag,storyScroll:0},async()=>{
+   await navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:tag,storyScroll:0},async()=>{
      await showView("stories");
      await openStory(tag);
    });
    return;
  }
  if(/^MEDIA-\d+$/i.test(tag)){
-   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:tag},async()=>{
+   await navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:tag},async()=>{
      mediaFocus=tag;
      await showView("photos");
      await openArchivePhoto(tag);
@@ -718,7 +718,7 @@ async function activateTag(tag){
    const inferred=/^10A-/i.test(tag)?"10А":/^10B-/i.test(tag)?"10Б":null;
    const targetGroup=p?.group_name||inferred||peopleGroup;
    const targetId=p?.id||tag;
-   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:targetGroup,selectedPersonId:targetId},async()=>{
+   await navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:targetGroup,selectedPersonId:targetId},async()=>{
      peopleGroup=targetGroup;
      selectedPersonId=targetId;
      showClassNumbers=false;
@@ -726,14 +726,15 @@ async function activateTag(tag){
      await showView("people");
      await loadClassPhoto();
      renderPeople();
-     setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(targetId)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80);
+     await new Promise(r=>requestAnimationFrame(()=>r()));
+     document.querySelector('[data-person-id="'+CSS.escape(targetId)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"});
    });
    return;
  }
  if(tag==="10А"||tag==="10Б"){
-   navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:tag,selectedPersonId:null},async()=>{
+   await navigateFromTag({view:"people",scrollY:0,storyOpen:false,peopleGroup:tag,selectedPersonId:null},async()=>{
      peopleGroup=tag;selectedPersonId=null;
-     showView("people");
+     await showView("people");
      document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===tag));
      await loadClassPhoto();renderPeople();
    });

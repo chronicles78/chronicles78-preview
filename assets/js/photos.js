@@ -48,6 +48,12 @@ async function prefetchArchiveMediaUrls(rows){
   if(thumb?.url)mediaThumbSigned[m.id]=thumb.url;
  }
 }
+async function ensureArchiveMediaUrl(m){
+ if(!m?.current_storage_path)return null;
+ const url=await archiveSignedImage(m.current_storage_path);
+ if(url)mediaSigned[m.id]=url;
+ return url;
+}
 async function prefetchClassPhotoUrls(){
  if(!profile?.is_active)return;
  try{
@@ -178,10 +184,11 @@ function renderPhotosSection(){
  else if(photoMode==="candidates")renderVisualCandidates();
  else renderPhotoGallery();
 }
-function openPhotoContext(id){
+async function openPhotoContext(id){
  const m=mediaCache.find(x=>x.id===id);if(!m)return;
  const editor=profile?.role==="editor"||profile?.role==="admin";
- const preview=mediaSigned[m.id]?'<img src="'+esc(mediaSigned[m.id])+'" alt="'+esc(m.title)+'">':"";
+ const previewUrl=await ensureArchiveMediaUrl(m);
+ const preview=previewUrl?'<img src="'+esc(previewUrl)+'" alt="'+esc(m.title)+'">':"";
  const meta=[m.approx_date_text,m.location_text,m.quality_status].filter(Boolean).join(" · ");
  const actions=[
    {icon:"▧",label:"Рассмотреть фотографию",kind:"primary",run:()=>openArchivePhoto(id)},
@@ -276,7 +283,8 @@ async function openArchivePhoto(id){
  const m=mediaCache.find(x=>x.id===id);if(!m)return;
  const editor=profile?.role==="editor"||profile?.role==="admin";
  const names=mediaPeopleNames(m);
- const image=mediaSigned[m.id]?'<figure class="photoMemoryFigure"><img class="photoDetailImage" src="'+mediaSigned[m.id]+'" alt="'+esc(m.title)+'">'+
+ const fullUrl=await ensureArchiveMediaUrl(m);
+ const image=fullUrl?'<figure class="photoMemoryFigure"><img class="photoDetailImage" src="'+esc(fullUrl)+'" alt="'+esc(m.title)+'">'+
    ((m.approx_date_text||m.location_text||m.original_owner)?'<figcaption>'+esc([m.approx_date_text,m.location_text,m.original_owner?"из архива "+m.original_owner:""].filter(Boolean).join(" · "))+'</figcaption>':'')+
    '</figure>':'<div class="notice">Файл изображения ещё не загружен.</div>';
  const personIds=Array.isArray(m.data?.people)?m.data.people:[];

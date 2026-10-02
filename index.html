@@ -24,7 +24,7 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261001-32">
+<link rel="stylesheet" href="assets/app.css?v=20261002-33">
 </head>
 <body>
 <header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">Хроники-78</div></div><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
@@ -194,16 +194,29 @@
 <div id="questionsList"></div></div></section>
 <section id="profile" class="view"><div class="pad profilePage">
 <div class="card profileIdentityCard">
-  <div class="memoryEyebrow">ЛИЧНЫЙ КАБИНЕТ · ХРОНИКИ-78</div>
-  <h2>Профиль</h2>
+  <div class="profileIdentityTop">
+    <div>
+      <div class="memoryEyebrow">ЛИЧНЫЙ КАБИНЕТ · ХРОНИКИ-78</div>
+      <h2>Профиль</h2>
+    </div>
+    <span class="profileCabinetMark">●</span>
+  </div>
   <div id="profileBox"></div>
 </div>
-<div class="card form" id="consentGateBox" style="display:none">
-  <h2 style="margin-top:0">Один раз — и готово</h2>
-  <div class="notice">В архиве есть имена, старые фотографии и личные воспоминания. Кроме того, для внутренней статистики сайт фиксирует время посещения, открытые разделы, тип устройства и активность в чате. IP‑адрес и цифровой fingerprint не сохраняются.</div>
-  <p class="small">Это согласие действует внутри закрытого архива и <b>не даёт</b> права публиковать ваши ФИО и фотографии в открытом интернете. Для такой публикации потребуется отдельное разрешение.</p>
-  <p><a href="consent.html" target="_blank" rel="noopener">Прочитать согласие полностью</a></p>
-  <button class="primary" id="acceptConsentBtn">Согласен(на) · продолжить в архив</button>
+<div class="card form profileConsentGate" id="consentGateBox" style="display:none">
+  <div class="profileConsentHead">
+    <span class="profileConsentIcon">✓</span>
+    <div><b>Подтвердите согласие</b><small>Доступ уже связан с вашей учётной записью. Нужно только подтвердить действующие правила закрытого архива.</small></div>
+  </div>
+  <details class="profileConsentDetails">
+    <summary>Что используется и для чего</summary>
+    <div class="profileConsentDetailsBody">
+      <div class="notice">В архиве есть имена, старые фотографии и личные воспоминания. Для внутренней статистики сайт фиксирует время посещения, открытые разделы, тип устройства и активность в чате. IP‑адрес и цифровой fingerprint не сохраняются.</div>
+      <p class="small">Согласие действует внутри закрытого архива и <b>не даёт</b> права публиковать ваши ФИО и фотографии в открытом интернете. Для открытой публикации потребуется отдельное разрешение.</p>
+      <p><a href="consent.html" target="_blank" rel="noopener">Прочитать согласие полностью</a></p>
+    </div>
+  </details>
+  <button class="primary" id="acceptConsentBtn">Принять и продолжить</button>
   <div id="consentGateMsg" class="small"></div>
 </div>
 
@@ -225,7 +238,7 @@
   </div>
 </details>
 
-<details class="profileSection" id="profileMySection" style="display:none">
+<details class="profileSection" id="profileMySection" data-profile-load="my" style="display:none">
   <summary>
     <span class="profileSectionIcon">▧</span>
     <span class="profileSectionText"><b>Мои материалы</b><small>Отправленные фотографии и их состояние</small></span>
@@ -243,15 +256,15 @@
     <span class="profileSectionArrow">⌄</span>
   </summary>
   <div class="profileSectionBody">
-    <details class="profileSubsection">
+    <details class="profileSubsection" data-profile-load="photo-review">
       <summary><span><b>Фотографии на проверке</b><small>Новые материалы участников</small></span><span>⌄</span></summary>
       <div class="profileSubsectionBody"><div class="card" id="photoSubmissionReviewBox" style="display:none"><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div></div>
     </details>
-    <details class="profileSubsection">
+    <details class="profileSubsection" data-profile-load="identity-review">
       <summary><span><b>Подписи к фотографиям</b><small>Предложения по идентификации людей</small></span><span>⌄</span></summary>
       <div class="profileSubsectionBody"><div class="card" id="identityReviewBox" style="display:none"><div id="identityReviewList" class="notice">Загрузка…</div></div></div>
     </details>
-    <details class="profileSubsection">
+    <details class="profileSubsection" data-profile-load="moderation">
       <summary><span><b>Жалобы и модерация</b><small>Обращения, требующие решения редакции</small></span><span>⌄</span></summary>
       <div class="profileSubsectionBody"><div class="card" id="moderationBox" style="display:none"><div id="moderationList" class="notice">Загрузка…</div></div></div>
     </details>
@@ -265,7 +278,7 @@
     <span class="profileSectionArrow">⌄</span>
   </summary>
   <div class="profileSectionBody">
-    <details class="profileSubsection">
+    <details class="profileSubsection" data-profile-load="traffic">
       <summary><span><b>Посещаемость</b><small>Кто заходил, онлайн, разделы и чат</small></span><span>⌄</span></summary>
       <div class="profileSubsectionBody">
         <div class="card trafficAdminBox" id="trafficStatsBox" style="display:none">
@@ -284,11 +297,11 @@
         </div>
       </div>
     </details>
-    <details class="profileSubsection">
+    <details class="profileSubsection" data-profile-load="users">
       <summary><span><b>Участники</b><small>Доступ, роли и привязка к архиву</small></span><span>⌄</span></summary>
       <div class="profileSubsectionBody"><div class="card" id="adminUsersBox" style="display:none"><div id="adminUsersList" class="notice">Загрузка…</div></div></div>
     </details>
-    <details class="profileSubsection">
+    <details class="profileSubsection" data-profile-load="archive">
       <summary><span><b>Глубокий архив</b><small>Google Drive и состояние хранения оригиналов</small></span><span>⌄</span></summary>
       <div class="profileSubsectionBody"><div class="card" id="archiveStorageBox" style="display:none"><div id="archiveStorageState" class="notice">Загрузка…</div></div></div>
     </details>
@@ -310,7 +323,7 @@
   <b>Вход участника</b>
   <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 8-значный код — введите его здесь же. Пароль не нужен.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-11</div>
+  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-12</div>
   <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
   <button class="primary" id="loginBtn">Получить код для входа</button>
   <div id="otpLoginBox" style="display:none;margin-top:10px">
@@ -370,12 +383,13 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261002-11"></script>
+<script src="assets/js/core.js?v=20261002-12"></script>
 <script src="assets/js/chat.js?v=20261001-1"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>
 <script src="assets/js/stories.js?v=20261002-2"></script>
-<script src="assets/js/photos.js?v=20261002-2"></script>\n<script src="assets/js/videos.js?v=20260930-3"></script>
+<script src="assets/js/photos.js?v=20261002-2"></script>
+<script src="assets/js/videos.js?v=20260930-3"></script>
 <script src="assets/js/city.js?v=20261002-1"></script>
 <script src="assets/js/traffic.js?v=20260930-2"></script>
 <script src="assets/js/questions-admin.js?v=20261002-3"></script>

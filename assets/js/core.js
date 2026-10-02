@@ -432,26 +432,26 @@ async function openNotifications(){
    await loadNotificationCount();closePhotoModal();
    if(type==="message"){
      const {data:m}=await sb.from("messages").select("room_id").eq("id",eid).maybeSingle();
-     if(m?.room_id){currentRoom=m.room_id;renderRooms();showView("chat");setTimeout(()=>document.querySelector('.bubble[data-mid="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),260)}
+      if(m?.room_id){currentRoom=m.room_id;renderRooms();await showView("chat");await new Promise(r=>requestAnimationFrame(()=>r()));document.querySelector('.bubble[data-mid="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"})}
    }else if(type==="city_essay"){
-     showView("city");setTimeout(()=>openCityEssay(eid),120);
+      await showView("city");await openCityEssay(eid);
    }else if(type==="person"&&kind==="identity_suggestion"){
-     showView("profile");
-     setTimeout(async()=>{await loadIdentityReview();openProfileBox("identityReviewBox")},80);
+      await showView("profile");
+      await loadIdentityReview();openProfileBox("identityReviewBox");
    }else if(type==="person"){
      activateTag(eid);
    }else if(type==="photo_submission"){
      const {data:sub}=await sb.from("photo_submissions").select("id,status,media_id").eq("id",eid).maybeSingle();
      if(sub?.status==="pending"&&(profile?.role==="editor"||profile?.role==="admin")){
-       showView("profile");
-       setTimeout(async()=>{await loadPhotoSubmissionReview();openProfileBox("photoSubmissionReviewBox");setTimeout(()=>document.querySelector('[data-photo-submission-id="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80)},80);
+        await showView("profile");
+        await loadPhotoSubmissionReview();openProfileBox("photoSubmissionReviewBox");await new Promise(r=>requestAnimationFrame(()=>r()));document.querySelector('[data-photo-submission-id="'+CSS.escape(eid)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"});
      }else if(sub?.status==="accepted"&&sub.media_id){
-       mediaFocus=sub.media_id;showView("photos");setTimeout(()=>openArchivePhoto(sub.media_id),120);
+        mediaFocus=sub.media_id;await showView("photos");await openArchivePhoto(sub.media_id);
      }else{
-       showView("profile");setTimeout(()=>openProfileBox("profileEditorialSection"),80);
+        await showView("profile");openProfileBox("profileEditorialSection");
      }
    }else if(type==="moderation_report"){
-     showView("profile");setTimeout(()=>openProfileBox("moderationBox"),120);
+      await showView("profile");openProfileBox("moderationBox");
    }
  });
 }

@@ -932,6 +932,7 @@ function setProfileSections({personal=false,my=false,editorial=false,admin=false
 }
 function renderProfile(){
  if(user&&pendingProfile&&!profile){
+   if($("adminLoginBox"))$("adminLoginBox").style.display="none";
    const pendingMessage=consentRequired
      ?"Нужно подтвердить действующее согласие. Это необходимо для участия, но само по себе не включает доступ."
      :(pendingProfile.access_blocked
@@ -967,6 +968,7 @@ function renderProfile(){
    return;
  }
  if(user&&profile){
+   if($("adminLoginBox"))$("adminLoginBox").style.display="none";
    $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
    $("loginBox").style.display="none";$("consentGateBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
    $("privacyBox").style.display="block";
@@ -988,6 +990,7 @@ function renderProfile(){
    if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
    subscribeNotifications();setStatus("Онлайн · "+profile.role);
  } else {
+   if($("adminLoginBox"))$("adminLoginBox").style.display="block";
    $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";
    if($("loginContextHint"))$("loginContextHint").textContent=APP_STANDALONE
      ?"Сейчас сайт открыт как отдельное приложение с экрана «Домой». Его вход хранится отдельно от Safari."

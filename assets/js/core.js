@@ -678,10 +678,7 @@ function showView(v,{track=true}={}){
  else if(v==="city")ready=Promise.resolve(loadCityEssays());
  else if(v==="questions")ready=Promise.resolve(loadQuestions());
  else if(v==="profile"&&user&&profile?.is_active){
-   const tasks=[loadMyPhotoSubmissions()];
-   if(profile.role==="editor"||profile.role==="admin")tasks.push(loadPhotoSubmissionReview());
-   if(profile.role==="admin"&&typeof loadTrafficStats==="function")tasks.push(loadTrafficStats());
-   ready=Promise.allSettled(tasks);
+   ready=Promise.resolve(true);
  }
  if(typeof trackSiteView==="function")trackSiteView(v);
  updateContextBack();
@@ -883,15 +880,28 @@ async function loadHome(){
 
  if(!user||!profile?.is_active){
    ["homeMosaicClass","homeMosaicPhotoA","homeMosaicPhotoB","homeMosaicPhotoC"].forEach(id=>setMosaicImage(id,null));
-   $("homeState").textContent="Закрытый архив класса · материалы открываются после входа.";
+   const pending=!!(user&&pendingProfile);
+   const admitted=!!(pendingProfile?.is_active&&!pendingProfile?.access_blocked);
+   const blocked=!!pendingProfile?.access_blocked;
+   const pendingStatus=blocked
+     ?"Доступ к архиву сейчас закрыт. Подробности — в Профиле."
+     :(consentRequired&&admitted
+       ?"Доступ уже одобрен. Осталось подтвердить действующее согласие."
+       :(consentRequired
+         ?"Вход выполнен. Подтвердите согласие, чтобы продолжить оформление доступа."
+         :(pending
+           ?"Заявка на доступ зарегистрирована и ожидает решения администратора."
+           :"Закрытый архив класса · материалы открываются после входа.")));
+   const actionText=pending?(consentRequired?"Продолжить оформление доступа":"Открыть профиль"):"Войти в архив";
+   $("homeState").textContent=pendingStatus;
    box.innerHTML=
      '<div class="homeGatewayGrid public">'+
        '<button class="homeGatewayCard" data-home-view="people"><div class="homeGatewayArt peopleArt"><span>10Б</span></div><div class="homeGatewayBody"><small>01 · ЛИЦА</small><h2>Люди</h2><p>Имена, лица и связи между воспоминаниями.</p><b>Открыть после входа →</b></div></button>'+
        '<button class="homeGatewayCard" data-home-view="stories"><div class="homeGatewayArt storyArt"><span>1983</span></div><div class="homeGatewayBody"><small>02 · ПАМЯТЬ</small><h2>Истории</h2><p>Эпизоды, голоса и маленькие подробности большой жизни.</p><b>Открыть после входа →</b></div></button>'+
        '<button class="homeGatewayCard" data-home-view="city"><div class="homeGatewayArt cityArt"><span>КБШ</span></div><div class="homeGatewayBody"><small>03 · МЕСТО</small><h2>Город и время</h2><p>Куйбышев как фон, который тоже стал частью памяти.</p><b>Открыть после входа →</b></div></button>'+
      '</div>'+
-     '<div class="memoryArchiveNote"><b>Архив закрытый.</b> Фотографии, имена и рабочие обсуждения доступны участникам после входа и не публикуются автоматически.</div>'+
-     '<div class="homeActions"><button class="primary homeLoginAction" data-home-view="profile">Войти в архив</button></div>';
+     '<div class="memoryArchiveNote"><b>'+(pending?"Ваш вход сохранён.":"Архив закрытый.")+'</b> '+esc(pendingStatus)+'</div>'+
+     '<div class="homeActions"><button class="primary homeLoginAction" data-home-view="profile">'+esc(actionText)+'</button></div>';
    bindHome();return;
  }
 
@@ -1225,8 +1235,8 @@ async function init(){
  renderRooms();renderProfile();
  if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
  if(profile){subscribe();subscribeNotifications();setTimeout(prefetchClassPhotoUrls,0);}
-  if(!user||pendingProfile||OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)showView("profile");
-  else if(profile&&typeof trackSiteView==="function")trackSiteView(activeViewId()||"home");
+ if(OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)await showView("profile");
+ else await showView("home");
  if(OPEN_REGISTER_ON_START&&!user)setTimeout(openQuickRegistration,120);
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
  appNavEnabled=true;

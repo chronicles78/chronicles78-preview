@@ -2267,3 +2267,23 @@ https://liveviewer.ru/2020/08/kraya-istorii-fotograficheskij-rezak-hh-veka/
 - build marker: 20261002-29;
 - app.css?v=20261002-48;
 - CSS brace check: 1810 / 1810.
+
+
+## 92. Главная — фото «Что нового» на всю ширину карточки — 2026-10-02
+
+Пользователь уточнил, что вариант object-fit:contain в фиксированной высоте делает фото слишком мелким.
+
+Исправлено:
+- фиксированная высота изображения в homeFreshCard для реальных фото отменена поздним override;
+- изображение получает width:100% и height:auto;
+- высота карточки теперь следует естественным пропорциям фотографии;
+- фотография занимает всю доступную ширину своей карточки;
+- никакого кадрирования и искусственных пустых полей;
+- мобильный override также отменяет прежние min-height/height для реального img, сохраняя placeholders без изменений.
+
+Публикация:
+- 8bce1a8ad44038354e98b18fb5756849e1865e28 — Show home archive photos at full card width;
+- 018fc84d918c2a663fcdbc299e3edcfb384b58f7 — Publish full-width home archive photos;
+- build marker: 20261002-30;
+- app.css?v=20261002-49;
+- CSS brace check: 1813 / 1813.

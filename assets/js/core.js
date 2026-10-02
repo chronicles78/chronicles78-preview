@@ -133,9 +133,10 @@ async function hydrateProfileFromSession(session,{render=true}={}){
    if(!pe&&p){
      pendingProfile=p;
      const hasConsent=!ce&&!!consent&&!consent.withdrawn_at;
-     consentRequired=!hasConsent;
-     if(hasConsent&&p.is_active&&!p.access_blocked){
-       profile={...p,consentAcceptedAt:consent.accepted_at};
+     const adminActive=p.role==="admin"&&p.is_active&&!p.access_blocked;
+     consentRequired=!hasConsent&&!adminActive;
+     if(adminActive||(hasConsent&&p.is_active&&!p.access_blocked)){
+       profile={...p,consentAcceptedAt:consent?.accepted_at||null};
      }
    }
  }
@@ -1086,6 +1087,53 @@ async function passwordLogin(){
   throw new Error("Не удалось открыть профиль.");
  }catch(e){$("loginError").className="err";$("loginError").textContent=e.message||String(e)}
 }
+
+async function adminPasswordLogin(){
+ const msg=$("adminLoginMsg");
+ msg.className="";
+ msg.textContent="";
+ const email=$("adminEmail").value.trim();
+ const password=$("adminPassword").value;
+ if(!email||!password){msg.className="err";msg.textContent="Введите e-mail администратора и пароль.";return}
+ $("adminLoginBtn").disabled=true;
+ try{
+   const {data,error}=await sb.auth.signInWithPassword({email,password});
+   if(error)throw error;
+   await hydrateProfileFromSession(data.session,{render:false});
+   if(profile?.role!=="admin"){
+     await sb.auth.signOut();
+     user=null;profile=null;pendingProfile=null;consentRequired=false;
+     renderProfile();
+     throw new Error("Эта учётная запись не имеет прав администратора.");
+   }
+   localStorage.setItem("chronicles78-admin-email",email);
+   renderProfile();
+   subscribe();subscribeNotifications();
+   await showView("home");
+   await loadHome();
+ }catch(e){
+   msg.className="err";
+   msg.textContent=e.message||String(e);
+ }finally{$("adminLoginBtn").disabled=false}
+}
+
+function openAdminPasswordReset(){
+ const remembered=($("adminEmail")?.value||localStorage.getItem("chronicles78-admin-email")||"").trim();
+ openPhotoModal("Пароль администратора",
+   '<div class="notice"><b>Восстановление только пароля администратора.</b><br>На указанный e-mail придёт ссылка для задания нового пароля.</div>'+
+   '<label>E-mail администратора</label><input id="pfAdminResetEmail" type="email" autocomplete="email" value="'+esc(remembered)+'" placeholder="name@example.com">',
+   async()=>{
+     const email=$("pfAdminResetEmail").value.trim();
+     if(!email)throw new Error("Введите e-mail администратора.");
+     $("photoModalMsg").textContent="Отправляю письмо…";
+     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:PASSWORD_RESET_REDIRECT});
+     if(error)throw error;
+     $("photoModalBody").innerHTML='<div class="notice"><b>Письмо отправлено.</b><br>Откройте ссылку и задайте новый пароль. После этого используйте блок «Вход администратора».</div>';
+     $("photoModalSave").textContent="Закрыть";
+     photoModalSubmit=async()=>closePhotoModal();
+   }
+ );
+}
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
 $("otpVerifyBtn").onclick=verifyLoginOtp;
@@ -1096,6 +1144,10 @@ $("passwordLoginToggle").onclick=()=>{
 };
 $("passwordLoginBtn").onclick=passwordLogin;
 $("forgotPasswordBtn").onclick=openForgotPassword;
+$("adminLoginBtn").onclick=adminPasswordLogin;
+$("adminPassword").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();adminPasswordLogin()}};
+$("adminResetBtn").onclick=openAdminPasswordReset;
+$("adminEmail").value=localStorage.getItem("chronicles78-admin-email")||"";
 
 function openQuickRegistration(){
  openPhotoModal("Запросить доступ",

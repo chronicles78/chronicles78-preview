@@ -1032,8 +1032,6 @@ async function finishOtpLogin(email,token){
  token=String(token||"").replace(/\D/g,"");
  if(!email)throw new Error("Не найден e-mail, для которого был отправлен код. Запросите новый код.");
  if(!/^\d{6}$/.test(token))throw new Error("Введите ровно 6 цифр из последнего письма.");
- // Hosted Auth currently writes one_time_tokens.expires_at as NULL in this project.
- // Verify the documented token_hash form so Auth uses RecoverySentAt/ConfirmationSentAt TTL.
  const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
  if(error)throw error;
  localStorage.removeItem(OTP_EMAIL_KEY);

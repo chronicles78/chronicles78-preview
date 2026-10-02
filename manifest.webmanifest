@@ -1,0 +1,11 @@
+{
+  "name": "Хроники-78",
+  "short_name": "Хроники-78",
+  "description": "Закрытый архив выпускников школы №78 Куйбышева, выпуск 1983 года",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3eee6",
+  "theme_color": "#2b2722"
+}

@@ -1218,7 +1218,7 @@ function openAdminPasswordReset(){
    }
  );
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
 $("otpCode").onkeydown=e=>{if(e.key==="Enter"){verifyLoginOtp(e)} };
 $("passwordLoginToggle").onclick=()=>{

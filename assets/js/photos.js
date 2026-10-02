@@ -185,7 +185,7 @@ function openPhotoContext(id){
  const meta=[m.approx_date_text,m.location_text,m.quality_status].filter(Boolean).join(" · ");
  const actions=[
    {icon:"▧",label:"Рассмотреть фотографию",kind:"primary",run:()=>openArchivePhoto(id)},
-   m.linked_story?{icon:"▤",label:"Открыть связанную историю",run:()=>{showView("stories");openStory(m.linked_story)}}:null,
+   m.linked_story?{icon:"▤",label:"Открыть связанную историю",run:async()=>{await showView("stories");await openStory(m.linked_story)}}:null,
    editor?{icon:"✎",label:"Редактировать карточку",hint:"Название, люди, источник, дата и место",run:()=>editArchiveCard(id)}:null,
    editor?{icon:"↥",label:"Заменить / улучшить файл",run:()=>{archiveReplaceId=id;$("replaceArchivePhotoInput").value="";$("replaceArchivePhotoInput").click()}}:null,
    editor?{icon:"↺",label:"История версий",run:()=>showArchiveVersions(id)}:null
@@ -297,8 +297,8 @@ async function openArchivePhoto(id){
  openPhotoModal(m.title,image+readerMeta+editorial,async()=>{});
  $("photoModalSave").textContent="Закрыть";
  photoModalSubmit=async()=>closePhotoModal();
- document.querySelectorAll("[data-detail-story]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.detailStory)});
- document.querySelectorAll("[data-detail-person]").forEach(b=>b.onclick=()=>{const id=b.dataset.detailPerson;if(!id)return;closePhotoModal();showView("people");const p=peopleCache.find(x=>x.id===id);if(p?.group_name&&["10А","10Б"].includes(p.group_name)){peopleGroup=p.group_name;document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===peopleGroup));loadClassPhoto()}selectedPersonId=id;renderPeople();setTimeout(()=>openPersonContext(id),120)});
+ document.querySelectorAll("[data-detail-story]").forEach(b=>b.onclick=async()=>{closePhotoModal();await showView("stories");await openStory(b.dataset.detailStory)});
+ document.querySelectorAll("[data-detail-person]").forEach(b=>b.onclick=async()=>{const id=b.dataset.detailPerson;if(!id)return;closePhotoModal();const p=peopleCache.find(x=>x.id===id);if(p?.group_name&&["10А","10Б"].includes(p.group_name)){peopleGroup=p.group_name;document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===peopleGroup))}selectedPersonId=id;await showView("people");if(p?.group_name&&["10А","10Б"].includes(p.group_name))await loadClassPhoto();renderPeople();openPersonContext(id)});
 
 }
 async function loadPhotos(){

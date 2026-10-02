@@ -24,7 +24,7 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261002-40">
+<link rel="stylesheet" href="assets/app.css?v=20261002-41">
 </head>
 <body>
 <header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">ХРОНИКИ 78-й</div></div><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
@@ -229,13 +229,13 @@
 
 <div class="profileWorkspace" id="profileWorkspace" style="display:none">
   <nav class="profilePrimaryNav" aria-label="Разделы профиля">
-    <button class="profilePrimaryTab" type="button" data-profile-section-tab="personal" style="display:none"><span>○</span><b>Мой профиль</b><small>Имя · приватность · оформление</small></button>
-    <button class="profilePrimaryTab" type="button" data-profile-section-tab="my" style="display:none"><span>▧</span><b>Мои материалы</b><small>Фотографии и отправки</small></button>
-    <button class="profilePrimaryTab" type="button" data-profile-section-tab="editorial" style="display:none"><span>✎</span><b>Редакция</b><small>Проверка и модерация</small></button>
-    <button class="profilePrimaryTab" type="button" data-profile-section-tab="admin" style="display:none"><span>⚙</span><b>Администрирование</b><small>Статистика · участники · архив</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="personal" style="display:none" title="Мой профиль" aria-label="Мой профиль"><span>○</span><b>Мой профиль</b><small>Имя · приватность · оформление</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="my" style="display:none" title="Мои материалы" aria-label="Мои материалы"><span>▧</span><b>Мои материалы</b><small>Фотографии и отправки</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="editorial" style="display:none" title="Редакция" aria-label="Редакция"><span>✎</span><b>Редакция</b><small>Проверка и модерация</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="admin" style="display:none" title="Администрирование" aria-label="Администрирование"><span>⚙</span><b>Администрирование</b><small>Статистика · участники · архив</small></button>
   </nav>
 
-  <section class="profileSectionPane" id="profilePersonalSection" data-profile-section-pane="personal" hidden>
+  <section class="profileSectionPane" id="profilePersonalSection" data-profile-section-pane="personal" data-profile-section-title="Мой профиль" hidden>
     <nav class="profileSecondaryNav" aria-label="Настройки профиля">
       <button class="profileSecondaryTab active" type="button" data-profile-subtab="personal-name">Имя</button>
       <button class="profileSecondaryTab" type="button" data-profile-subtab="personal-privacy">Приватность</button>
@@ -259,7 +259,7 @@
     </div>
   </section>
 
-  <section class="profileSectionPane" id="profileMySection" data-profile-section-pane="my" hidden>
+  <section class="profileSectionPane" id="profileMySection" data-profile-section-pane="my" data-profile-section-title="Мои материалы" hidden>
     <nav class="profileSecondaryNav" aria-label="Мои материалы">
       <button class="profileSecondaryTab active" type="button" data-profile-subtab="my-photos">Мои фотографии</button>
     </nav>
@@ -270,7 +270,7 @@
     </div>
   </section>
 
-  <section class="profileSectionPane" id="profileEditorialSection" data-profile-section-pane="editorial" hidden>
+  <section class="profileSectionPane" id="profileEditorialSection" data-profile-section-pane="editorial" data-profile-section-title="Редакция" hidden>
     <nav class="profileSecondaryNav" aria-label="Работа редакции">
       <button class="profileSecondaryTab active" type="button" data-profile-subtab="editorial-photo">Фотографии</button>
       <button class="profileSecondaryTab" type="button" data-profile-subtab="editorial-identity">Подписи</button>
@@ -292,7 +292,7 @@
     </div>
   </section>
 
-  <section class="profileSectionPane" id="profileAdminSection" data-profile-section-pane="admin" hidden>
+  <section class="profileSectionPane" id="profileAdminSection" data-profile-section-pane="admin" data-profile-section-title="Администрирование" hidden>
     <nav class="profileSecondaryNav" aria-label="Администрирование">
       <button class="profileSecondaryTab active" type="button" data-profile-subtab="admin-traffic">Посещаемость</button>
       <button class="profileSecondaryTab" type="button" data-profile-subtab="admin-users">Участники</button>
@@ -343,7 +343,7 @@
   <b>Вход участника</b>
   <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 8-значный код — введите его здесь же. Пароль не нужен.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-20</div>
+  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-21</div>
   <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
   <button class="primary" id="loginBtn">Получить код для входа</button>
   <div id="otpLoginBox" style="display:none;margin-top:10px">

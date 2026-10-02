@@ -308,14 +308,14 @@
 
 <div class="card form" id="loginBox">
   <b>Вход участника</b>
-  <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 6-значный код — введите его здесь же. Пароль не нужен.</div>
+  <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 8-значный код — введите его здесь же. Пароль не нужен.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-10</div>
+  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-11</div>
   <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
   <button class="primary" id="loginBtn">Получить код для входа</button>
   <div id="otpLoginBox" style="display:none;margin-top:10px">
-    <label>6-значный код из письма</label>
-    <input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+    <label>8-значный код из письма</label>
+    <input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">
     <button class="primary" id="otpVerifyBtn" type="button" onclick="verifyLoginOtp(event)">Подтвердить код</button>
   </div>
   <div id="loginError"></div>
@@ -370,7 +370,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261002-10"></script>
+<script src="assets/js/core.js?v=20261002-11"></script>
 <script src="assets/js/chat.js?v=20261001-1"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>

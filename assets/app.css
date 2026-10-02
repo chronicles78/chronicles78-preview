@@ -2433,8 +2433,7 @@ html[data-theme="light"] .profileSectionPane,
 html[data-theme="light"] .profileHorizontalContent,
 html[data-theme="light"] .trafficPanel,
 html[data-theme="light"] .trafficKpi,
-html[data-theme="light"] .notice,
-html[data-theme="light"] .bubble{
+html[data-theme="light"] .notice{
   background:#fff;
 }
 html[data-theme="light"] .storyCatalogCard,

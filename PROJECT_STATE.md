@@ -2058,3 +2058,34 @@ UI:
 - app.css?v=20261002-41;
 - core.js syntax-check: ok;
 - CSS brace check: 1759 / 1759.
+
+
+## 85. Диагностика Профиля — видимая версия и устойчивый breakpoint — 2026-10-02
+
+Пользователь сообщил, что после публикации не видит ни новой схемы Профиля, ни номера версии.
+
+Проверено:
+- финальный GitHub Pages run для commit 6b6314f5f3b03feaa77efb5f980287cabcb811ef завершён успешно;
+- скачан именно опубликованный artifact github-pages;
+- в artifact подтверждены:
+  - index.html содержит 20261002-21;
+  - ссылка app.css?v=20261002-41;
+  - data-profile-section-title для новой структуры;
+  - app.css содержит Supabase-like rail и grid-template-columns:58px minmax(0,1fr).
+Следовательно, изменение было собрано корректно; проблема наблюдения могла быть связана с клиентской версией страницы либо с CSS-viewport ниже desktop breakpoint.
+
+Исправлено:
+- версия интерфейса теперь постоянно видна в верхней панели сайта, даже после входа;
+- текущий marker: v20261002-22;
+- внутренний login marker также обновлён до 20261002-22;
+- Supabase-подобная схема Профиля включается с 900 CSS-px вместо 1024 px;
+- обратный compact-layout применяется только до 899 px;
+- это исключает незаметный возврат к старому горизонтальному виду из-за browser zoom / display scaling.
+
+Публикация:
+- 8b6532e74b7fb48819de4fb583c172b8fdd4131c — Expose build version in header;
+- 0d772c16aa8a21256d221dffe79e1fb510f01c75 — Make Supabase profile layout robust to desktop zoom;
+- build marker: 20261002-22;
+- app.css?v=20261002-42;
+- CSS brace check: 1762 / 1762;
+- core.js syntax-check: ok.

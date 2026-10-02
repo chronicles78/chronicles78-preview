@@ -2244,3 +2244,26 @@ https://liveviewer.ru/2020/08/kraya-istorii-fotograficheskij-rezak-hh-veka/
 - build marker: 20261002-28;
 - app.css?v=20261002-47;
 - CSS brace check: 1808 / 1808.
+
+
+## 91. Главная — превью «Что нового в архиве» без обрезки — 2026-10-02
+
+Пользователь сообщил, что фотографии в блоке «Что нового в архиве» показывались только фрагментом и обрезались по горизонтали.
+
+Корневая причина:
+- общий стиль .homeFreshCard>img использовал object-fit: cover;
+- фиксированная высота превью заставляла браузер заполнять окно ценой обрезки изображения.
+
+Исправлено:
+- для .homeFreshCard>img установлен object-fit: contain;
+- object-position: center center;
+- добавлен небольшой внутренний отступ;
+- фон превью в светлой теме белый, в тёмной — светлая фотобумага;
+- изображение теперь показывается целиком без кадрирования и искажения.
+
+Публикация:
+- 08f4d95d9c53fbc0e6c819570388cb5a639a251b — Show home archive previews without cropping;
+- 1edcff9444d796a7e73213ba0594db2f166aa7c2 — Publish uncropped home archive previews;
+- build marker: 20261002-29;
+- app.css?v=20261002-48;
+- CSS brace check: 1810 / 1810.

@@ -2566,3 +2566,32 @@ html[data-theme-mode="light"] option{
   background:#fff!important;
   color:#17344f!important;
 }
+
+
+/* Photo archive: stronger visible scalloped print edge */
+.photoTileImage{
+  width:calc(100% - 22px)!important;
+  margin:11px 11px 0!important;
+  padding:11px!important;
+  background:#fffdf8!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  clip-path:polygon(
+    0% 3.2%, 6.25% 0%, 12.5% 3.2%, 18.75% 0%, 25% 3.2%, 31.25% 0%, 37.5% 3.2%, 43.75% 0%, 50% 3.2%, 56.25% 0%, 62.5% 3.2%, 68.75% 0%, 75% 3.2%, 81.25% 0%, 87.5% 3.2%, 93.75% 0%, 100% 3.2%,
+    96.8% 6.25%, 100% 12.5%, 96.8% 18.75%, 100% 25%, 96.8% 31.25%, 100% 37.5%, 96.8% 43.75%, 100% 50%, 96.8% 56.25%, 100% 62.5%, 96.8% 68.75%, 100% 75%, 96.8% 81.25%, 100% 87.5%, 96.8% 93.75%, 100% 100%,
+    93.75% 96.8%, 87.5% 100%, 81.25% 96.8%, 75% 100%, 68.75% 96.8%, 62.5% 100%, 56.25% 96.8%, 50% 100%, 43.75% 96.8%, 37.5% 100%, 31.25% 96.8%, 25% 100%, 18.75% 96.8%, 12.5% 100%, 6.25% 96.8%, 0% 100%,
+    3.2% 93.75%, 0% 87.5%, 3.2% 81.25%, 0% 75%, 3.2% 68.75%, 0% 62.5%, 3.2% 56.25%, 0% 50%, 3.2% 43.75%, 0% 37.5%, 3.2% 31.25%, 0% 25%, 3.2% 18.75%, 0% 12.5%, 3.2% 6.25%
+  )!important;
+  filter:
+    drop-shadow(0 0 1px rgba(69,48,29,.42))
+    drop-shadow(0 6px 8px rgba(54,40,25,.24))!important;
+}
+.photoTileImage img{
+  border:1px solid rgba(42,43,44,.11)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.photoTile:hover .photoTileImage{
+  filter:
+    drop-shadow(0 0 1px rgba(69,48,29,.52))
+    drop-shadow(0 8px 11px rgba(54,40,25,.28))!important;
+}

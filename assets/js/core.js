@@ -588,13 +588,13 @@ function updateContextBack(){
   btn.textContent=storyOpen?"← К историям":"← Назад";
  }
 }
-function navigateFromTag(targetState,runner){
+async function navigateFromTag(targetState,runner){
  syncHistoryEntry();
  try{
    history.pushState({chronicles78:true,chronicles78Tag:true,nav:targetState},document.title,location.href);
  }catch(e){}
  const wasRestoring=appNavRestoring;appNavRestoring=true;
- try{runner()}finally{appNavRestoring=wasRestoring}
+ try{await runner()}finally{appNavRestoring=wasRestoring}
  updateContextBack();
 }
 async function restoreNavState(state){
@@ -607,13 +607,13 @@ async function restoreNavState(state){
  cityTheme=state.cityTheme||cityTheme;
  questionPriority=state.questionPriority||questionPriority;
  questionStatus=state.questionStatus||questionStatus;
- showView(state.view||"home",{track:false});
- await new Promise(r=>setTimeout(r,180));
+ await showView(state.view||"home",{track:false});
  if(state.storyOpen&&state.storyId){
    await openStory(state.storyId);
-   await new Promise(r=>setTimeout(r,60));
+   await new Promise(r=>requestAnimationFrame(()=>r()));
    if($("storyDetail"))$("storyDetail").scrollTop=state.storyScroll||0;
  }else{
+   await new Promise(r=>requestAnimationFrame(()=>r()));
    window.scrollTo({top:state.scrollY||0,left:0,behavior:"auto"});
  }
 }
@@ -627,7 +627,7 @@ window.addEventListener("popstate",async e=>{
 });
 setTimeout(()=>{syncHistoryEntry();updateContextBack()},0);
 function showView(v,{track=true}={}){
- if(!v)return;
+ if(!v)return Promise.resolve(false);
  const current=activeViewId();
  if(appNavEnabled&&track&&!appNavRestoring&&current&&current!==v)pushAppNavState();
  closeMoreNav();
@@ -636,20 +636,24 @@ function showView(v,{track=true}={}){
  document.querySelectorAll(".nav[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
  const secondary=["photos","city","questions","profile"].includes(v);
  $("mobileMoreBtn")?.classList.toggle("active",secondary);
- if(v==="home")loadHome();
- if(v==="chat"&&user&&profile?.is_active)loadRoom();
- if(v==="people")loadPeople();
- if(v==="stories")loadStories();
- if(v==="photos")loadPhotos();
- if(v==="city")loadCityEssays();
- if(v==="questions")loadQuestions();
- if(v==="profile"&&user&&profile?.is_active){
-   loadMyPhotoSubmissions();
-   if(profile.role==="editor"||profile.role==="admin")loadPhotoSubmissionReview();
-    if(profile.role==="admin"&&typeof loadTrafficStats==="function")loadTrafficStats();
+
+ let ready=Promise.resolve(true);
+ if(v==="home")ready=Promise.resolve(loadHome());
+ else if(v==="chat"&&user&&profile?.is_active)ready=Promise.resolve(loadRoom());
+ else if(v==="people")ready=Promise.resolve(loadPeople());
+ else if(v==="stories")ready=Promise.resolve(loadStories());
+ else if(v==="photos")ready=Promise.resolve(loadPhotos());
+ else if(v==="city")ready=Promise.resolve(loadCityEssays());
+ else if(v==="questions")ready=Promise.resolve(loadQuestions());
+ else if(v==="profile"&&user&&profile?.is_active){
+   const tasks=[loadMyPhotoSubmissions()];
+   if(profile.role==="editor"||profile.role==="admin")tasks.push(loadPhotoSubmissionReview());
+   if(profile.role==="admin"&&typeof loadTrafficStats==="function")tasks.push(loadTrafficStats());
+   ready=Promise.allSettled(tasks);
  }
-  if(typeof trackSiteView==="function")trackSiteView(v);
+ if(typeof trackSiteView==="function")trackSiteView(v);
  updateContextBack();
+ return Promise.resolve(ready).then(()=>true).catch(e=>{console.warn("view load failed",v,e);return false});
 }
 document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>{if(b.dataset.view==="chat")enableBrowserChatNotifications();showView(b.dataset.view)});
 $("mobileMoreBtn").onclick=()=>{
@@ -691,17 +695,17 @@ async function activateTag(tag){
 
  // Direct entity links.
  if(/^S-\d+$/i.test(tag)){
-   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:tag,storyScroll:0},()=>{
-     showView("stories");
-     setTimeout(()=>openStory(tag),0);
+   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:tag,storyScroll:0},async()=>{
+     await showView("stories");
+     await openStory(tag);
    });
    return;
  }
  if(/^MEDIA-\d+$/i.test(tag)){
-   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:tag},()=>{
+   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:tag},async()=>{
      mediaFocus=tag;
-     showView("photos");
-     setTimeout(()=>openArchivePhoto(tag),120);
+     await showView("photos");
+     await openArchivePhoto(tag);
    });
    return;
  }
@@ -719,7 +723,7 @@ async function activateTag(tag){
      selectedPersonId=targetId;
      showClassNumbers=false;
      document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===targetGroup));
-     showView("people");
+     await showView("people");
      await loadClassPhoto();
      renderPeople();
      setTimeout(()=>document.querySelector('[data-person-id="'+CSS.escape(targetId)+'"]')?.scrollIntoView({behavior:"smooth",block:"center"}),80);
@@ -765,11 +769,11 @@ async function activateTag(tag){
 
  document.querySelectorAll("[data-tag-story]").forEach(b=>b.onclick=()=>{
    const id=b.dataset.tagStory;closePhotoModal();
-   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:id,storyScroll:0},()=>{showView("stories");openStory(id)});
+   navigateFromTag({view:"stories",scrollY:0,storyOpen:true,storyId:id,storyScroll:0},async()=>{await showView("stories");await openStory(id)});
  });
  document.querySelectorAll("[data-tag-media]").forEach(b=>b.onclick=()=>{
    const id=b.dataset.tagMedia;closePhotoModal();
-   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:id},()=>{mediaFocus=id;showView("photos");setTimeout(()=>openArchivePhoto(id),120)});
+   navigateFromTag({view:"photos",scrollY:0,storyOpen:false,mediaFocus:id},async()=>{mediaFocus=id;await showView("photos");await openArchivePhoto(id)});
  });
  document.querySelectorAll("[data-tag-person]").forEach(b=>b.onclick=async()=>{
    const id=b.dataset.tagPerson;
@@ -785,14 +789,14 @@ async function activateTag(tag){
      selectedPersonId=p?.id||id;
      showClassNumbers=false;
      document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===targetGroup));
-     showView("people");
+     await showView("people");
      await loadClassPhoto();
      renderPeople();
    });
  });
  document.querySelectorAll("[data-tag-question]").forEach(b=>b.onclick=()=>{
    const label=b.textContent.trim();closePhotoModal();
-   navigateFromTag({view:"questions",scrollY:0,storyOpen:false},()=>{showView("questions");setTimeout(()=>{const card=[...document.querySelectorAll("#questionsList .archiveCard")].find(x=>x.textContent.includes(label));card?.scrollIntoView({behavior:"smooth",block:"center"})},180)});
+   navigateFromTag({view:"questions",scrollY:0,storyOpen:false},async()=>{await showView("questions");await new Promise(r=>requestAnimationFrame(()=>r()));const card=[...document.querySelectorAll("#questionsList .archiveCard")].find(x=>x.textContent.includes(label));card?.scrollIntoView({behavior:"smooth",block:"center"})});
  });
 }
 document.addEventListener("click",e=>{
@@ -824,8 +828,8 @@ async function loadHome(){
  if(!box)return;
  const bindHome=()=>{
    document.querySelectorAll("[data-home-view]").forEach(b=>b.onclick=()=>showView(b.dataset.homeView));
-   box.querySelectorAll("[data-home-story]").forEach(b=>b.onclick=()=>{showView("stories");setTimeout(()=>openStory(b.dataset.homeStory),0)});
-   box.querySelectorAll("[data-home-photo]").forEach(b=>b.onclick=()=>{mediaFocus=b.dataset.homePhoto;showView("photos");setTimeout(()=>openArchivePhoto(b.dataset.homePhoto),160)});
+   box.querySelectorAll("[data-home-story]").forEach(b=>b.onclick=async()=>{await showView("stories");await openStory(b.dataset.homeStory)});
+   box.querySelectorAll("[data-home-photo]").forEach(b=>b.onclick=async()=>{mediaFocus=b.dataset.homePhoto;await showView("photos");await openArchivePhoto(b.dataset.homePhoto)});
    box.querySelectorAll("[data-home-questions10a]").forEach(b=>b.onclick=()=>{questionPriority="P1";questionStatus="open";showView("questions")});
  };
  document.querySelectorAll("[data-home-view]").forEach(b=>b.onclick=()=>showView(b.dataset.homeView));

@@ -1328,3 +1328,247 @@ html[data-theme="dark"] .driveImportState,html[data-theme="dark"] .driveImportGr
 .room{display:inline-flex;align-items:center;gap:7px}
 .roomUnreadBadge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#a43c31;color:#fff;font-size:10px;font-weight:800;line-height:1}
 .room.active .roomUnreadBadge{background:var(--paper);color:var(--selected-bg);box-shadow:inset 0 0 0 1px var(--line)}
+
+
+/* Approved concept B: memory mosaic */
+:root{
+ --bg:#efe6d5;
+ --paper:#fbf6ec;
+ --paper-2:#f7eddd;
+ --ink:#102f4d;
+ --muted:#6f6659;
+ --line:#d5c5aa;
+ --soft:#eadcc5;
+ --soft-2:#f3e8d6;
+ --mine:#e5d4b9;
+ --image-bg:#dfd1ba;
+ --header:#fbf6ecf2;
+ --nav-bg:#fbf6ecf7;
+ --input:#fffaf0;
+ --primary-bg:#123653;
+ --primary-ink:#fffaf0;
+ --selected-bg:#173d5d;
+ --selected-ink:#fffaf0;
+ --focus:#9b4f3c;
+}
+html:not([data-theme="dark"]) body{
+ background:
+  radial-gradient(circle at 12% 8%,rgba(79,55,31,.035) 0 1px,transparent 1.4px),
+  radial-gradient(circle at 82% 62%,rgba(79,55,31,.025) 0 1px,transparent 1.3px),
+  linear-gradient(180deg,#f2eadc 0,#ece0cc 100%);
+ background-size:23px 27px,31px 29px,auto;
+}
+.top{height:60px;background:var(--header);border-bottom:1px solid rgba(84,65,44,.18);box-shadow:0 1px 0 #fff7 inset}
+.brand{font:700 22px/1 Georgia,"Times New Roman",serif;letter-spacing:.035em;color:var(--ink)}
+.status{border-radius:4px;background:transparent;border-color:rgba(84,65,44,.18);font:10px/1.2 "Courier New",monospace}
+.themeBtn,.notifyBtn,.contextBackBtn{border-radius:4px}
+.card,.archiveCard,.reviewCard,.moderationCard,.photoSubmissionCard{border-radius:9px}
+.primary,.secondary{border-radius:4px}
+.primary{background:var(--primary-bg)}
+main{max-width:1180px}
+main>.view:not(#home){max-width:760px;margin:0 auto}
+
+#home{background:transparent;box-shadow:none}
+#home .homePad{padding:18px 18px 44px}
+#home .homeWrap{max-width:1140px;margin:0 auto}
+#home .homeStateLine{padding:8px 4px 2px;font:10px/1.35 "Courier New",monospace;letter-spacing:.03em;color:var(--home-muted,#6f6659)}
+
+.memoryMosaicHero{
+ position:relative;
+ min-height:510px;
+ overflow:hidden;
+ border:1px solid rgba(82,59,36,.22);
+ border-radius:4px;
+ background:
+  radial-gradient(circle at 20% 16%,rgba(118,82,41,.08) 0 1px,transparent 1.3px),
+  radial-gradient(circle at 80% 66%,rgba(118,82,41,.055) 0 1px,transparent 1.2px),
+  linear-gradient(135deg,#ead9bd 0,#f6ead6 48%,#e6d2b3 100%);
+ background-size:19px 23px,29px 31px,auto;
+ box-shadow:0 13px 34px rgba(75,52,28,.16),inset 0 0 90px rgba(120,86,48,.07);
+ isolation:isolate;
+}
+.memoryMosaicHero::before{
+ content:"";
+ position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:linear-gradient(100deg,transparent 0 26%,rgba(255,255,255,.15) 42%,transparent 70%);
+ mix-blend-mode:soft-light;
+}
+.mosaicLayer{position:absolute;background:#f4e8d2;border:1px solid rgba(95,65,36,.12);box-shadow:0 5px 18px rgba(70,48,25,.08)}
+.mosaicPaperA{width:46%;height:70%;left:-5%;top:18%;transform:rotate(5deg)}
+.mosaicPaperB{width:46%;height:62%;right:-6%;top:8%;transform:rotate(-4deg)}
+.mosaicPhoto{
+ position:absolute;z-index:2;margin:0;padding:8px;background:#f8efdf;
+ border:1px solid rgba(74,54,34,.22);box-shadow:0 11px 26px rgba(57,39,22,.2);
+ overflow:hidden;
+}
+.mosaicPhoto::after{content:"";position:absolute;inset:8px;border:1px solid rgba(25,37,48,.08);pointer-events:none}
+.mosaicPhoto img{display:block;width:100%;height:100%;object-fit:cover;filter:sepia(.12) saturate(.68) contrast(.98)}
+.mosaicPhoto img[hidden]{display:none}
+.mosaicPhotoClass{left:4.5%;top:8%;width:35%;height:235px;transform:rotate(-4deg)}
+.mosaicPhotoA{right:7%;top:5%;width:32%;height:175px;transform:rotate(2.4deg)}
+.mosaicPhotoB{left:8%;bottom:4%;width:29%;height:195px;transform:rotate(2.1deg)}
+.mosaicPhotoC{right:4%;bottom:3%;width:30%;height:185px;transform:rotate(-2.8deg)}
+.mosaicTicket{
+ position:absolute;right:21%;top:25%;z-index:3;width:92px;padding:10px 8px;
+ transform:rotate(4deg);border:2px solid #846441;background:#c69a63;color:#392717;
+ text-align:center;font-family:"Courier New",monospace;box-shadow:0 7px 15px #0002;
+}
+.mosaicTicket b,.mosaicTicket span,.mosaicTicket strong,.mosaicTicket small{display:block}
+.mosaicTicket b{font-size:10px}.mosaicTicket span{font-size:9px;margin:4px 0}.mosaicTicket strong{font-size:21px}.mosaicTicket small{font-size:12px;letter-spacing:.13em;margin-top:3px}
+.mosaicNote{
+ position:absolute;right:11%;bottom:8%;z-index:4;width:150px;padding:15px 14px;
+ transform:rotate(-5deg);background:#efe0c5;border:1px solid rgba(89,63,36,.16);
+ box-shadow:0 7px 16px #0001;color:#37506a;font-family:Georgia,"Times New Roman",serif;font-style:italic;
+}
+.mosaicNote span{display:block;font-size:21px;margin-bottom:5px}.mosaicNote b{font-size:18px;line-height:1.25;font-weight:400}
+.mosaicTitleCard{
+ position:absolute;z-index:6;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:min(550px,56%);padding:34px 42px 30px;text-align:center;
+ background:rgba(251,245,232,.96);color:#102f4d;
+ border:1px solid rgba(91,65,38,.18);box-shadow:0 14px 32px rgba(59,40,22,.2);
+}
+.mosaicTitleCard::before,.mosaicTitleCard::after{content:"";position:absolute;width:80px;height:18px;background:rgba(222,203,169,.7);top:-9px;transform:rotate(-2deg)}
+.mosaicTitleCard::before{left:34px}.mosaicTitleCard::after{right:34px;transform:rotate(3deg)}
+.mosaicTitleCard .memoryKicker{font:800 10px/1.2 "Arial Narrow",Arial,sans-serif;letter-spacing:.17em;color:#725f49}
+.mosaicTitleCard h1{margin:12px 0 10px;font:700 clamp(42px,5.2vw,70px)/.95 Georgia,"Times New Roman",serif;letter-spacing:-.045em;color:#102f4d}
+.mosaicRule{width:42px;height:1px;margin:13px auto;background:#9b4f3c}
+.mosaicTitleCard p{margin:0;font:17px/1.45 Georgia,"Times New Roman",serif;color:#405268}
+.mosaicTitleCard p b{font-weight:400}.mosaicTitleCard p em{font-style:italic}
+.mosaicTitleCard .memoryHeroActions{justify-content:center;margin-top:22px}
+.mosaicTitleCard .memoryPrimary,.mosaicTitleCard .memoryGhost{
+ border-radius:4px;padding:11px 15px;font-size:12px;letter-spacing:.01em;text-transform:none;
+}
+.mosaicTitleCard .memoryPrimary{background:#123653;color:#fffaf0;border-color:#123653;box-shadow:0 5px 11px rgba(18,54,83,.18)}
+.mosaicTitleCard .memoryGhost{background:#fffaf0;color:#123653;border:1px solid #af9e83;backdrop-filter:none}
+
+.homeLoadingLine{padding:18px 4px;font:italic 14px Georgia,serif;color:var(--muted)}
+.homeGatewayGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}
+.homeGatewayCard{
+ min-width:0;padding:0;overflow:hidden;display:grid;grid-template-columns:40% minmax(0,1fr);
+ border:1px solid rgba(86,64,42,.17);border-radius:5px;background:rgba(251,246,236,.76);
+ color:var(--ink);text-align:left;cursor:pointer;box-shadow:0 5px 15px rgba(62,44,25,.07);
+}
+.homeGatewayCard:hover{transform:translateY(-1px);box-shadow:0 9px 20px rgba(62,44,25,.11)}
+.homeGatewayImage,.homeGatewayArt{min-height:138px;overflow:hidden;background:#ddcfb8}
+.homeGatewayImage img{width:100%;height:100%;object-fit:cover;display:block;filter:sepia(.12) saturate(.62)}
+.homeGatewayPlaceholder{width:100%;height:100%;background:linear-gradient(135deg,#c7b493,#eadcc3)}
+.homeGatewayBody{position:relative;padding:15px 14px 14px;min-width:0}
+.homeGatewayBody small{font:800 9px/1 "Arial Narrow",Arial,sans-serif;letter-spacing:.13em;color:#8f4b3c}
+.homeGatewayBody h2{margin:8px 0 7px;font:700 23px/1 Georgia,serif;color:#102f4d}
+.homeGatewayBody p{margin:0;font:13px/1.4 Georgia,serif;color:#625a50}.homeGatewayBody p b{color:#102f4d}
+.homeGatewayBody strong{display:block;margin-top:11px;font:700 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#123653}
+.homeGatewayGrid.public .homeGatewayCard{grid-template-columns:34% minmax(0,1fr)}
+.homeGatewayArt{display:grid;place-items:center;font:700 24px Georgia,serif;color:#fff8e9}
+.homeGatewayArt.peopleArt{background:linear-gradient(135deg,#665c50,#a2947e)}
+.homeGatewayArt.storyArt{background:linear-gradient(135deg,#8a5a42,#d2a16f)}
+.homeGatewayArt.cityArt{background:linear-gradient(135deg,#496176,#8da0aa)}
+
+.homeSectionHead{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:27px 0 10px;padding-bottom:8px;border-bottom:1px solid rgba(82,61,41,.22)}
+.homeSectionHead h2{margin:0;font:700 23px/1 Georgia,serif;color:#102f4d}
+.homeSectionHead h2::after{content:"";display:inline-block;width:48px;height:1px;background:#9b4f3c;margin:0 0 6px 14px}
+.homeSectionHead .textLink{font-size:11px;color:#123653}
+
+.homeStoryWeekGrid{display:grid;grid-template-columns:1.05fr .95fr .68fr;gap:18px;align-items:stretch}
+.homeStoryVisual{min-height:245px;overflow:hidden;background:#d7c8ae;border:1px solid rgba(85,62,39,.16)}
+.homeStoryVisual img{width:100%;height:100%;object-fit:cover;display:block;filter:sepia(.09) saturate(.67)}
+.homeStoryPlaceholder{height:100%;min-height:245px;display:grid;place-items:center;font:700 52px Georgia,serif;color:#7a6c5b;background:linear-gradient(135deg,#d9c8aa,#eee1cb)}
+.homeStoryCopy{display:flex;flex-direction:column;justify-content:center;padding:10px 4px}
+.homeStoryCopy h3{margin:8px 0 9px;font:700 27px/1.05 Georgia,serif;color:#102f4d}
+.homeStoryCopy p{margin:0;font:14px/1.55 Georgia,serif;color:#5f584f}
+.homeStoryCopy .memoryPrimary{width:max-content;margin-top:16px;border-radius:4px;background:#123653;color:#fffaf0;border:1px solid #123653;padding:10px 14px;font-size:11px}
+.homeStoryQuote{margin:0;padding:24px 18px;border-left:1px solid rgba(82,61,41,.18);display:flex;flex-direction:column;justify-content:center;background:rgba(255,250,240,.32)}
+.homeStoryQuote>span{font:700 54px/.55 Georgia,serif;color:#b8a88d}
+.homeStoryQuote p{margin:13px 0 10px;font:italic 18px/1.45 Georgia,serif;color:#45586a}
+.homeStoryQuote cite{font:10px/1.4 "Courier New",monospace;color:#756b5d;font-style:normal}
+
+.homeFreshGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.homeFreshCard{padding:0;overflow:hidden;border:1px solid rgba(82,61,41,.16);border-radius:4px;background:rgba(251,246,236,.7);color:var(--ink);text-align:left;cursor:pointer}
+.homeFreshCard>img,.homeFreshPlaceholder{display:block;width:100%;height:102px;object-fit:cover;background:#d9c8aa;filter:sepia(.08) saturate(.68)}
+.homeFreshPlaceholder{display:grid;place-items:center;font:700 30px Georgia,serif;color:#6c6254;background:linear-gradient(135deg,#d9c9ac,#eee3d0);filter:none}
+.homeFreshPlaceholder.chat{background:linear-gradient(135deg,#b8c2c6,#e5ddd0);color:#234764}
+.homeFreshPlaceholder.question{background:linear-gradient(135deg,#c8a88b,#eadbc7);color:#7d4639}
+.homeFreshCard>div:last-child{padding:11px 11px 12px}
+.homeFreshCard small{display:block;font:800 8px/1.2 "Arial Narrow",Arial,sans-serif;letter-spacing:.12em;color:#92513f}
+.homeFreshCard b{display:block;margin-top:5px;font:700 14px/1.2 Georgia,serif;color:#102f4d}
+.homeFreshCard span{display:block;margin-top:4px;font-size:10px;line-height:1.35;color:#6d655a}
+
+.homeMemoryRibbon{
+ position:relative;margin:28px 0 16px;padding:24px 28px 22px;text-align:center;
+ border-top:1px solid rgba(84,62,39,.22);border-bottom:1px solid rgba(84,62,39,.18);
+ background:linear-gradient(90deg,rgba(159,95,64,.035),rgba(255,250,241,.35),rgba(47,85,105,.04));
+}
+.homeMemoryCity{font:800 9px/1.2 "Arial Narrow",Arial,sans-serif;letter-spacing:.16em;color:#8c4f40;text-transform:uppercase}
+.homeMemoryRibbon blockquote{margin:9px auto 6px;max-width:760px;font:italic 18px/1.45 Georgia,serif;color:#41566b}
+.homeMemoryRibbon>span{font:10px/1.3 "Courier New",monospace;color:#736a5e}
+#home .memoryArchiveNote{margin-top:16px;border-left:2px solid #9b4f3c;background:rgba(255,250,240,.36);color:#405268}
+#home .memoryEditorStrip{border-radius:3px;background:rgba(255,250,240,.3)}
+
+@media(min-width:761px){
+ body{padding-bottom:0}
+ .bottom{top:60px;bottom:auto;height:44px;padding:0;border-top:0;border-bottom:1px solid rgba(82,61,41,.18);background:rgba(251,246,236,.96);box-shadow:0 2px 9px rgba(61,43,24,.06)}
+ .bottomIn{max-width:1180px;height:44px;display:flex;align-items:stretch;justify-content:center}
+ .mobileSecondary{display:block}.mobileMore{display:none}
+ .nav{display:flex;align-items:center;justify-content:center;width:auto;min-width:88px;min-height:44px;padding:0 14px;font-size:11px;border-bottom:2px solid transparent}
+ .nav b{display:none}.nav.active{color:#102f4d;border-bottom-color:#9b4f3c}
+ main{padding-top:44px}
+}
+
+@media(max-width:900px){
+ .memoryMosaicHero{min-height:485px}
+ .mosaicTitleCard{width:min(590px,68%);padding:30px 30px 27px}
+ .mosaicPhotoClass{left:2%;width:39%}.mosaicPhotoA{right:2%;width:36%}.mosaicPhotoC{right:1%;width:34%}
+ .mosaicTicket{right:20%;top:28%}.mosaicNote{right:6%}
+ .homeGatewayGrid{gap:10px}.homeGatewayCard{grid-template-columns:1fr}.homeGatewayImage,.homeGatewayArt{min-height:115px}
+ .homeStoryWeekGrid{grid-template-columns:1.05fr .95fr}.homeStoryQuote{grid-column:1/-1;border-left:0;border-top:1px solid rgba(82,61,41,.18);padding:18px 14px}
+ .homeFreshGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ #home .homePad{padding:9px 8px 24px}
+ .memoryMosaicHero{min-height:520px;border-radius:0}
+ .mosaicPhoto{padding:5px}
+ .mosaicPhotoClass{left:-5%;top:3%;width:57%;height:170px}
+ .mosaicPhotoA{right:-5%;top:2%;width:49%;height:144px}
+ .mosaicPhotoB{left:-4%;bottom:2%;width:44%;height:145px}
+ .mosaicPhotoC{right:-5%;bottom:2%;width:48%;height:140px}
+ .mosaicTicket{display:none}.mosaicNote{right:2%;bottom:22%;width:112px;padding:9px;font-size:12px}
+ .mosaicNote span{font-size:15px}.mosaicNote b{font-size:13px}
+ .mosaicTitleCard{width:88%;top:49%;padding:25px 18px 23px}
+ .mosaicTitleCard h1{font-size:42px;white-space:nowrap}
+ .mosaicTitleCard p{font-size:15px}
+ .mosaicTitleCard .memoryHeroActions{display:grid;grid-template-columns:1fr;gap:7px}
+ .mosaicTitleCard .memoryPrimary,.mosaicTitleCard .memoryGhost{width:100%;margin:0}
+ .homeGatewayGrid{grid-template-columns:1fr;margin-top:12px}
+ .homeGatewayCard{grid-template-columns:34% minmax(0,1fr)}
+ .homeGatewayImage,.homeGatewayArt{min-height:110px}
+ .homeGatewayBody{padding:12px}.homeGatewayBody h2{font-size:20px}
+ .homeSectionHead{margin-top:23px}.homeSectionHead h2{font-size:20px}.homeSectionHead h2::after{width:30px}
+ .homeStoryWeekGrid{grid-template-columns:1fr;gap:10px}
+ .homeStoryVisual,.homeStoryPlaceholder{min-height:210px}
+ .homeStoryCopy{padding:7px 3px}.homeStoryCopy h3{font-size:24px}
+ .homeStoryQuote{grid-column:auto}
+ .homeFreshGrid{grid-template-columns:1fr 1fr;gap:8px}
+ .homeFreshCard>img,.homeFreshPlaceholder{height:88px}
+ .homeMemoryRibbon{margin-top:22px;padding:19px 13px}
+}
+@media(max-width:430px){
+ .memoryMosaicHero{min-height:500px}
+ .mosaicTitleCard{width:91%;padding-left:14px;padding-right:14px}
+ .mosaicTitleCard h1{font-size:36px}
+ .homeGatewayCard{grid-template-columns:32% minmax(0,1fr)}
+ .homeGatewayBody p{font-size:12px}.homeGatewayBody strong{font-size:10px}
+ .homeFreshGrid{grid-template-columns:1fr}
+ .homeFreshCard{display:grid;grid-template-columns:112px minmax(0,1fr)}
+ .homeFreshCard>img,.homeFreshPlaceholder{height:100%;min-height:92px}
+}
+html[data-theme="dark"] .memoryMosaicHero{background:linear-gradient(135deg,#2a241d,#17191a);border-color:#5a4b37}
+html[data-theme="dark"] .mosaicLayer{background:#27231e;border-color:#4d4132}
+html[data-theme="dark"] .mosaicPhoto{background:#2c2720;border-color:#5d4e3a}
+html[data-theme="dark"] .mosaicTitleCard{background:rgba(35,31,26,.96);color:#e7c989;border-color:#65543e}
+html[data-theme="dark"] .mosaicTitleCard h1{color:#e7c989}
+html[data-theme="dark"] .mosaicTitleCard p{color:#c5b08a}
+html[data-theme="dark"] .mosaicTitleCard .memoryGhost{background:#1e1b17;color:#e7c989;border-color:#6d5b43}
+html[data-theme="dark"] .homeGatewayCard,html[data-theme="dark"] .homeFreshCard{background:rgba(34,31,27,.9);border-color:#514533}
+html[data-theme="dark"] .homeGatewayBody h2,html[data-theme="dark"] .homeGatewayBody p b,html[data-theme="dark"] .homeFreshCard b,html[data-theme="dark"] .homeSectionHead h2,html[data-theme="dark"] .homeStoryCopy h3{color:#e7c989}
+html[data-theme="dark"] .homeGatewayBody p,html[data-theme="dark"] .homeFreshCard span,html[data-theme="dark"] .homeStoryCopy p{color:#b7a381}
+html[data-theme="dark"] .homeStoryQuote{background:rgba(201,158,93,.025);border-color:#574936}
+html[data-theme="dark"] .homeStoryQuote p,html[data-theme="dark"] .homeMemoryRibbon blockquote{color:#d4bd91}

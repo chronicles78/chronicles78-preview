@@ -10,6 +10,11 @@ function applyTheme(mode){
  const actual=mode==="auto"?systemTheme():mode;
  document.documentElement.dataset.theme=actual;
  document.documentElement.dataset.themeMode=mode;
+ document.documentElement.style.colorScheme=actual==="light"?"only light":"dark";
+ const schemeMeta=document.getElementById("siteColorScheme");
+ if(schemeMeta)schemeMeta.setAttribute("content",actual==="light"?"only light":"dark");
+ const themeMeta=document.querySelector('meta[name="theme-color"]');
+ if(themeMeta)themeMeta.setAttribute("content",actual==="light"?"#fffdf8":"#211e1a");
  const spec={
    auto:{icon:"◐",label:"Авто"},
    light:{icon:"☀",label:"Светлая"},

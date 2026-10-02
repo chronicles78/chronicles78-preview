@@ -90,28 +90,28 @@ async function loadQuestions(){
 }
 async function openClassPhotoFromQuestion(group){
  peopleGroup=group;selectedPersonId=null;showClassNumbers=true;
- showView("people");
+ await showView("people");
  document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup===group));
  await loadClassPhoto();renderPeople();
 }
 async function openQuestionMessage(mid){
  const {data:m,error}=await sb.from("messages").select("id,room_id").eq("id",mid).maybeSingle();
  if(error||!m){alert(error?.message||"Исходное сообщение не найдено.");return}
- currentRoom=m.room_id;renderRooms();showView("chat");subscribe();
- setTimeout(()=>{
-   const el=document.querySelector('[data-mid="'+CSS.escape(mid)+'"]');
-   el?.scrollIntoView({behavior:"smooth",block:"center"});
- },500);
+ currentRoom=m.room_id;renderRooms();await showView("chat");subscribe();
+ await new Promise(r=>requestAnimationFrame(()=>r()));
+ const el=document.querySelector('[data-mid="'+CSS.escape(mid)+'"]');
+ el?.scrollIntoView({behavior:"smooth",block:"center"});
 }
 function findQuestion(cacheId){return questionCache.find(q=>q.cache_id===cacheId)}
 async function discussQuestion(cacheId){
  const q=findQuestion(cacheId);if(!q)return;
  currentRoom=q.discussion_room||"general";
  questionDiscussion={id:q.id,label:q.question.slice(0,70)};
- renderRooms();showView("chat");subscribe();
+ renderRooms();await showView("chat");subscribe();
  $("composer").value='Вопрос '+q.id+': '+q.question+'\n';
  renderReply();
- setTimeout(()=>$("composer").focus(),150);
+ await new Promise(r=>requestAnimationFrame(()=>r()));
+ $("composer").focus();
 }
 function showQuestionDetails(cacheId){
  const q=findQuestion(cacheId);if(!q)return;

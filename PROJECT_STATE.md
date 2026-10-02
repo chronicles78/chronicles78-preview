@@ -1266,3 +1266,70 @@ Google Drive содержит отдельную папку:
   - WARN: 10 `SECURITY DEFINER` RPC доступны роли `authenticated`; перед изменением каждого требуется проверить встроенную role/auth-проверку и GRANT, чтобы не сломать редакторские операции;
   - WARN: leaked password protection отключена.
 - Эти замечания не изменялись в рамках функциональной модерации. Для них нужен отдельный security-pass с проверкой тела каждой RPC и фактической модели доступа, а не массовый revoke.
+
+
+## 65. Техническая модерация: security/integrity pass и ускорение «Историй» — 2026-10-02
+
+### 65.1. Security Advisor — ручная проверка предупреждений
+- Проверены все 10 публичных `SECURITY DEFINER` RPC, отмеченных Advisor как callable by `authenticated`.
+- `accept_archive_personal_data_consent()` использует только `auth.uid()` текущего пользователя и не принимает чужой user_id.
+- Остальные редакторские/admin RPC содержат внутреннюю проверку `private.current_role()` на `editor/admin` либо `admin`.
+- `private.current_role()` проверена отдельно: роль читается из `public.profiles.role` по `auth.uid()`, а не из пользовательских JWT metadata.
+- Поэтому массовый `REVOKE EXECUTE FROM authenticated` не выполнялся: он сломал бы штатные редакторские вызовы, при этом подтверждённой эскалации привилегий не обнаружено.
+- `private.notify_user()` находится в private schema и используется внутренними функциями.
+- Для `traffic_sessions` и `traffic_events` подтверждено: прямые table grants есть только у `service_role`; `anon/authenticated` прямого доступа не имеют. Отсутствие RLS policy на этих двух таблицах является намеренной закрытой моделью, доступ идёт через `site-traffic`.
+
+### 65.2. Performance Advisor — исправлены RLS initplans чата
+- Было 6 WARN `auth_rls_initplan` в политиках:
+  - `message_attachments_update_author_or_editor`;
+  - `message_attachment_versions_insert_author_or_editor`;
+  - `message_attachments_insert_author`;
+  - `message_versions_insert_author_or_editor`;
+  - `message_reads_insert_self`;
+  - `message_reads_update_self`.
+- Применена миграция `optimize_chat_auth_rls_initplans`.
+- Семантика доступа сохранена; изменено только вычисление `auth.uid()` → `(select auth.uid())`, чтобы значение инициализировалось один раз на запрос, а не для каждой строки.
+- Повторный Performance Advisor: `auth_rls_initplan` **0 предупреждений**.
+- Остались без автоматического вмешательства:
+  - 21 INFO `unindexed_foreign_keys`;
+  - 15 INFO `unused_index`;
+  - 14 WARN `multiple_permissive_policies`.
+  Для небольшого архива первые две группы не являются срочными; permissive-политики требуют отдельного семантического анализа перед объединением.
+
+### 65.3. Проверка целостности данных
+- Выполнена перекрёстная проверка БД ↔ Storage ↔ связей сущностей.
+- Результат: отсутствующие ссылки **не обнаружены**:
+  - все `archive_media.current_storage_path` существуют в `archive-media`;
+  - все заданные thumbnails существуют;
+  - все person_id в story/media существуют в `archive_people`;
+  - все `related_stories` существуют;
+  - все `city_essays.media_ids` существуют;
+  - все `archive_media.linked_story` существуют;
+  - все `class_photo_regions.person_id` существуют;
+  - все story `cover_media_id` существуют;
+  - все `[[PHOTO:MEDIA-*]]` внутри городских этюдов существуют;
+  - нет истории со статусом `готовая история` и пустым `story_text`;
+  - непрочитанные notifications не ссылаются на отсутствующие message/person/city_essay/photo_submission.
+
+### 65.4. «Истории»: сокращена signed-URL нагрузка
+- Найдено: старый `loadStories()` выбирал все media с файлом и вызывал `archiveSignedImage()` отдельно для каждого.
+- Фактическая проверка БД:
+  - фото с `current_storage_path`: **135**;
+  - реально необходимых cover-кандидатов для текущих 52 историй: **5**.
+- Исправлено:
+  - media query ограничен `media_type='photo'`;
+  - из списка выбираются только связанные с текущими story, явно указанные в `data.media_ids` или вручную назначенные через `cover_media_id`;
+  - signed URLs создаются через общий batch `prefetchArchiveMediaUrls()`;
+  - fallback на единичный `archiveSignedImage()` сохранён.
+- Таким образом холодный вход в «Истории» больше не инициирует до 135 отдельных signed-URL запросов ради пяти обложек.
+- Frontend cache: `assets/js/stories.js?v=20261002-1`.
+
+### 65.5. Текущее состояние frontend после модерации
+- Syntax-check пройден:
+  - `core.js?v=20261002-1`;
+  - `people.js?v=20261002-1`;
+  - `photos.js?v=20261002-2`;
+  - `stories.js?v=20261002-1`;
+  - `city.js?v=20261002-1`;
+  - `questions-admin.js?v=20261002-1`.
+- Мобильный CSS-проход не выявил нового подтверждённого глобального viewport-overflow. Глобальный `overflow-x:hidden` намеренно не добавлялся, чтобы не маскировать будущие ошибки геометрии.

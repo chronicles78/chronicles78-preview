@@ -138,19 +138,41 @@ async function loadStories(){
  }
  const [storiesRes,mediaRes]=await Promise.all([
    sb.from("archive_stories").select("id,title,period,kind,full_chapter,data").order("id"),
-   sb.from("archive_media").select("id,title,linked_story,current_storage_path").not("current_storage_path","is",null)
+   sb.from("archive_media").select("id,media_type,title,linked_story,current_storage_path,data")
+     .eq("media_type","photo")
+     .not("current_storage_path","is",null)
  ]);
  if(storiesRes.error){$("storiesList").className="";$("storiesList").innerHTML='<div class="notice">'+esc(storiesRes.error.message)+'</div>';return}
  storyCache=storiesRes.data||[];
  storyCoverUrls={};storyCoverMedia={};
- const medias=mediaRes.data||[];
- await Promise.all(medias.map(async m=>{
-   const url=await archiveSignedImage(m.current_storage_path);
-   if(!url)return;
+
+ const storyIds=new Set(storyCache.map(x=>x.id));
+ const explicitMediaIds=new Set();
+ storyCache.forEach(st=>{
+   if(st.data?.cover_mode==="none")return;
+   if(st.data?.cover_media_id)explicitMediaIds.add(st.data.cover_media_id);
+   (Array.isArray(st.data?.media_ids)?st.data.media_ids:[]).forEach(id=>id&&explicitMediaIds.add(id));
+ });
+ const coverMedias=(mediaRes.data||[]).filter(m=>
+   explicitMediaIds.has(m.id)||(m.linked_story&&storyIds.has(m.linked_story))
+ );
+
+ if(typeof prefetchArchiveMediaUrls==="function"){
+   await prefetchArchiveMediaUrls(coverMedias);
+ }else{
+   await Promise.all(coverMedias.map(async m=>{
+     const url=await archiveSignedImage(m.current_storage_path);
+     if(url)mediaSigned[m.id]=url;
+   }));
+ }
+
+ for(const m of coverMedias){
+   const url=mediaSigned[m.id]||await archiveSignedImage(m.current_storage_path);
+   if(!url)continue;
    const rec={id:m.id,title:m.title,url};
    storyCoverMedia[m.id]=rec;
    if(m.linked_story&&!storyCoverMedia[m.linked_story])storyCoverMedia[m.linked_story]=rec;
- }));
+ }
  renderStoriesCatalog();
 }
 document.querySelectorAll("[data-storyfilter]").forEach(b=>b.onclick=()=>{

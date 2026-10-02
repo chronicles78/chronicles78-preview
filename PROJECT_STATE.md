@@ -2135,3 +2135,32 @@ UI:
 - app.css?v=20261002-43;
 - core.js syntax-check: ok;
 - CSS brace check: 1789 / 1789.
+
+
+## 87. Светлая тема — жёсткая защита от внешнего затемнения — 2026-10-02
+
+Пользователь сообщил, что после выбора «Светлая» визуально всё равно остаётся тёмное оформление.
+
+Проверка:
+- v20261002-23 была опубликована успешно;
+- applyTheme корректно меняет data-theme и data-theme-mode;
+- значит проблема могла возникать на уровне браузерного auto-dark / расширения поверх CSS сайта.
+
+Исправлено:
+- добавлен meta color-scheme с динамическим обновлением;
+- при выборе «Светлая» documentElement получает color-scheme: only light;
+- при выборе «Тёмная» браузеру явно задаётся dark;
+- theme-color браузера синхронизируется с выбранной темой;
+- добавлен meta darkreader-lock, чтобы Dark Reader не перекрашивал сайт поверх его собственной темы;
+- для mode=light добавлен hard override для HTML/body и нативных form controls;
+- input/select/textarea в светлой теме принудительно белые с чернильно-синим текстом.
+
+Публикация:
+- 6c576966999cecbd7fee31c54c6c6a92cd28a23a — Harden explicit light theme against browser darkening;
+- d142be96d700c4dbe9e0f746228021bf9fddf63b — Force browser color scheme from site theme;
+- 3340299650c86bef2ec0732afd6421351c188679 — Add hard light mode form and UA overrides;
+- build marker: 20261002-24;
+- core.js?v=20261002-18;
+- app.css?v=20261002-44;
+- core.js syntax-check: ok;
+- CSS brace check: 1794 / 1794.

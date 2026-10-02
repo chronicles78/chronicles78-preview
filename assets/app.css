@@ -2679,3 +2679,17 @@ html[data-theme="dark"] .photoTileBody{
     drop-shadow(0 1px 0 rgba(74,56,37,.32))
     drop-shadow(0 8px 11px rgba(54,40,25,.26))!important;
 }
+
+
+/* Home fresh archive: show preview images without cropping */
+.homeFreshCard>img{
+  object-fit:contain!important;
+  object-position:center center;
+  background:#fff!important;
+  padding:5px;
+  box-sizing:border-box;
+  filter:sepia(.045) saturate(.78);
+}
+html[data-theme="dark"] .homeFreshCard>img{
+  background:#f4efe5!important;
+}

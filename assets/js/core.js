@@ -488,11 +488,12 @@ async function openNotifications(){
 }
 function openProfileBox(id){
  const el=$(id);if(!el)return;
- const section=el.closest("details.profileSection");
- const subsection=el.closest("details.profileSubsection");
- if(section)section.open=true;
- if(subsection)subsection.open=true;
- setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),40);
+ const section=el.matches("[data-profile-section-pane]")?el:el.closest("[data-profile-section-pane]");
+ const subpane=el.closest("[data-profile-pane]");
+ const sectionKey=section?.dataset.profileSectionPane;
+ const paneKey=subpane?.dataset.profilePane;
+ if(sectionKey)activateProfileSection(sectionKey,{pane:paneKey,load:true});
+ setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),60);
 }
 function showChatToast(n){
  let t=document.getElementById("chatNewToast");
@@ -1009,10 +1010,37 @@ async function loadHome(){
  bindHome();
 }
 
+const PROFILE_DEFAULT_PANES={
+ personal:"personal-name",
+ my:"my-photos",
+ editorial:"editorial-photo",
+ admin:"admin-traffic"
+};
+
 function setProfileSections({personal=false,my=false,editorial=false,admin=false}={}){
- const map={profilePersonalSection:personal,profileMySection:my,profileEditorialSection:editorial,profileAdminSection:admin};
- Object.entries(map).forEach(([id,on])=>{const el=$(id);if(el){el.style.display=on?"block":"none";if(!on)el.open=false}});
+ const allowed={personal,my,editorial,admin};
+ const workspace=$("profileWorkspace");
+ const any=Object.values(allowed).some(Boolean);
+ if(workspace)workspace.style.display=any?"block":"none";
+
+ document.querySelectorAll("[data-profile-section-tab]").forEach(btn=>{
+   const on=!!allowed[btn.dataset.profileSectionTab];
+   btn.style.display=on?"flex":"none";
+   if(!on)btn.classList.remove("active");
+ });
+
+ document.querySelectorAll("[data-profile-section-pane]").forEach(pane=>{
+   const on=!!allowed[pane.dataset.profileSectionPane];
+   if(!on){pane.hidden=true;pane.classList.remove("active")}
+ });
+
+ if(!any)return;
+ const current=document.querySelector("[data-profile-section-tab].active");
+ const currentKey=current?.dataset.profileSectionTab;
+ const next=(currentKey&&allowed[currentKey])?currentKey:Object.keys(allowed).find(k=>allowed[k]);
+ if(next)activateProfileSection(next,{load:false});
 }
+
 function profileRoleLabel(role){
  return role==="admin"?"Администратор":role==="editor"?"Редактор":"Участник";
 }
@@ -1020,8 +1048,9 @@ function profileInitial(name){
  const v=String(name||"У").trim();
  return esc((v[0]||"У").toUpperCase());
 }
+
 async function loadProfilePanel(el){
- if(!el||!el.open||el.dataset.loaded==="1")return;
+ if(!el||el.dataset.loaded==="1")return;
  const kind=el.dataset.profileLoad;
  if(!kind)return;
  try{
@@ -1035,22 +1064,65 @@ async function loadProfilePanel(el){
    el.dataset.loaded="1";
  }catch(e){console.warn("Profile panel load failed:",kind,e)}
 }
+
+function activateProfileSubpane(sectionKey,paneKey,{load=true}={}){
+ const section=document.querySelector('[data-profile-section-pane="'+sectionKey+'"]');
+ if(!section)return;
+ const target=paneKey||PROFILE_DEFAULT_PANES[sectionKey];
+ section.querySelectorAll("[data-profile-subtab]").forEach(btn=>{
+   const active=btn.dataset.profileSubtab===target;
+   btn.classList.toggle("active",active);
+   btn.setAttribute("aria-selected",active?"true":"false");
+ });
+ section.querySelectorAll("[data-profile-pane]").forEach(pane=>{
+   const active=pane.dataset.profilePane===target;
+   pane.hidden=!active;
+   pane.classList.toggle("active",active);
+ });
+ const activePane=section.querySelector('[data-profile-pane="'+target+'"]');
+ if(load&&activePane)loadProfilePanel(activePane);
+}
+
+function activateProfileSection(sectionKey,{pane=null,load=true}={}){
+ const target=document.querySelector('[data-profile-section-pane="'+sectionKey+'"]');
+ const tab=document.querySelector('[data-profile-section-tab="'+sectionKey+'"]');
+ if(!target||!tab||tab.style.display==="none")return;
+
+ document.querySelectorAll("[data-profile-section-tab]").forEach(btn=>{
+   const active=btn===tab;
+   btn.classList.toggle("active",active);
+   btn.setAttribute("aria-selected",active?"true":"false");
+ });
+ document.querySelectorAll("[data-profile-section-pane]").forEach(section=>{
+   const active=section===target;
+   section.hidden=!active;
+   section.classList.toggle("active",active);
+ });
+
+ let paneKey=pane;
+ if(!paneKey){
+   const activeSub=target.querySelector("[data-profile-subtab].active");
+   paneKey=activeSub?.dataset.profileSubtab||PROFILE_DEFAULT_PANES[sectionKey];
+ }
+ activateProfileSubpane(sectionKey,paneKey,{load});
+}
+
 function bindProfileSectionNavigation(){
- document.querySelectorAll("details.profileSection").forEach(el=>{
-   if(el.dataset.profileBound==="1")return;
-   el.dataset.profileBound="1";
-   el.addEventListener("toggle",()=>{
-     if(!el.open)return;
-     document.querySelectorAll("details.profileSection").forEach(other=>{if(other!==el)other.open=false});
-     loadProfilePanel(el);
+ document.querySelectorAll("[data-profile-section-tab]").forEach(btn=>{
+   if(btn.dataset.profileBound==="1")return;
+   btn.dataset.profileBound="1";
+   btn.addEventListener("click",()=>activateProfileSection(btn.dataset.profileSectionTab,{load:true}));
+ });
+ document.querySelectorAll("[data-profile-subtab]").forEach(btn=>{
+   if(btn.dataset.profileBound==="1")return;
+   btn.dataset.profileBound="1";
+   btn.addEventListener("click",()=>{
+     const section=btn.closest("[data-profile-section-pane]");
+     if(section)activateProfileSubpane(section.dataset.profileSectionPane,btn.dataset.profileSubtab,{load:true});
    });
  });
- document.querySelectorAll("details.profileSubsection").forEach(el=>{
-   if(el.dataset.profileBound==="1")return;
-   el.dataset.profileBound="1";
-   el.addEventListener("toggle",()=>{if(el.open)loadProfilePanel(el)});
- });
 }
+
 function renderProfile(){
  bindProfileSectionNavigation();
  if(user&&pendingProfile&&!profile){

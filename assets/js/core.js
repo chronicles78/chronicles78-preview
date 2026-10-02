@@ -930,9 +930,48 @@ async function loadHome(){
 }
 function setProfileSections({personal=false,my=false,editorial=false,admin=false}={}){
  const map={profilePersonalSection:personal,profileMySection:my,profileEditorialSection:editorial,profileAdminSection:admin};
- Object.entries(map).forEach(([id,on])=>{const el=$(id);if(el)el.style.display=on?"block":"none"});
+ Object.entries(map).forEach(([id,on])=>{const el=$(id);if(el){el.style.display=on?"block":"none";if(!on)el.open=false}});
+}
+function profileRoleLabel(role){
+ return role==="admin"?"Администратор":role==="editor"?"Редактор":"Участник";
+}
+function profileInitial(name){
+ const v=String(name||"У").trim();
+ return esc((v[0]||"У").toUpperCase());
+}
+async function loadProfilePanel(el){
+ if(!el||!el.open||el.dataset.loaded==="1")return;
+ const kind=el.dataset.profileLoad;
+ if(!kind)return;
+ try{
+   if(kind==="my")await loadMyPhotoSubmissions();
+   else if(kind==="photo-review"&&(profile?.role==="editor"||profile?.role==="admin"))await loadPhotoSubmissionReview();
+   else if(kind==="identity-review"&&(profile?.role==="editor"||profile?.role==="admin"))await loadIdentityReview();
+   else if(kind==="moderation"&&(profile?.role==="editor"||profile?.role==="admin"))await loadModerationPanel();
+   else if(kind==="traffic"&&profile?.role==="admin"&&typeof loadTrafficStats==="function")await loadTrafficStats();
+   else if(kind==="users"&&profile?.role==="admin")await loadAdminUsers();
+   else if(kind==="archive"&&profile?.role==="admin")await loadArchiveStorageStatus();
+   el.dataset.loaded="1";
+ }catch(e){console.warn("Profile panel load failed:",kind,e)}
+}
+function bindProfileSectionNavigation(){
+ document.querySelectorAll("details.profileSection").forEach(el=>{
+   if(el.dataset.profileBound==="1")return;
+   el.dataset.profileBound="1";
+   el.addEventListener("toggle",()=>{
+     if(!el.open)return;
+     document.querySelectorAll("details.profileSection").forEach(other=>{if(other!==el)other.open=false});
+     loadProfilePanel(el);
+   });
+ });
+ document.querySelectorAll("details.profileSubsection").forEach(el=>{
+   if(el.dataset.profileBound==="1")return;
+   el.dataset.profileBound="1";
+   el.addEventListener("toggle",()=>{if(el.open)loadProfilePanel(el)});
+ });
 }
 function renderProfile(){
+ bindProfileSectionNavigation();
  if(user&&pendingProfile&&!profile){
    if($("adminLoginBox"))$("adminLoginBox").style.display="none";
    const alreadyAdmitted=!!pendingProfile.is_active&&!pendingProfile.access_blocked;
@@ -943,10 +982,19 @@ function renderProfile(){
      :(pendingProfile.access_blocked
        ?"Администратор не предоставил доступ либо ранее отключил его."
        :"Заявка зарегистрирована и ожидает решения администратора.");
-   $("profileBox").innerHTML='<b>'+esc(pendingProfile.display_name||"Участник")+'</b><br>'+
-     '<span class="small">'+esc(pendingMessage)+'</span>'+
-     (!consentRequired&&!pendingProfile.access_blocked?'<button class="secondary" id="checkAccessBtn">Проверить решение</button>':'')+
-     '<button class="secondary" id="logoutPendingBtn">Выйти</button>';
+   $("profileBox").innerHTML=
+     '<div class="profileUserRow">'+
+       '<div class="profileAvatar">'+profileInitial(pendingProfile.display_name||"Участник")+'</div>'+
+       '<div class="profileUserMain"><b>'+esc(pendingProfile.display_name||"Участник")+'</b>'+
+         '<div class="profileBadges"><span class="profileBadge">Кандидат</span>'+
+         (alreadyAdmitted?'<span class="profileBadge ok">Доступ одобрен</span>':'')+
+         (pendingProfile.access_blocked?'<span class="profileBadge warn">Доступ закрыт</span>':'')+
+         '</div><div class="profileUserHint">'+esc(pendingMessage)+'</div></div>'+
+       '<div class="profileUserActions">'+
+         (!consentRequired&&!pendingProfile.access_blocked?'<button class="secondary compact" id="checkAccessBtn">Проверить</button>':'')+
+         '<button class="secondary compact" id="logoutPendingBtn">Выйти</button>'+
+       '</div>'+
+     '</div>';
    if($("checkAccessBtn"))$("checkAccessBtn").onclick=async()=>{
      $("checkAccessBtn").disabled=true;$("checkAccessBtn").textContent="Проверяю…";
      const ok=await syncAuthState({render:false});
@@ -974,7 +1022,14 @@ function renderProfile(){
  }
  if(user&&profile){
    if($("adminLoginBox"))$("adminLoginBox").style.display="none";
-   $("profileBox").innerHTML='<b>'+esc(profile.display_name)+'</b><br><span class="small">Роль: '+esc(profile.role)+' · доступ активен</span><button class="secondary" id="logoutBtn">Выйти</button>';
+   $("profileBox").innerHTML=
+     '<div class="profileUserRow">'+
+       '<div class="profileAvatar">'+profileInitial(profile.display_name)+'</div>'+
+       '<div class="profileUserMain"><b>'+esc(profile.display_name)+'</b>'+
+         '<div class="profileBadges"><span class="profileBadge">'+esc(profileRoleLabel(profile.role))+'</span><span class="profileBadge ok">Доступ активен</span></div>'+
+       '</div>'+
+       '<div class="profileUserActions"><button class="secondary compact" id="logoutBtn">Выйти</button></div>'+
+     '</div>';
    $("loginBox").style.display="none";$("consentGateBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
    $("privacyBox").style.display="block";
    $("privacyConsentState").textContent="Согласие принято "+(profile.consentAcceptedAt?new Date(profile.consentAcceptedAt).toLocaleString("ru-RU"):"ранее")+". Действует только для закрытого архива.";
@@ -982,7 +1037,6 @@ function renderProfile(){
    if($("photoContributeBox"))$("photoContributeBox").style.display="block";
     if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
-   loadMyPhotoSubmissions();
     {const canEditPhotos=profile.role==="editor"||profile.role==="admin";document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?"inline-block":"none")}if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
    if($("archiveStorageBox"))$("archiveStorageBox").style.display=profile.role==="admin"?"block":"none";
     if($("trafficStatsBox"))$("trafficStatsBox").style.display=profile.role==="admin"?"block":"none";
@@ -991,9 +1045,7 @@ function renderProfile(){
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";
    if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
    if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
-    if(profile.role==="admin"){loadAdminUsers();loadArchiveStorageStatus();if(typeof loadTrafficStats==="function")loadTrafficStats()}
-   if(canModerate){loadPhotoSubmissionReview();loadIdentityReview();loadModerationPanel()}
-   subscribeNotifications();setStatus("Онлайн · "+profile.role);
+   subscribeNotifications();setStatus("Онлайн · "+profileRoleLabel(profile.role));
  } else {
    if($("adminLoginBox"))$("adminLoginBox").style.display="block";
    $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";

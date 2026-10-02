@@ -1012,6 +1012,25 @@ async function init(){
  appNavEnabled=true;
  updateContextBack();
 }
+async function finishOtpLogin(email,token){
+ token=String(token||"").replace(/\s+/g,"");
+ if(!/^\d{6}$/.test(token))throw new Error("Введите 6 цифр из письма.");
+ const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
+ if(error)throw error;
+ await hydrateProfileFromSession(data.session,{render:false});
+ renderProfile();
+ if(profile){
+   subscribe();subscribeNotifications();
+   await showView("home");await loadHome();
+   return "active";
+ }
+ if(pendingProfile){
+   await showView("profile");
+   return pendingProfile.access_blocked?"blocked":"pending";
+ }
+ throw new Error("Код принят, но профиль не найден.");
+}
+
 async function login(){
  $("loginError").className="";
  $("loginError").textContent="";
@@ -1024,14 +1043,36 @@ async function login(){
     options:{shouldCreateUser:false,emailRedirectTo:SITE_URL}
   });
   if(error)throw error;
+  $("otpLoginBox").style.display="block";
+  $("otpCode").value="";
+  $("otpCode").focus();
   $("loginError").className="ok";
-  $("loginError").innerHTML="<b>Письмо отправлено.</b><br>Откройте одноразовую ссылку. Для уже допущенного участника это и есть обычный вход; пароль не требуется.";
+  $("loginError").innerHTML="<b>Письмо отправлено.</b><br>Если в письме указан 6-значный код — введите его ниже. Пока почтовые шаблоны переключаются, старая одноразовая ссылка тоже продолжает работать.";
  }catch(e){
   $("loginError").className="err";
   $("loginError").textContent=(e.message||String(e)).includes("Signups not allowed")
-    ?"Такой e-mail ещё не зарегистрирован. Нажмите «Я здесь впервые · создать доступ»."
+    ?"Такой e-mail ещё не зарегистрирован. Нажмите «Запросить доступ»."
     :(e.message||String(e));
  }finally{$("loginBtn").disabled=false}
+}
+
+async function verifyLoginOtp(){
+ $("loginError").className="";
+ $("loginError").textContent="";
+ $("otpVerifyBtn").disabled=true;
+ try{
+   const email=$("email").value.trim();
+   if(!email)throw new Error("Сначала укажите e-mail.");
+   const state=await finishOtpLogin(email,$("otpCode").value);
+   if(state==="active")return;
+   $("loginError").className="ok";
+   $("loginError").textContent=state==="blocked"
+     ?"Код подтверждён. Доступ к архиву не предоставлен или был отключён администратором."
+     :"Код подтверждён. Заявка ожидает решения администратора.";
+ }catch(e){
+   $("loginError").className="err";
+   $("loginError").textContent=e.message||String(e);
+ }finally{$("otpVerifyBtn").disabled=false}
 }
 async function passwordLogin(){
  $("loginError").className="";
@@ -1047,6 +1088,8 @@ async function passwordLogin(){
 }
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
+$("otpVerifyBtn").onclick=verifyLoginOtp;
+$("otpCode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();verifyLoginOtp()}};
 $("passwordLoginToggle").onclick=()=>{
  const box=$("passwordLoginBox");
  box.style.display=box.style.display==="none"?"block":"none";
@@ -1056,7 +1099,7 @@ $("forgotPasswordBtn").onclick=openForgotPassword;
 
 function openQuickRegistration(){
  openPhotoModal("Запросить доступ",
-   '<div class="notice"><b>Новый участник проходит три шага.</b><br>1. Имя, e-mail и согласие. 2. Подтверждение e-mail по одноразовой ссылке. 3. Решение администратора о допуске.</div>'+
+   '<div class="notice"><b>Новый участник проходит три шага.</b><br>1. Имя, e-mail и согласие. 2. Подтверждение e-mail 6-значным кодом из письма. 3. Решение администратора о допуске.</div>'+
    '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
    '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
     '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку данных для работы закрытого архива, включая внутреннюю статистику посещений и разделов без сохранения IP‑адреса и цифрового fingerprint. <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
@@ -1066,7 +1109,7 @@ function openQuickRegistration(){
      const email=$("pfRegEmail").value.trim();
      if(!display_name||!email)throw new Error("Введите имя и e-mail.");
      if(!$("pfRegConsent").checked)throw new Error("Нужно подтвердить согласие для закрытого архива.");
-     $("photoModalMsg").textContent="Отправляю ссылку для входа…";
+     $("photoModalMsg").textContent="Отправляю код подтверждения…";
      const {error}=await sb.auth.signInWithOtp({
        email,
        options:{
@@ -1077,10 +1120,24 @@ function openQuickRegistration(){
      });
      if(error)throw error;
      $("photoModalBody").innerHTML=
-       '<div class="notice"><b>Заявка создана.</b><br>На '+esc(email)+' отправлено письмо. Откройте одноразовую ссылку, чтобы подтвердить адрес. После этого заявка появится у администратора.</div>'+
-       '<div class="formHint">Архив откроется только после допуска администратором. Пароль для обычного входа не нужен.</div>';
-     $("photoModalSave").textContent="Понятно";
-     photoModalSubmit=async()=>{closePhotoModal();showView("profile")};
+       '<div class="notice"><b>Письмо отправлено.</b><br>На '+esc(email)+' должен прийти 6-значный код подтверждения.</div>'+
+       '<label>Код из письма</label><input id="pfRegOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">'+
+       '<div class="formHint">Введите код здесь — не нужно переходить в Safari. После подтверждения заявка появится у администратора.</div>';
+     $("photoModalSave").textContent="Подтвердить код";
+     photoModalSubmit=async()=>{
+       $("photoModalMsg").textContent="Проверяю код…";
+       const state=await finishOtpLogin(email,$("pfRegOtp").value);
+       if(state==="active"){
+         closePhotoModal();
+         return;
+       }
+       $("photoModalBody").innerHTML=
+         '<div class="notice"><b>E-mail подтверждён.</b><br>Заявка передана администратору проекта.</div>'+
+         '<div class="formHint">Архив откроется после решения администратора. Вы можете позже открыть Профиль и нажать «Проверить решение».</div>';
+       $("photoModalMsg").textContent="";
+       $("photoModalSave").textContent="Перейти в профиль";
+       photoModalSubmit=async()=>{closePhotoModal();await showView("profile")};
+     };
    }
  );
  $("photoModalSave").textContent="Отправить заявку";

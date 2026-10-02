@@ -2537,3 +2537,32 @@ html[data-theme="light"] .storyEditorialNote{
 html[data-theme="dark"] .photoTileImage{
   background:#f8f5ed!important;
 }
+
+
+/* Hard light-mode override against UA auto-dark */
+html[data-theme-mode="light"],
+html[data-theme-mode="light"] body{
+  color-scheme:only light!important;
+}
+html[data-theme-mode="light"] body,
+html[data-theme-mode="light"] main,
+html[data-theme-mode="light"] .view{
+  color:var(--ink)!important;
+}
+html[data-theme-mode="light"] input,
+html[data-theme-mode="light"] select,
+html[data-theme-mode="light"] textarea,
+html[data-theme-mode="light"] button{
+  color-scheme:only light!important;
+}
+html[data-theme-mode="light"] input,
+html[data-theme-mode="light"] select,
+html[data-theme-mode="light"] textarea{
+  background:#fff!important;
+  color:#17344f!important;
+  border-color:#d7c9ae!important;
+}
+html[data-theme-mode="light"] option{
+  background:#fff!important;
+  color:#17344f!important;
+}

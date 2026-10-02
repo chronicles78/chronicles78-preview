@@ -2,11 +2,15 @@
 -- Applied to project fnwpkmjjdhflnqghnogj on 2026-10-02.
 
 drop policy if exists profiles_read_self_pending on public.profiles;
-create policy profiles_read_self_pending
+drop policy if exists profiles_read_active on public.profiles;
+create policy profiles_read_active
 on public.profiles
 for select
 to authenticated
-using (id = (select auth.uid()));
+using (
+  private.is_active_user()
+  or id = (select auth.uid())
+);
 
 create or replace function private.handle_new_user()
 returns trigger

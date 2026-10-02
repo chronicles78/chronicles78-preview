@@ -33,6 +33,29 @@ function scheduleRoomReload(delay=220){
  clearTimeout(chatReloadTimer);
  chatReloadTimer=setTimeout(()=>{if(user&&profile?.is_active)loadRoom()},delay);
 }
+const chatReadSyncByRoom=new Map();
+async function markRoomRead(room){
+ if(!user||!profile?.is_active||!room)return;
+ const key=user.id+"|"+room;
+ if(chatReadSyncByRoom.has(key))return chatReadSyncByRoom.get(key);
+ const task=(async()=>{
+   const {data:msgs,error}=await sb.from("messages").select("id").eq("room_id",room).neq("author_id",user.id);
+   if(error)return;
+   const ids=(msgs||[]).map(x=>x.id);
+   if(!ids.length){if(typeof loadChatUnreadCount==="function")await loadChatUnreadCount();return}
+   const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",user.id).in("message_id",ids);
+   if(re)return;
+   const seen=new Set((reads||[]).map(x=>x.message_id));
+   const missing=ids.filter(id=>!seen.has(id)).map(message_id=>({message_id,user_id:user.id}));
+   if(missing.length){
+     const {error:ue}=await sb.from("message_reads").upsert(missing,{onConflict:"message_id,user_id",ignoreDuplicates:true});
+     if(ue)return;
+   }
+   if(typeof loadChatUnreadCount==="function")await loadChatUnreadCount();
+ })().finally(()=>chatReadSyncByRoom.delete(key));
+ chatReadSyncByRoom.set(key,task);
+ return task;
+}
 async function loadRoom(){
  if(!user||!profile?.is_active)return;
  const seq=++chatLoadSeq,room=currentRoom;
@@ -58,12 +81,9 @@ async function loadRoom(){
    if(unread.length){
      const now=new Date().toISOString();
      readRows.push(...unread.map(x=>({...x,read_at:now})));
-     setTimeout(async()=>{
-       const {error:re}=await sb.from("message_reads").upsert(unread,{onConflict:"message_id,user_id",ignoreDuplicates:true});
-       if(!re&&typeof loadChatUnreadCount==="function")loadChatUnreadCount();
-     },0);
    }
  }
+ setTimeout(()=>{if(room===currentRoom)markRoomRead(room)},0);
  if(seq!==chatLoadSeq||room!==currentRoom)return;
 
  const allAttachments=lastMessages.flatMap(m=>(m.attachments||[]).filter(x=>!x.is_removed));

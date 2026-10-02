@@ -315,7 +315,7 @@
   <div id="otpLoginBox" style="display:none;margin-top:10px">
     <label>6-значный код из письма</label>
     <input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
-    <button class="primary" id="otpVerifyBtn" type="button">Подтвердить код</button>
+    <button class="primary" id="otpVerifyBtn" type="button" onclick="verifyLoginOtp(event)">Подтвердить код</button>
   </div>
   <div id="loginError"></div>
   <div class="notice" style="margin-top:14px"><b>Впервые здесь?</b><br>Запросите доступ: подтвердите e-mail, после чего администратор решит, допустить ли вас в закрытый архив.</div>
@@ -369,7 +369,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261002-6"></script>
+<script src="assets/js/core.js?v=20261002-7"></script>
 <script src="assets/js/chat.js?v=20261001-1"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>

@@ -294,8 +294,20 @@
     </details>
   </div>
 </details>
+<div class="card form" id="adminLoginBox">
+  <b>Вход администратора</b>
+  <div class="notice" style="margin-top:9px"><b>Отдельный вход без заявок и согласований.</b><br>Введите e-mail администратора и пароль.</div>
+  <label>E-mail администратора</label>
+  <input id="adminEmail" type="email" autocomplete="username" placeholder="admin@example.com">
+  <label>Пароль</label>
+  <input id="adminPassword" type="password" autocomplete="current-password">
+  <button class="primary" id="adminLoginBtn" type="button">Войти как администратор</button>
+  <button class="secondary" id="adminResetBtn" type="button">Задать / восстановить пароль администратора</button>
+  <div id="adminLoginMsg" style="margin-top:10px"></div>
+</div>
+
 <div class="card form" id="loginBox">
-  <b>Вход в архив</b>
+  <b>Вход участника</b>
   <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 6-значный код — введите его здесь же. Пароль не нужен.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
   <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
@@ -308,7 +320,7 @@
   <div id="loginError"></div>
   <div class="notice" style="margin-top:14px"><b>Впервые здесь?</b><br>Запросите доступ: подтвердите e-mail, после чего администратор решит, допустить ли вас в закрытый архив.</div>
   <button class="secondary" id="goRegisterBtn" type="button">Запросить доступ</button>
-  <button class="secondary" id="passwordLoginToggle" type="button">Резервный вход по старому паролю</button>
+  <button class="secondary" id="passwordLoginToggle" type="button">Резервный вход участника по старому паролю</button>
   <div id="passwordLoginBox" style="display:none;margin-top:9px">
     <div class="formHint">Только для старых учётных записей, где пароль уже был задан. Для обычного входа этот раздел не нужен.</div>
     <label>Пароль</label><input id="password" type="password" autocomplete="current-password">
@@ -357,7 +369,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261002-4"></script>
+<script src="assets/js/core.js?v=20261002-5"></script>
 <script src="assets/js/chat.js?v=20261001-1"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>

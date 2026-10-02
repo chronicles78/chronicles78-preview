@@ -59,7 +59,7 @@ function renderQuestions(){
      '</article>';
  }).join("")||'<div class="notice">По выбранному фильтру вопросов нет.</div>';
  $("questionsList").querySelectorAll("[data-question-context]").forEach(el=>{el.onclick=e=>{if(e.target.closest("[data-tag]")||e.target.closest("[data-q-crop]"))return;openQuestionContext(el.dataset.questionContext)};el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openQuestionContext(el.dataset.questionContext)}}});
- $("questionsList").querySelectorAll("[data-q-crop]").forEach(b=>b.onclick=async e=>{e.stopPropagation();peopleGroup="10А";selectedPersonId=b.dataset.qCrop;showClassNumbers=true;showView("people");document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup==="10А"));await loadClassPhoto();renderPeople();setTimeout(()=>openPersonContext(selectedPersonId),100)});
+ $("questionsList").querySelectorAll("[data-q-crop]").forEach(b=>b.onclick=async e=>{e.stopPropagation();peopleGroup="10А";selectedPersonId=b.dataset.qCrop;showClassNumbers=true;document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x.dataset.pgroup==="10А"));await showView("people");await loadClassPhoto();renderPeople();openPersonContext(selectedPersonId)});
 }
 async function loadQuestions(){
  if(!user||!profile?.is_active){

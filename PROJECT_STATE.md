@@ -1488,3 +1488,22 @@ Apple прямо документирует: ссылка входа из e-mail
 Supabase также поддерживает 6-значный Email OTP через ту же `signInWithOtp()`, если Auth email template использует `{{ .Token }}` вместо `{{ .ConfirmationURL }}`.
 
 Текущий проект пока оставлен на magic-link, чтобы не сломать вход до изменения hosted Supabase Auth email template. Переключение на код требует изменения шаблона Auth → Emails; доступный Supabase MCP не предоставляет операции изменения hosted email templates. После изменения шаблона frontend следует перевести с перехода по ссылке на `verifyOtp({email, token, type:'email'})`, что устранит различие между Safari и Home Screen при авторизации.
+
+
+## 68. Email OTP — переход с magic-link на 6-значный код — 2026-10-02
+
+- Пользователь подтвердил, что custom SMTP сохранён в Supabase.
+- Hosted Auth email templates пока редактируются вручную в Dashboard; Supabase MCP не предоставляет операции изменения этих шаблонов.
+- Frontend переведён в безопасный переходный dual-mode:
+  - обычный вход после `signInWithOtp({shouldCreateUser:false})` показывает поле 6-значного кода;
+  - код проверяется через `verifyOtp({email, token, type:"email"})`;
+  - старая magic-link ссылка продолжает работать через существующий auth return flow до окончательной замены шаблонов;
+  - новый кандидат после запроса доступа получает поле OTP прямо в модальном окне;
+  - успешная проверка OTP гидратит профиль и ведёт либо в архив (если уже допущен), либо в статус ожидания администратора.
+- Для iPhone/Home Screen это устраняет необходимость открывать ссылку в Safari после того, как шаблоны будут переключены на `{{ .Token }}`.
+- Frontend cache: `assets/js/core.js?v=20261002-4`.
+- Коммиты:
+  - `c3975bd552db204a8689a152f9ccd1a5dd600bc5` — Add email OTP login and signup verification;
+  - `1c729d738d6ce2d56647b0f52c0bb1d3ac580891` — Publish six digit OTP login UI.
+- Syntax-check `core.js`: ok.
+- Следующий ручной шаг: заменить содержимое Auth templates `Confirm sign up` и `Magic link or OTP`, используя `{{ .Token }}` вместо `{{ .ConfirmationURL }}`, затем выполнить реальный тест нового кандидата и существующего участника.

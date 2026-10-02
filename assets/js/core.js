@@ -27,6 +27,7 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSe
 const PASSWORD_RESET_REDIRECT=SITE_URL;
 const CONSENT_CODE="archive_personal_data";
 const CONSENT_VERSION="2026-09-30-v3";
+const OTP_EMAIL_KEY="chronicles78-pending-otp-email";
 const START_PARAMS=new URLSearchParams(location.search);
 const OPEN_LOGIN_ON_START=START_PARAMS.get("login")==="1";
 const OPEN_REGISTER_ON_START=START_PARAMS.get("register")==="1";
@@ -133,9 +134,10 @@ async function hydrateProfileFromSession(session,{render=true}={}){
    if(!pe&&p){
      pendingProfile=p;
      const hasConsent=!ce&&!!consent&&!consent.withdrawn_at;
-     const adminActive=p.role==="admin"&&p.is_active&&!p.access_blocked;
+     const admittedActive=p.is_active&&!p.access_blocked;
+     const adminActive=p.role==="admin"&&admittedActive;
      consentRequired=!hasConsent&&!adminActive;
-     if(adminActive||(hasConsent&&p.is_active&&!p.access_blocked)){
+     if(adminActive||(hasConsent&&admittedActive)){
        profile={...p,consentAcceptedAt:consent?.accepted_at||null};
      }
    }
@@ -933,8 +935,11 @@ function setProfileSections({personal=false,my=false,editorial=false,admin=false
 function renderProfile(){
  if(user&&pendingProfile&&!profile){
    if($("adminLoginBox"))$("adminLoginBox").style.display="none";
+   const alreadyAdmitted=!!pendingProfile.is_active&&!pendingProfile.access_blocked;
    const pendingMessage=consentRequired
-     ?"Нужно подтвердить действующее согласие. Это необходимо для участия, но само по себе не включает доступ."
+     ?(alreadyAdmitted
+       ?"Доступ уже одобрен администратором. Осталось обновить действующее согласие — повторное согласование не требуется."
+       :"Нужно подтвердить действующее согласие. После этого заявка останется на рассмотрении администратора.")
      :(pendingProfile.access_blocked
        ?"Администратор не предоставил доступ либо ранее отключил его."
        :"Заявка зарегистрирована и ожидает решения администратора.");
@@ -994,7 +999,13 @@ function renderProfile(){
    $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";
    if($("loginContextHint"))$("loginContextHint").textContent=APP_STANDALONE
      ?"Сейчас сайт открыт как отдельное приложение с экрана «Домой». Его вход хранится отдельно от Safari."
-     :"Сейчас сайт открыт в браузере. На iPhone ярлык с экрана «Домой» имеет отдельную сессию входа.";$("consentGateBox").style.display="none";$("nameBox").style.display="none";$("privacyBox").style.display="none";$("composerWrap").style.display="none";
+     :"Сейчас сайт открыт в браузере. На iPhone ярлык с экрана «Домой» имеет отдельную сессию входа.";
+   const pendingOtpEmail=(localStorage.getItem(OTP_EMAIL_KEY)||"").trim();
+   if(pendingOtpEmail){
+     $("email").value=pendingOtpEmail;
+     $("otpLoginBox").style.display="block";
+   }
+   $("consentGateBox").style.display="none";$("nameBox").style.display="none";$("privacyBox").style.display="none";$("composerWrap").style.display="none";
    if($("photoContributeBox"))$("photoContributeBox").style.display="none";
    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
     if($("photoEditorBar"))$("photoEditorBar").style.display="none";
@@ -1017,10 +1028,13 @@ async function init(){
  updateContextBack();
 }
 async function finishOtpLogin(email,token){
- token=String(token||"").replace(/\s+/g,"");
- if(!/^\d{6}$/.test(token))throw new Error("Введите 6 цифр из письма.");
+ email=String(email||"").trim().toLowerCase();
+ token=String(token||"").replace(/\D/g,"");
+ if(!email)throw new Error("Не найден e-mail, для которого был отправлен код. Запросите новый код.");
+ if(!/^\d{6}$/.test(token))throw new Error("Введите ровно 6 цифр из последнего письма.");
  const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
  if(error)throw error;
+ localStorage.removeItem(OTP_EMAIL_KEY);
  await hydrateProfileFromSession(data.session,{render:false});
  renderProfile();
  if(profile){
@@ -1030,6 +1044,7 @@ async function finishOtpLogin(email,token){
  }
  if(pendingProfile){
    await showView("profile");
+   if(consentRequired&&pendingProfile.is_active&&!pendingProfile.access_blocked)return "consent";
    return pendingProfile.access_blocked?"blocked":"pending";
  }
  throw new Error("Код принят, но профиль не найден.");
@@ -1038,7 +1053,7 @@ async function finishOtpLogin(email,token){
 async function login(){
  $("loginError").className="";
  $("loginError").textContent="";
- const email=$("email").value.trim();
+ const email=$("email").value.trim().toLowerCase();
  if(!email){$("loginError").className="err";$("loginError").textContent="Введите e-mail.";return}
  $("loginBtn").disabled=true;
  try{
@@ -1047,11 +1062,13 @@ async function login(){
     options:{shouldCreateUser:false,emailRedirectTo:SITE_URL}
   });
   if(error)throw error;
+  localStorage.setItem(OTP_EMAIL_KEY,email);
+  $("email").value=email;
   $("otpLoginBox").style.display="block";
   $("otpCode").value="";
   $("otpCode").focus();
   $("loginError").className="ok";
-  $("loginError").innerHTML="<b>Письмо отправлено.</b><br>Если в письме указан 6-значный код — введите его ниже. Пока почтовые шаблоны переключаются, старая одноразовая ссылка тоже продолжает работать.";
+  $("loginError").innerHTML="<b>Код отправлен на "+esc(email)+".</b><br>Введите 6 цифр именно из последнего письма. Если приложение свернётся при открытии почты, этот e-mail сохранится.";
  }catch(e){
   $("loginError").className="err";
   $("loginError").textContent=(e.message||String(e)).includes("Signups not allowed")
@@ -1060,24 +1077,36 @@ async function login(){
  }finally{$("loginBtn").disabled=false}
 }
 
-async function verifyLoginOtp(){
- $("loginError").className="";
- $("loginError").textContent="";
- $("otpVerifyBtn").disabled=true;
+async function verifyLoginOtp(event){
+ if(event?.preventDefault)event.preventDefault();
+ const btn=$("otpVerifyBtn");
+ const oldText=btn.textContent;
+ $("loginError").className="ok";
+ $("loginError").textContent="Проверяю код…";
+ btn.disabled=true;
+ btn.textContent="Проверяю…";
  try{
-   const email=$("email").value.trim();
-   if(!email)throw new Error("Сначала укажите e-mail.");
+   const issuedEmail=(localStorage.getItem(OTP_EMAIL_KEY)||"").trim().toLowerCase();
+   const typedEmail=$("email").value.trim().toLowerCase();
+   const email=issuedEmail||typedEmail;
+   if(!email)throw new Error("Сначала получите новый код для входа.");
    const state=await finishOtpLogin(email,$("otpCode").value);
    if(state==="active")return;
    $("loginError").className="ok";
    $("loginError").textContent=state==="blocked"
-     ?"Код подтверждён. Доступ к архиву не предоставлен или был отключён администратором."
-     :"Код подтверждён. Заявка ожидает решения администратора.";
+     ?"Код подтверждён. Доступ к архиву отключён администратором."
+     :(state==="consent"
+       ?"Код подтверждён. Ваш доступ уже одобрен; осталось обновить согласие."
+       :"Код подтверждён. Заявка ожидает решения администратора.");
  }catch(e){
    $("loginError").className="err";
    $("loginError").textContent=e.message||String(e);
- }finally{$("otpVerifyBtn").disabled=false}
+ }finally{
+   btn.disabled=false;
+   btn.textContent=oldText;
+ }
 }
+window.verifyLoginOtp=verifyLoginOtp;
 async function passwordLogin(){
  $("loginError").className="";
  $("loginError").textContent="";
@@ -1137,10 +1166,9 @@ function openAdminPasswordReset(){
    }
  );
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
 $("loginBtn").onclick=login;
-$("otpVerifyBtn").onclick=verifyLoginOtp;
-$("otpCode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();verifyLoginOtp()}};
+$("otpCode").onkeydown=e=>{if(e.key==="Enter"){verifyLoginOtp(e)} };
 $("passwordLoginToggle").onclick=()=>{
  const box=$("passwordLoginBox");
  box.style.display=box.style.display==="none"?"block":"none";

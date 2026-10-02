@@ -2646,3 +2646,36 @@ html[data-theme="dark"] .photoTileBody{
     drop-shadow(0 1px 0 rgba(72,52,31,.34))
     drop-shadow(0 9px 13px rgba(54,40,25,.30))!important;
 }
+
+
+/* Photo archive: historically rounded cutter edge */
+.archiveSvgDefs{
+  position:absolute;
+  width:0;
+  height:0;
+  overflow:hidden;
+  pointer-events:none;
+}
+.photoTileImage{
+  width:calc(100% - 24px)!important;
+  margin:12px 12px 10px!important;
+  padding:10px!important;
+  background:#fffef9!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  clip-path:url(#photoPrintScallop)!important;
+  -webkit-clip-path:url(#photoPrintScallop)!important;
+  filter:
+    drop-shadow(0 1px 0 rgba(74,56,37,.28))
+    drop-shadow(0 6px 9px rgba(54,40,25,.22))!important;
+}
+.photoTileImage img{
+  border:1px solid rgba(28,39,48,.10)!important;
+}
+.photoTile:hover .photoTileImage{
+  transform:translateY(-1px) rotate(-.08deg);
+  filter:
+    drop-shadow(0 1px 0 rgba(74,56,37,.32))
+    drop-shadow(0 8px 11px rgba(54,40,25,.26))!important;
+}

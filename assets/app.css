@@ -2380,3 +2380,161 @@ html[data-theme="dark"] .nav.active b{
 @media(max-width:560px){
  .buildVersion{font-size:8px;padding:3px 4px}
 }
+
+
+/* 2026-10-02 light archive palette + book typography + Soviet photo prints */
+html[data-theme="light"]{
+  --bg:#efe4ca;
+  --paper:#ffffff;
+  --paper-2:#ffffff;
+  --ink:#17344f;
+  --muted:#6f6a60;
+  --line:#d7c9ae;
+  --soft:#eadfc8;
+  --soft-2:#f5ecda;
+  --mine:#edf2f5;
+  --image-bg:#e7dcc6;
+  --header:#fffdf8f5;
+  --nav-bg:#f8f0e2f7;
+  --input:#ffffff;
+  --shadow:#4b38221f;
+  --primary-bg:#a6524b;
+  --primary-ink:#ffffff;
+  --selected-bg:#17344f;
+  --selected-ink:#ffffff;
+  --focus:#a6524b;
+  color-scheme:only light;
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(circle at 18% 11%,rgba(123,88,45,.032) 0 1px,transparent 1.35px),
+    radial-gradient(circle at 76% 63%,rgba(123,88,45,.022) 0 1px,transparent 1.25px),
+    linear-gradient(180deg,#f2e8d1 0%,#ede1c6 100%);
+  background-size:24px 29px,31px 27px,auto;
+  color:var(--ink);
+}
+html[data-theme="light"] .top{
+  background:#fffdf8f5;
+}
+html[data-theme="light"] .bottom{
+  background:#f8f0e2f7;
+}
+html[data-theme="light"] .card,
+html[data-theme="light"] .archiveCard,
+html[data-theme="light"] .storyCatalogCard,
+html[data-theme="light"] .photoTile,
+html[data-theme="light"] .cityCard,
+html[data-theme="light"] .personCard,
+html[data-theme="light"] .reviewCard,
+html[data-theme="light"] .moderationCard,
+html[data-theme="light"] .photoSubmissionCard,
+html[data-theme="light"] .profileWorkspace,
+html[data-theme="light"] .profileSectionPane,
+html[data-theme="light"] .profileHorizontalContent,
+html[data-theme="light"] .trafficPanel,
+html[data-theme="light"] .trafficKpi,
+html[data-theme="light"] .notice,
+html[data-theme="light"] .bubble{
+  background:#fff;
+}
+html[data-theme="light"] .storyCatalogCard,
+html[data-theme="light"] .photoTile,
+html[data-theme="light"] .cityCard,
+html[data-theme="light"] .personCard,
+html[data-theme="light"] .card{
+  box-shadow:0 5px 15px rgba(67,48,28,.055);
+}
+html[data-theme="light"] a,
+html[data-theme="light"] .textLink,
+html[data-theme="light"] .editorialLink{
+  color:#8f4742;
+}
+html[data-theme="light"] .primary,
+html[data-theme="light"] .send,
+html[data-theme="light"] .contextAction.primary,
+html[data-theme="light"] .memoryPrimary{
+  background:#a6524b;
+  border-color:#a6524b;
+  color:#fff;
+}
+html[data-theme="light"] .primary:hover,
+html[data-theme="light"] .send:hover,
+html[data-theme="light"] .contextAction.primary:hover,
+html[data-theme="light"] .memoryPrimary:hover{
+  background:#914740;
+  border-color:#914740;
+}
+
+/* Theme selector: explicit Auto / Light / Dark mode, not just an ambiguous icon. */
+.themeBtn{
+  width:auto;
+  min-width:86px;
+  height:34px;
+  padding:0 9px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  white-space:nowrap;
+}
+.themeBtnIcon{font-size:15px;line-height:1}
+.themeBtnLabel{font-size:10px;font-weight:800;letter-spacing:.01em}
+@media(max-width:640px){
+  .themeBtn{min-width:34px;width:34px;padding:0}
+  .themeBtnLabel{display:none}
+}
+
+/* Story reading: white book page on old-paper desk. */
+html[data-theme="light"] .storyReadingText{
+  max-width:820px;
+  background:#fff;
+  border:1px solid rgba(93,70,42,.16);
+  box-shadow:0 12px 32px rgba(70,49,27,.09);
+  padding:34px 44px 40px;
+}
+.storyProse{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:18px;
+  line-height:1.78;
+  letter-spacing:.004em;
+}
+.storyProse p{
+  margin:0 0 1.05em;
+}
+.storyProse p+p{
+  text-indent:1.45em;
+}
+html[data-theme="light"] .storySources,
+html[data-theme="light"] .storyEditorialNote{
+  background:#fff;
+}
+@media(max-width:650px){
+  html[data-theme="light"] .storyReadingText{
+    padding:20px 16px 26px;
+    box-shadow:0 5px 18px rgba(70,49,27,.07);
+  }
+  .storyProse{font-size:17px;line-height:1.72}
+}
+
+/* Photo archive: Soviet glossy prints with a white zig-zag photographic edge. */
+.photoTileImage{
+  width:calc(100% - 18px)!important;
+  margin:9px 9px 0;
+  padding:9px;
+  border:0!important;
+  border-radius:0!important;
+  background:#fff!important;
+  overflow:hidden;
+  clip-path:polygon(0% 1.2%, 5% 0%, 10% 1.2%, 15% 0%, 20% 1.2%, 25% 0%, 30% 1.2%, 35% 0%, 40% 1.2%, 45% 0%, 50% 1.2%, 55% 0%, 60% 1.2%, 65% 0%, 70% 1.2%, 75% 0%, 80% 1.2%, 85% 0%, 90% 1.2%, 95% 0%, 100% 1.2%, 100% 5%, 98.8% 10%, 100% 15%, 98.8% 20%, 100% 25%, 98.8% 30%, 100% 35%, 98.8% 40%, 100% 45%, 98.8% 50%, 100% 55%, 98.8% 60%, 100% 65%, 98.8% 70%, 100% 75%, 98.8% 80%, 100% 85%, 98.8% 90%, 100% 95%, 98.8% 100%, 95% 100%, 90% 98.8%, 85% 100%, 80% 98.8%, 75% 100%, 70% 98.8%, 65% 100%, 60% 98.8%, 55% 100%, 50% 98.8%, 45% 100%, 40% 98.8%, 35% 100%, 30% 98.8%, 25% 100%, 20% 98.8%, 15% 100%, 10% 98.8%, 5% 100%, 0% 98.8%, 0% 95%, 1.2% 90%, 0% 85%, 1.2% 80%, 0% 75%, 1.2% 70%, 0% 65%, 1.2% 60%, 0% 55%, 1.2% 50%, 0% 45%, 1.2% 40%, 0% 35%, 1.2% 30%, 0% 25%, 1.2% 20%, 0% 15%, 1.2% 10%, 0% 5%);
+  filter:drop-shadow(0 5px 7px rgba(54,40,25,.18));
+}
+.photoTileImage img{
+  border:1px solid rgba(34,42,49,.08);
+  filter:sepia(.055) saturate(.82) contrast(.99)!important;
+}
+.photoTile:hover .photoTileImage{
+  filter:drop-shadow(0 7px 9px rgba(54,40,25,.22));
+}
+html[data-theme="dark"] .photoTileImage{
+  background:#f8f5ed!important;
+}

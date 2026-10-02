@@ -1866,3 +1866,185 @@ html[data-theme="dark"] .nav.active b{
   color:#d4b483;
   border-color:#18140f;
 }
+
+
+/* Desktop density pass: compact editorial workspace */
+@media (min-width:1024px){
+  /* General rhythm */
+  main{
+    max-width:1460px;
+    padding:0 20px 26px;
+  }
+  .pad,.archiveList{padding:14px 0}
+  .card{
+    padding:11px 12px;
+    margin-bottom:8px;
+  }
+  .notice{padding:9px 10px;font-size:12px;line-height:1.4}
+  .primary,.secondary{padding:9px 11px;margin-top:9px}
+  .homeActions{gap:9px;margin-top:7px}
+  .filterRail{gap:5px}
+  .cityToolbar,.storiesToolbar,.photoToolbar,.peopleToolbar,.questionToolbar{
+    gap:6px;
+    margin-bottom:9px;
+  }
+
+  /* Editorial intros: title and explanation share one row instead of stacking */
+  .storyArchiveIntro,.peopleArchiveIntro,.photoArchiveIntro,.cityArchiveIntro{
+    display:grid;
+    grid-template-columns:minmax(210px,.42fr) minmax(0,1fr);
+    column-gap:24px;
+    row-gap:3px;
+    align-items:end;
+    padding:8px 2px 10px;
+    margin-bottom:10px;
+  }
+  .storyArchiveIntro>.memoryEyebrow,
+  .peopleArchiveIntro>.memoryEyebrow,
+  .photoArchiveIntro>.memoryEyebrow,
+  .cityArchiveIntro>.memoryEyebrow{
+    grid-column:1/-1;
+  }
+  .storyArchiveIntro h2,.peopleArchiveIntro h2,.photoArchiveIntro h2,.cityArchiveIntro h2{
+    margin:3px 0 0;
+    font-size:36px;
+    line-height:.98;
+  }
+  .storyArchiveIntro p,.peopleArchiveIntro p,.photoArchiveIntro p,.cityArchiveIntro p{
+    max-width:none;
+    margin:0;
+    font-size:14px;
+    line-height:1.42;
+  }
+  .photoArchiveStats,.cityArchiveStats{padding:0 2px 7px;font-size:10px}
+
+  /* Home: preserve concept B, reduce vertical consumption */
+  #home .homePad{padding:11px 10px 26px}
+  #home .homeWrap{max-width:1240px}
+  .memoryMosaicHero{min-height:395px}
+  .mosaicPhotoClass{left:4.5%;top:6%;width:34%;height:185px}
+  .mosaicPhotoA{right:7%;top:4%;width:31%;height:135px}
+  .mosaicPhotoB{left:8%;bottom:3%;width:28%;height:150px}
+  .mosaicPhotoC{right:4%;bottom:3%;width:29%;height:142px}
+  .mosaicPhoto{padding:6px}
+  .mosaicPhoto::after{inset:6px}
+  .mosaicTicket{right:21%;top:23%;width:80px;padding:7px 6px}
+  .mosaicTicket strong{font-size:17px}
+  .mosaicNote{right:10%;bottom:6%;width:126px;padding:10px 11px}
+  .mosaicNote span{font-size:17px}.mosaicNote b{font-size:14px}
+  .mosaicTitleCard{
+    width:min(500px,52%);
+    padding:24px 30px 21px;
+  }
+  .mosaicTitleCard h1{font-size:clamp(40px,4.4vw,58px);margin:8px 0 7px}
+  .mosaicTitleCard p{font-size:15px;line-height:1.35}
+  .mosaicRule{margin:9px auto}
+  .mosaicTitleCard .memoryHeroActions{margin-top:15px;gap:7px}
+  .mosaicTitleCard .memoryPrimary,.mosaicTitleCard .memoryGhost{padding:9px 12px}
+  #home .homeStateLine{padding-top:5px}
+
+  .homeGatewayGrid{gap:10px;margin-top:10px}
+  .homeGatewayImage,.homeGatewayArt{min-height:105px}
+  .homeGatewayBody{padding:10px 11px}
+  .homeGatewayBody h2{font-size:20px;margin:5px 0}
+  .homeGatewayBody p{font-size:12px;line-height:1.3}
+  .homeGatewayBody strong{margin-top:7px;font-size:10px}
+
+  .homeSectionHead{margin:17px 0 7px;padding-bottom:6px}
+  .homeSectionHead h2{font-size:20px}
+  .homeStoryWeekGrid{gap:12px}
+  .homeStoryVisual,.homeStoryPlaceholder{min-height:185px}
+  .homeStoryCopy{padding:5px 2px}
+  .homeStoryCopy h3{font-size:22px;margin:6px 0}
+  .homeStoryCopy p{font-size:12.5px;line-height:1.42}
+  .homeStoryCopy .memoryPrimary{margin-top:11px;padding:8px 11px}
+  .homeStoryQuote{padding:15px 13px}
+  .homeStoryQuote>span{font-size:43px}
+  .homeStoryQuote p{font-size:15px;line-height:1.38;margin:9px 0 7px}
+  .homeFreshGrid{gap:8px}
+  .homeFreshCard>img,.homeFreshPlaceholder{height:78px}
+  .homeFreshCard>div:last-child{padding:8px 9px 9px}
+  .homeFreshCard b{font-size:12.5px}
+  .homeMemoryRibbon{margin:18px 0 10px;padding:15px 20px 14px}
+  .homeMemoryRibbon blockquote{font-size:15px;line-height:1.38;margin:6px auto 4px}
+  #home .memoryArchiveNote{margin-top:10px;padding:9px 11px}
+
+  /* Catalog density */
+  #storiesList,#questionsList{gap:9px}
+  #storiesList>.archiveCard,#questionsList>.archiveCard{padding:11px}
+  .storyShelfHead{margin:11px 0 1px;padding:11px 2px 7px}
+  .storyShelfHead.fragmentShelf{margin-top:20px;padding-top:15px}
+  .storyShelfHead.thematicShelf{margin-top:18px;padding:15px 12px 9px}
+  .storyShelfHead.thematicShelf b{font-size:22px}
+  .storyShelfHead.thematicShelf span{font-size:12px;line-height:1.35}
+  .storyToc{margin:10px 0 12px}
+  .storyToc button{padding:9px 8px 10px}
+  .storyCatalogBody{padding:12px 13px 11px}
+  .storyCatalogCard.featured:first-child h3{font-size:22px}
+
+  .photoGrid{gap:10px}
+  .photoTile{border-radius:8px;box-shadow:0 4px 12px #00000007}
+  .photoTileBody{padding:10px 11px 11px}
+  .photoTileBody h3{font-size:17px;margin-bottom:5px}
+  .photoTileDesc{font-size:12.5px;line-height:1.4;margin:5px 0}
+  .photoTilePeople{font-size:10.5px;line-height:1.35;margin-top:5px}
+  .photoTileActions{gap:9px;margin-top:8px;padding-top:7px}
+  .photoAlbumLead .photoTileBody h3{font-size:22px}
+  .photoAlbumLead .photoTileDesc{font-size:13px;line-height:1.4}
+
+  .cityGrid{gap:10px}
+  .cityCard{border-radius:8px;box-shadow:0 4px 12px #00000007}
+  .cityCardBody{padding:11px 12px}
+  .cityCardBody h3{font-size:20px;margin-bottom:5px}
+  .cityExcerpt{font-size:13px;line-height:1.42}
+  .cityCardKicker{margin-bottom:4px}
+  .cityCardMetaLine{margin-bottom:5px}
+  .cityReaderActions{margin-top:8px}
+  .cityMemorySection{margin-top:22px;padding-top:15px}
+  .cityMemoryIntro{margin-bottom:9px}
+  .cityMemoryIntro h2{font-size:34px;margin:4px 0 6px}
+  .cityMemoryIntro p{font-size:14px;line-height:1.42}
+
+  /* Chat */
+  .chat{grid-template-columns:190px minmax(0,1fr)}
+  .rooms{padding:9px 7px}
+  .room{padding:7px 9px}
+  .messages{padding:10px 15px 88px}
+  .bubble{max-width:min(76%,780px)}
+  .composer{padding:7px 10px 10px}
+
+  /* People */
+  .classPeopleLayout{gap:12px}
+  .peopleToolbar{margin-bottom:8px}
+
+  /* Profile */
+  #profile>.pad{max-width:1060px}
+  .profilePage{padding-top:9px;padding-bottom:20px}
+  .profileIdentityCard{padding:10px 12px;margin-bottom:7px}
+  .profileIdentityCard h2{font-size:21px;margin:2px 0 6px}
+  .profileWorkspace{margin-top:7px}
+  .profilePrimaryTab{min-height:58px;padding:8px 11px}
+  .profilePrimaryTab>small{margin-top:2px}
+  .profileSecondaryNav{min-height:39px}
+  .profileSecondaryTab{min-height:39px}
+  .profileHorizontalContent{min-height:170px;padding:10px}
+  .profilePaneIntro{margin-bottom:8px;padding-bottom:7px}
+  .profilePaneIntro>b{font-size:17px}
+  .trafficKpis{gap:6px;margin:8px 0}
+  .trafficKpi{padding:8px}
+  .trafficKpi b{font-size:23px}
+  .trafficGrid{gap:7px;margin-top:7px}
+  .trafficPanel{padding:9px;border-radius:7px}
+  .trafficPanel h3{font-size:15px;margin-bottom:6px}
+}
+
+@media (min-width:1280px){
+  #storiesList,#questionsList{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .photoGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .cityGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media (min-width:1560px){
+  .photoGrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .cityGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}

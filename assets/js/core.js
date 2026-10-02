@@ -864,38 +864,51 @@ function renderRooms(){
 async function loadHome(){
  const box=$("homeDashboard");
  if(!box)return;
+
  const bindHome=()=>{
    document.querySelectorAll("[data-home-view]").forEach(b=>b.onclick=()=>showView(b.dataset.homeView));
    box.querySelectorAll("[data-home-story]").forEach(b=>b.onclick=async()=>{await showView("stories");await openStory(b.dataset.homeStory)});
    box.querySelectorAll("[data-home-photo]").forEach(b=>b.onclick=async()=>{mediaFocus=b.dataset.homePhoto;await showView("photos");await openArchivePhoto(b.dataset.homePhoto)});
    box.querySelectorAll("[data-home-questions10a]").forEach(b=>b.onclick=()=>{questionPriority="P1";questionStatus="open";showView("questions")});
  };
+
+ const setMosaicImage=(id,url,alt="")=>{
+   const img=$(id);if(!img)return;
+   if(url){img.src=url;img.alt=alt;img.hidden=false}
+   else{img.removeAttribute("src");img.alt="";img.hidden=true}
+ };
+
  document.querySelectorAll("[data-home-view]").forEach(b=>b.onclick=()=>showView(b.dataset.homeView));
 
  if(!user||!profile?.is_active){
-   $("memoryHeroPhoto").style.backgroundImage="";
+   ["homeMosaicClass","homeMosaicPhotoA","homeMosaicPhotoB","homeMosaicPhotoC"].forEach(id=>setMosaicImage(id,null));
    $("homeState").textContent="Закрытый архив класса · материалы открываются после входа.";
-   box.innerHTML='<div class="memoryEntrances">'+
-     '<button class="memoryEntrance" data-home-view="people"><div class="memoryEntranceNo">01 · лица</div><h2>Люди</h2><p>Классная фотография, имена и связи между воспоминаниями.</p></button>'+
-     '<button class="memoryEntrance" data-home-view="stories"><div class="memoryEntranceNo">02 · память</div><h2>Истории</h2><p>То, что осталось не в документах, а в разговорах и памяти.</p></button>'+
-     '<button class="memoryEntrance" data-home-view="city"><div class="memoryEntranceNo">03 · место</div><h2>Город</h2><p>Куйбышев, в котором всё это происходило.</p></button>'+
-   '</div><div class="memoryArchiveNote"><b>Архив закрытый.</b> Фотографии и рабочие обсуждения доступны участникам после входа и не публикуются автоматически.</div>'+
-   '<div class="homeActions"><button class="primary" data-home-view="profile">Войти в архив</button></div>';
+   box.innerHTML=
+     '<div class="homeGatewayGrid public">'+
+       '<button class="homeGatewayCard" data-home-view="people"><div class="homeGatewayArt peopleArt"><span>10Б</span></div><div class="homeGatewayBody"><small>01 · ЛИЦА</small><h2>Люди</h2><p>Имена, лица и связи между воспоминаниями.</p><b>Открыть после входа →</b></div></button>'+
+       '<button class="homeGatewayCard" data-home-view="stories"><div class="homeGatewayArt storyArt"><span>1983</span></div><div class="homeGatewayBody"><small>02 · ПАМЯТЬ</small><h2>Истории</h2><p>Эпизоды, голоса и маленькие подробности большой жизни.</p><b>Открыть после входа →</b></div></button>'+
+       '<button class="homeGatewayCard" data-home-view="city"><div class="homeGatewayArt cityArt"><span>КБШ</span></div><div class="homeGatewayBody"><small>03 · МЕСТО</small><h2>Город и время</h2><p>Куйбышев как фон, который тоже стал частью памяти.</p><b>Открыть после входа →</b></div></button>'+
+     '</div>'+
+     '<div class="memoryArchiveNote"><b>Архив закрытый.</b> Фотографии, имена и рабочие обсуждения доступны участникам после входа и не публикуются автоматически.</div>'+
+     '<div class="homeActions"><button class="primary homeLoginAction" data-home-view="profile">Войти в архив</button></div>';
    bindHome();return;
  }
 
  $("homeState").textContent="Архив открыт · "+profile.display_name;
- box.innerHTML='<div class="notice">Собираю свежие материалы…</div>';
+ box.innerHTML='<div class="homeLoadingLine">Собираю сегодняшнюю страницу архива…</div>';
 
- const [stories,questions,people,media,messages,classPhoto,cityEssays]=await Promise.all([
-   sb.from("archive_stories").select("id,title,period,kind,full_chapter,data,updated_at").order("updated_at",{ascending:false}).limit(20),
+ const featuredIds=["MEDIA-045","MEDIA-013","MEDIA-012"];
+ const [stories,questions,people,media,messages,classPhoto,cityEssays,featuredMedia]=await Promise.all([
+   sb.from("archive_stories").select("id,title,period,kind,full_chapter,data,updated_at").order("updated_at",{ascending:false}).limit(80),
    sb.from("archive_questions").select("id,question,status,priority,tags,links,updated_at").order("updated_at",{ascending:false}).limit(80),
    sb.from("archive_people").select("id,group_name,number,canonical_name,identification_status").order("number"),
-   sb.from("archive_media").select("id,title,linked_story,quality_status,data,current_storage_path,updated_at").order("updated_at",{ascending:false}).limit(30),
+   sb.from("archive_media").select("id,title,linked_story,quality_status,data,current_storage_path,updated_at").order("updated_at",{ascending:false}).limit(40),
    sb.from("messages").select("id,body,created_at,room_id,author_id,author:profiles!messages_author_id_fkey(display_name)").order("created_at",{ascending:false}).limit(8),
    sb.from("class_photos").select("id,title,storage_path").eq("id","CLASS-10B").maybeSingle(),
-   sb.from("city_essays").select("id,title,body,period,source_status,updated_at").not("body","is",null).order("updated_at",{ascending:false}).limit(12)
+   sb.from("city_essays").select("id,title,body,period,source_status,updated_at").not("body","is",null).order("updated_at",{ascending:false}).limit(12),
+   sb.from("archive_media").select("id,title,current_storage_path,data").in("id",featuredIds)
  ]);
+
  const sr=stories.data||[],qr=questions.data||[],pr=people.data||[],mr=media.data||[],msgs=messages.data||[],ce=cityEssays.data||[];
  const openQ=qr.filter(q=>questionIsOpen(q));
  const unknown10A=pr.filter(p=>p.group_name==="10А"&&p.identification_status!=="подтверждено");
@@ -905,15 +918,21 @@ async function loadHome(){
  const roomName=id=>rooms.find(r=>r.id===id)?.name||id;
  const leadSummary=lead?.data?.editorial_summary||lead?.data?.chapter?.subtitle||"";
  const albumPhoto=mr.find(m=>m.current_storage_path)||null;
+ const storyPhoto=lead?mr.find(m=>m.linked_story===lead.id&&m.current_storage_path):null;
 
- let heroUrl=null,albumUrl=null;
- if(classPhoto.data?.storage_path)heroUrl=await archiveSignedImage(classPhoto.data.storage_path);
+ const featuredById=new Map((featuredMedia.data||[]).map(x=>[x.id,x]));
+ const featuredRows=featuredIds.map(id=>featuredById.get(id)).filter(Boolean);
+
+ let classUrl=null,albumUrl=null,storyUrl=null;
+ if(classPhoto.data?.storage_path)classUrl=await archiveSignedImage(classPhoto.data.storage_path);
  if(albumPhoto?.current_storage_path)albumUrl=await archiveSignedImage(albumPhoto.current_storage_path);
- if(heroUrl){
-   $("memoryHeroPhoto").style.backgroundImage='url("'+heroUrl.replace(/"/g,"%22")+'")';
-   $("memoryHeroPhoto").style.backgroundSize="cover";
-   $("memoryHeroPhoto").style.backgroundPosition="center";
- }
+ if(storyPhoto?.current_storage_path)storyUrl=await archiveSignedImage(storyPhoto.current_storage_path);
+ const featuredUrls=await Promise.all(featuredRows.map(async m=>m.current_storage_path?await archiveSignedImage(m.current_storage_path):null));
+
+ setMosaicImage("homeMosaicClass",classUrl,classPhoto.data?.title||"Классная фотография");
+ setMosaicImage("homeMosaicPhotoA",featuredUrls[0]||albumUrl,featuredRows[0]?.title||albumPhoto?.title||"Архивная фотография");
+ setMosaicImage("homeMosaicPhotoB",featuredUrls[1]||storyUrl||albumUrl,featuredRows[1]?.title||storyPhoto?.title||"Архивная фотография");
+ setMosaicImage("homeMosaicPhotoC",featuredUrls[2]||albumUrl,featuredRows[2]?.title||albumPhoto?.title||"Архивная фотография");
 
  let quoteText="",quoteBy="";
  const qEssay=ce.find(x=>x.id==="G-007")||ce[0];
@@ -923,35 +942,73 @@ async function loadHome(){
    quoteBy=qEssay.title+(qEssay.period?" · "+qEssay.period:"");
  }
 
+ const peopleThumb=classUrl||featuredUrls[0]||"";
+ const storiesThumb=storyUrl||featuredUrls[1]||albumUrl||"";
+ const cityThumb=featuredUrls[2]||featuredUrls[0]||albumUrl||"";
  const editor=profile.role==="editor"||profile.role==="admin";
+ const latestPhoto=mr.find(m=>m.current_storage_path)||null;
+
+ const gatewayImg=(url,alt)=>url?'<img src="'+url+'" alt="'+esc(alt||"")+'">':'<div class="homeGatewayPlaceholder"></div>';
+
  box.innerHTML=
-   '<div class="memoryEntrances">'+
-     '<button class="memoryEntrance" data-home-view="people"><div class="memoryEntranceNo">01 · лица</div><h2>Люди</h2><p>Нажмите на лицо на общей фотографии, вспомните имя, найдите связанные истории.</p></button>'+
-     '<div class="memoryEntrance"><div class="memoryEntranceNo">02 · память</div><h2>Истории</h2><p>Большие и маленькие сюжеты, которые класс восстанавливает вместе.</p>'+(lead?'<div class="homeLeadStory"><span class="homeReadyLabel">ГОТОВАЯ ИСТОРИЯ</span><b>'+esc(lead.title)+'</b><button class="secondary" data-home-story="'+esc(lead.id)+'">Читать историю →</button></div>':'<button class="textLink" data-home-view="stories">Открыть истории →</button>')+'</div>'+
-     '<button class="memoryEntrance" data-home-view="city"><div class="memoryEntranceNo">03 · место</div><h2>Город и время</h2><p>Дворы, Волга, трамваи, музыка и вкус Куйбышева нашего времени.</p></button>'+
+   '<div class="homeGatewayGrid">'+
+     '<button class="homeGatewayCard" data-home-view="people">'+
+       '<div class="homeGatewayImage">'+gatewayImg(peopleThumb,"Люди нашего класса")+'</div>'+
+       '<div class="homeGatewayBody"><small>01 · ЛИЦА</small><h2>Люди</h2><p><b>'+pr.length+' человек.</b><br>Имена, лица, связи.</p><strong>Открыть класс →</strong></div>'+
+     '</button>'+
+     '<button class="homeGatewayCard" data-home-view="stories">'+
+       '<div class="homeGatewayImage">'+gatewayImg(storiesThumb,lead?.title||"Истории класса")+'</div>'+
+       '<div class="homeGatewayBody"><small>02 · ПАМЯТЬ</small><h2>Истории</h2><p><b>'+sr.length+' историй.</b><br>Воспоминания, эпизоды, большие и маленькие.</p><strong>Читать →</strong></div>'+
+     '</button>'+
+     '<button class="homeGatewayCard" data-home-view="city">'+
+       '<div class="homeGatewayImage">'+gatewayImg(cityThumb,"Куйбышев нашего времени")+'</div>'+
+       '<div class="homeGatewayBody"><small>03 · МЕСТО</small><h2>Город и время</h2><p><b>Куйбышев.</b><br>Места, события, люди, хроника нашей юности.</p><strong>Исследовать →</strong></div>'+
+     '</button>'+
    '</div>'+
-   '<div class="memoryFeatureGrid">'+
-     '<article class="memoryFeature">'+
-       (albumUrl?'<div class="memoryFeaturePhoto"><img src="'+albumUrl+'" alt="'+esc(albumPhoto.title)+'"></div>':'')+
-       '<div class="memoryFeatureBody"><div class="memoryEyebrow">ИЗ АЛЬБОМА</div><h2>'+esc(albumPhoto?.title||"Фотография из архива")+'</h2>'+
-       '<p>'+(albumPhoto?.data?.visual_description?esc(albumPhoto.data.visual_description):'Иногда одна фотография помнит больше, чем длинная подпись.')+'</p>'+
-       (albumPhoto?'<div class="homeActions"><button class="secondary" data-home-photo="'+esc(albumPhoto.id)+'">Рассмотреть фотографию</button></div>':'')+
-       '</div></article>'+
-     '<article class="memoryQuoteCard"><div class="memoryEyebrow">ОДНА ФРАЗА ИЗ ПРОШЛОГО</div><div class="memoryQuoteMark">“</div>'+
-       '<div class="memoryQuoteText">'+esc(quoteText||"Память редко приходит по расписанию. Чаще — по одной детали, запаху или фотографии.")+'</div>'+
-       '<div class="memoryQuoteBy">'+esc(quoteBy||"Из архива «Хроник-78»")+'</div>'+
-     '</article>'+
-   '</div>'+
-   '<article class="memoryUpdates"><h3>Что ожило недавно</h3><div class="memoryUpdateGrid">'+
-     (lead?'<div class="memoryUpdateItem"><b>'+esc(lead.title)+'</b><p>'+esc((leadSummary||"Готовая история из архива.").slice(0,170))+'</p><div class="homeActions"><button class="secondary" data-home-story="'+esc(lead.id)+'">Читать</button></div></div>':'')+
-     (msgs.length?'<div class="memoryUpdateItem"><b>'+esc(msgs[0].author?.display_name||"Участник")+' · '+esc(roomName(msgs[0].room_id))+'</b><p>'+esc((msgs[0].body||"Добавлено фото").slice(0,170))+'</p><div class="homeActions"><button class="secondary" data-home-view="chat">В обсуждение</button></div></div>':'')+
-     (unknown10A.length?'<div class="memoryUpdateItem"><b>Кого ещё не узнали</b><p>В 10А остаются неопознанными: '+esc(unknown10A.slice(0,8).map(p=>"№"+p.number).join(", "))+(unknown10A.length>8?"…":"")+'</p><div class="homeActions"><button class="secondary" data-home-questions10a>Помочь вспомнить</button></div></div>':'')+
-     (needPhoto[0]?'<div class="memoryUpdateItem"><b>'+esc(needPhoto[0].title)+'</b><p>'+esc(needPhoto[0].data?.identification_status||"Эта фотография просит уточнения.")+'</p><div class="homeActions"><button class="secondary" data-home-photo="'+esc(needPhoto[0].id)+'">Открыть</button></div></div>':'')+
-   '</div></article>'+
-   '<div class="memoryArchiveNote"><b>Здесь нет «официальной версии» прошлого.</b> Разные воспоминания могут не совпадать — мы сохраняем их рядом и отмечаем, что подтверждено фотографией, документом или несколькими свидетелями.</div>'+
-   (editor?'<div class="memoryEditorStrip"><b>Редакторский слой:</b> '+sr.length+' историй · '+mr.length+' фото · '+openQ.length+' открытых вопросов · '+unknown10A.length+' неопознанных в 10А. Технические ID и рабочие статусы остаются в соответствующих разделах, а не на читательской главной.</div>':'');
+
+   '<section class="homeStoryWeek">'+
+     '<div class="homeSectionHead"><h2>История недели</h2><button class="textLink" data-home-view="stories">Смотреть все истории →</button></div>'+
+     '<div class="homeStoryWeekGrid">'+
+       '<div class="homeStoryVisual">'+(storyUrl||storiesThumb?'<img src="'+(storyUrl||storiesThumb)+'" alt="'+esc(lead?.title||"История недели")+'">':'<div class="homeStoryPlaceholder">1983</div>')+'</div>'+
+       '<div class="homeStoryCopy">'+
+         '<div class="memoryEyebrow">ИЗ ЖИВОГО АРХИВА</div>'+
+         '<h3>'+esc(lead?.title||"История ещё выбирается")+'</h3>'+
+         '<p>'+esc((leadSummary||"История, в которой одна деталь неожиданно возвращает целую эпоху.").slice(0,330))+'</p>'+
+         (lead?'<button class="memoryPrimary" data-home-story="'+esc(lead.id)+'">Читать историю <span>→</span></button>':'')+
+       '</div>'+
+       '<blockquote class="homeStoryQuote"><span>“</span><p>'+esc(quoteText||"Одна знакомая деталь — и прошлое снова становится почти настоящим.")+'</p><cite>'+esc(quoteBy||"Из наших воспоминаний")+'</cite></blockquote>'+
+     '</div>'+
+   '</section>'+
+
+   '<section class="homeArchiveFresh">'+
+     '<div class="homeSectionHead"><h2>Что нового в архиве</h2><button class="textLink" data-home-view="photos">Открыть весь архив →</button></div>'+
+     '<div class="homeFreshGrid">'+
+       '<button class="homeFreshCard" data-home-view="photos">'+
+         (latestPhoto&&albumUrl?'<img src="'+albumUrl+'" alt="'+esc(latestPhoto.title||"Новые фотографии")+'">':'<div class="homeFreshPlaceholder">▧</div>')+
+         '<div><small>НОВЫЕ ФОТОГРАФИИ</small><b>'+esc(latestPhoto?.title||"Фотоархив пополняется")+'</b><span>Открыть фотоархив →</span></div>'+
+       '</button>'+
+       (lead?'<button class="homeFreshCard" data-home-story="'+esc(lead.id)+'">'+
+         (storiesThumb?'<img src="'+storiesThumb+'" alt="'+esc(lead.title)+'">':'<div class="homeFreshPlaceholder">✎</div>')+
+         '<div><small>ИСТОРИЯ</small><b>'+esc(lead.title)+'</b><span>Читать →</span></div>'+
+       '</button>':'')+
+       (msgs.length?'<button class="homeFreshCard" data-home-view="chat">'+
+         '<div class="homeFreshPlaceholder chat">◌</div>'+
+         '<div><small>ЧАТ · '+esc(roomName(msgs[0].room_id))+'</small><b>'+esc(msgs[0].author?.display_name||"Новая реплика")+'</b><span>'+esc((msgs[0].body||"Новое сообщение").slice(0,90))+'</span></div>'+
+       '</button>':'')+
+       (needPhoto[0]?'<button class="homeFreshCard" data-home-photo="'+esc(needPhoto[0].id)+'">'+
+         '<div class="homeFreshPlaceholder question">?</div>'+
+         '<div><small>НУЖНА ПОМОЩЬ</small><b>'+esc(needPhoto[0].title)+'</b><span>Помочь разобраться →</span></div>'+
+       '</button>':'')+
+     '</div>'+
+   '</section>'+
+
+   '<div class="homeMemoryRibbon"><div class="homeMemoryCity">Куйбышев · Волга · школа №78 · 1983</div><blockquote>«'+esc(quoteText||"Память складывается не из дат. Она складывается из голосов, лиц и деталей.")+'»</blockquote><span>'+esc(quoteBy||"Из наших воспоминаний")+'</span></div>'+
+   '<div class="memoryArchiveNote"><b>Здесь нет одной «официальной версии» прошлого.</b> Разные воспоминания могут не совпадать — мы сохраняем их рядом и отмечаем, что подтверждено фотографией, документом или несколькими свидетелями.</div>'+
+   (editor?'<div class="memoryEditorStrip"><b>Редакторский слой:</b> '+sr.length+' историй · '+mr.length+' свежих фото в выборке · '+openQ.length+' открытых вопросов · '+unknown10A.length+' неопознанных в 10А.</div>':'');
+
  bindHome();
 }
+
 function setProfileSections({personal=false,my=false,editorial=false,admin=false}={}){
  const map={profilePersonalSection:personal,profileMySection:my,profileEditorialSection:editorial,profileAdminSection:admin};
  Object.entries(map).forEach(([id,on])=>{const el=$(id);if(el){el.style.display=on?"block":"none";if(!on)el.open=false}});

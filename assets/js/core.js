@@ -366,6 +366,7 @@ function qualitySelectHtml(value="копия"){
  return '<select id="pfQuality">'+opts.map(x=>'<option '+(x===value?"selected":"")+'>'+x+'</option>').join("")+'</select>';
 }
 
+let chatUnreadByRoom=new Map();
 function setChatUnreadBadge(n){
  const chatNav=document.querySelector('.nav[data-view="chat"]');
  if(!chatNav)return;
@@ -375,16 +376,33 @@ function setChatUnreadBadge(n){
  badge.textContent=count>99?"99+":String(count);
  badge.style.display=count?"inline-flex":"none";
 }
+function updateRoomUnreadBadges(){
+ document.querySelectorAll("#rooms .room[data-id]").forEach(btn=>{
+   const count=Math.max(0,Number(chatUnreadByRoom.get(btn.dataset.id))||0);
+   let badge=btn.querySelector(".roomUnreadBadge");
+   if(count&&!badge){badge=document.createElement("span");badge.className="roomUnreadBadge";btn.appendChild(badge)}
+   if(badge){badge.textContent=count>99?"99+":String(count);badge.style.display=count?"inline-flex":"none"}
+ });
+}
 async function loadChatUnreadCount(){
- if(!user||!profile?.is_active){setChatUnreadBadge(0);return}
- const {data:msgs,error}=await sb.from("messages").select("id,author_id").neq("author_id",user.id);
+ if(!user||!profile?.is_active){chatUnreadByRoom=new Map();setChatUnreadBadge(0);updateRoomUnreadBadges();return}
+ const {data:msgs,error}=await sb.from("messages").select("id,author_id,room_id").neq("author_id",user.id);
  if(error)return;
  const ids=(msgs||[]).map(x=>x.id);
- if(!ids.length){setChatUnreadBadge(0);return}
+ if(!ids.length){chatUnreadByRoom=new Map();setChatUnreadBadge(0);updateRoomUnreadBadges();return}
  const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",user.id).in("message_id",ids);
  if(re)return;
  const seen=new Set((reads||[]).map(x=>x.message_id));
- setChatUnreadBadge(ids.filter(id=>!seen.has(id)).length);
+ const byRoom=new Map();
+ let total=0;
+ (msgs||[]).forEach(m=>{
+   if(seen.has(m.id))return;
+   total++;
+   byRoom.set(m.room_id,(byRoom.get(m.room_id)||0)+1);
+ });
+ chatUnreadByRoom=byRoom;
+ setChatUnreadBadge(total);
+ updateRoomUnreadBadges();
 }
 async function loadNotificationCount(){
  if(!user||!profile?.is_active){if($("notifyBtn"))$("notifyBtn").style.display="none";setChatUnreadBadge(0);return}
@@ -836,7 +854,13 @@ function reportContent(entityType,entityId){
  );
 }
 
-function renderRooms(){$("rooms").innerHTML=rooms.map(r=>'<button class="room '+(r.id===currentRoom?"active":"")+'" data-id="'+r.id+'">'+esc(r.name)+'</button>').join("");$("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;chatLoadedLimit=80;replyTo=null;pendingFiles=[];renderReply();renderRooms();loadRoom();subscribe()})}
+function renderRooms(){
+ $("rooms").innerHTML=rooms.map(r=>{
+   const n=Math.max(0,Number(chatUnreadByRoom.get(r.id))||0);
+   return '<button class="room '+(r.id===currentRoom?"active":"")+'" data-id="'+r.id+'"><span>'+esc(r.name)+'</span>'+(n?'<span class="roomUnreadBadge">'+(n>99?"99+":n)+'</span>':'')+'</button>';
+ }).join("");
+ $("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;chatLoadedLimit=80;replyTo=null;pendingFiles=[];renderReply();renderRooms();loadRoom();subscribe()})
+}
 async function loadHome(){
  const box=$("homeDashboard");
  if(!box)return;

@@ -258,7 +258,7 @@ function openCityContext(id){
  const actions=[
    x.body?{icon:"⌘",label:"Читать этюд",kind:"primary",run:()=>openCityEssay(id)}:null,
    !x.body&&editor?{icon:"✎",label:"Внести авторский текст",kind:"primary",run:()=>editCityEssay(id)}:null,
-   x.linked_story?{icon:"▤",label:"Связанная история",run:()=>{showView("stories");openStory(x.linked_story)}}:null,
+   x.linked_story?{icon:"▤",label:"Связанная история",run:async()=>{await showView("stories");await openStory(x.linked_story)}}:null,
    editor?{icon:"✎",label:x.body?"Редактировать этюд":"Редактировать карточку",run:()=>editCityEssay(id)}:null
  ];
  openContextSheet({eyebrow:"ГОРОД И ВРЕМЯ",title:x.title,meta:[x.theme,x.period,x.location_text].filter(Boolean).join(" · "),preview,actions});
@@ -320,7 +320,7 @@ function openCityEssay(id){
  );
  $("photoModalSave").textContent="Закрыть";
  photoModalSubmit=async()=>closePhotoModal();
- document.querySelectorAll("[data-city-story]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.cityStory)});
+ document.querySelectorAll("[data-city-story]").forEach(b=>b.onclick=async()=>{closePhotoModal();await showView("stories");await openStory(b.dataset.cityStory)});
  loadCityEssayComments(x.id);
 }
 async function loadCityEssayComments(essayId){
@@ -356,7 +356,7 @@ async function loadCityEssayComments(essayId){
        row.user_id!==user?.id?{icon:"⚑",label:"Пожаловаться",run:()=>reportContent("city_comment",row.id)}:null,
        editor?{icon:row.is_highlighted?"☆":"★",label:row.is_highlighted?"Снять отметку «ценная деталь»":"Отметить как ценную деталь",run:async()=>{const {error}=await sb.rpc("set_city_comment_highlight",{p_comment_id:Number(row.id),p_value:!row.is_highlighted});if(error){alert(error.message);return}await loadCityEssayComments(essayId)}}:null,
        editor&&!row.archived_memory_detail_id?{icon:"⌘",label:"Внести в «Одну исчезнувшую деталь»",run:async()=>{if(!confirm("Добавить эту реплику в мозаику «Одна исчезнувшая деталь»?"))return;const {error}=await sb.rpc("archive_city_comment_as_memory",{p_comment_id:Number(row.id),p_category:null});if(error){alert(error.message);return}await loadCityEssayComments(essayId);await loadCityDetails()}}:null,
-       row.archived_memory_detail_id?{icon:"✓",label:"Показать в мозаике памяти",run:()=>{closePhotoModal();showView("city");setTimeout(()=>$("cityDetailsList")?.scrollIntoView({behavior:"smooth",block:"start"}),120)}}:null
+       row.archived_memory_detail_id?{icon:"✓",label:"Показать в мозаике памяти",run:async()=>{closePhotoModal();await showView("city");await new Promise(r=>requestAnimationFrame(()=>r()));$("cityDetailsList")?.scrollIntoView({behavior:"smooth",block:"start"})}}:null
      ];
      openContextSheet({eyebrow:"КОММЕНТАРИЙ",title:name,meta:fmtCityCommentTime(row.created_at),actions});
    };

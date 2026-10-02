@@ -2121,3 +2121,53 @@ html[data-theme="dark"] .nav.active b{
     grid-template-columns:repeat(4,minmax(0,1fr));
   }
 }
+
+
+/* Desktop workspace width: photos and profile */
+@media (min-width:1024px){
+  main>#photos,
+  main>#profile{
+    width:100%;
+    max-width:none!important;
+    margin:0;
+  }
+
+  #photos>.archiveList,
+  #photos .photoArchivePage,
+  #photos .photoAlbumSection,
+  #photos .photoGrid{
+    width:100%;
+    max-width:none!important;
+    margin-left:0;
+    margin-right:0;
+  }
+
+  #profile{
+    max-width:none!important;
+  }
+  #profile>.pad,
+  #profile .profilePage{
+    width:100%;
+    max-width:none!important;
+    margin-left:0;
+    margin-right:0;
+  }
+  #profile .profileIdentityCard,
+  #profile .profileWorkspace,
+  #profile .profileConsentGate{
+    width:100%;
+    max-width:none;
+  }
+}
+
+@media (min-width:1280px){
+  #photos .photoGrid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
+
+@media (min-width:1560px){
+  #photos .photoGrid{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+  }
+}

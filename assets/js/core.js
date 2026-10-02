@@ -1031,7 +1031,7 @@ async function finishOtpLogin(email,token){
  email=String(email||"").trim().toLowerCase();
  token=String(token||"").replace(/\D/g,"");
  if(!email)throw new Error("Не найден e-mail, для которого был отправлен код. Запросите новый код.");
- if(!/^\d{6}$/.test(token))throw new Error("Введите ровно 6 цифр из последнего письма.");
+ if(!/^\d{8}$/.test(token))throw new Error("Введите ровно 8 цифр из последнего письма.");
  const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
  if(error)throw error;
  localStorage.removeItem(OTP_EMAIL_KEY);
@@ -1068,7 +1068,7 @@ async function login(){
   $("otpCode").value="";
   $("otpCode").focus();
   $("loginError").className="ok";
-  $("loginError").innerHTML="<b>Код отправлен на "+esc(email)+".</b><br>Введите 6 цифр именно из последнего письма. Если приложение свернётся при открытии почты, этот e-mail сохранится.";
+  $("loginError").innerHTML="<b>Код отправлен на "+esc(email)+".</b><br>Введите 8 цифр именно из последнего письма. Если приложение свернётся при открытии почты, этот e-mail сохранится.";
  }catch(e){
   $("loginError").className="err";
   $("loginError").textContent=(e.message||String(e)).includes("Signups not allowed")
@@ -1182,7 +1182,7 @@ $("adminEmail").value=localStorage.getItem("chronicles78-admin-email")||"";
 
 function openQuickRegistration(){
  openPhotoModal("Запросить доступ",
-   '<div class="notice"><b>Новый участник проходит три шага.</b><br>1. Имя, e-mail и согласие. 2. Подтверждение e-mail 6-значным кодом из письма. 3. Решение администратора о допуске.</div>'+
+   '<div class="notice"><b>Новый участник проходит три шага.</b><br>1. Имя, e-mail и согласие. 2. Подтверждение e-mail 8-значным кодом из письма. 3. Решение администратора о допуске.</div>'+
    '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
    '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
     '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку данных для работы закрытого архива, включая внутреннюю статистику посещений и разделов без сохранения IP‑адреса и цифрового fingerprint. <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
@@ -1203,8 +1203,8 @@ function openQuickRegistration(){
      });
      if(error)throw error;
      $("photoModalBody").innerHTML=
-       '<div class="notice"><b>Письмо отправлено.</b><br>На '+esc(email)+' должен прийти 6-значный код подтверждения.</div>'+
-       '<label>Код из письма</label><input id="pfRegOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">'+
+       '<div class="notice"><b>Письмо отправлено.</b><br>На '+esc(email)+' должен прийти 8-значный код подтверждения.</div>'+
+       '<label>Код из письма</label><input id="pfRegOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">'+
        '<div class="formHint">Введите код здесь — не нужно переходить в Safari. После подтверждения заявка появится у администратора.</div>';
      $("photoModalSave").textContent="Подтвердить код";
      photoModalSubmit=async()=>{

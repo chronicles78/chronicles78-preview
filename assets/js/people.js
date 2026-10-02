@@ -73,8 +73,8 @@ function showPersonLinks(p){
    async()=>{}
  );
  $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
- document.querySelectorAll("[data-person-story-open]").forEach(b=>b.onclick=()=>{closePhotoModal();showView("stories");openStory(b.dataset.personStoryOpen)});
- document.querySelectorAll("[data-person-media-open]").forEach(b=>b.onclick=()=>{closePhotoModal();mediaFocus=b.dataset.personMediaOpen;showView("photos");setTimeout(()=>openArchivePhoto(b.dataset.personMediaOpen),120)});
+ document.querySelectorAll("[data-person-story-open]").forEach(b=>b.onclick=async()=>{closePhotoModal();await showView("stories");await openStory(b.dataset.personStoryOpen)});
+ document.querySelectorAll("[data-person-media-open]").forEach(b=>b.onclick=async()=>{closePhotoModal();mediaFocus=b.dataset.personMediaOpen;await showView("photos");await openArchivePhoto(b.dataset.personMediaOpen)});
 }
 function openPersonContext(id){
  const p=peopleCache.find(x=>x.id===id);if(!p)return;
@@ -87,12 +87,12 @@ function openPersonContext(id){
    '<div><b>'+(media.length||0)+'</b><span>фото</span></div>'+
  '</div>';
  const preview=portrait+archiveSummary;
- const openStories=()=>{
-   if(stories.length===1){showView("stories");openStory(stories[0].id);return}
+ const openStories=async()=>{
+   if(stories.length===1){await showView("stories");await openStory(stories[0].id);return}
    showPersonLinks(p);
  };
- const openPhotos=()=>{
-   if(media.length===1){mediaFocus=media[0].media_id;showView("photos");setTimeout(()=>openArchivePhoto(media[0].media_id),120);return}
+ const openPhotos=async()=>{
+   if(media.length===1){mediaFocus=media[0].media_id;await showView("photos");await openArchivePhoto(media[0].media_id);return}
    showPersonLinks(p);
  };
  const actions=[

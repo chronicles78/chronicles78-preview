@@ -1619,3 +1619,38 @@ Syntax-check `core.js`: ok.
 - syntax-check `core.js`: ok.
 
 Следующий контроль: дождаться GitHub Pages build, увидеть «Версия входа: 20261002-9», запросить один новый код и подтвердить его один раз.
+
+
+## 72. Корневой фикс Email OTP в Auth — 2026-10-02
+
+Подтверждена серверная причина:
+- hosted Auth создавал строки `auth.one_time_tokens` для `confirmation_token` и `recovery_token` с `expires_at = NULL`;
+- новая OTT-ветка Supabase Auth трактует `expires_at IS NULL` как немедленно просроченный токен;
+- поэтому свежие 6-значные коды систематически получали `otp_expired`.
+
+Применена миграция `fix_email_otp_expires_at_null`:
+- функция `private.set_email_ott_expiry()`;
+- BEFORE INSERT trigger на `auth.one_time_tokens`;
+- только для `confirmation_token` и `recovery_token`;
+- если `expires_at IS NULL`, выставляется `created_at + 10 minutes`;
+- существующие NULL-строки этих двух типов также заполнены;
+- остальные типы one-time token не изменяются.
+
+После миграции свежий recovery token пользователя имеет ненулевой `expires_at` и корректное 10-минутное окно.
+
+Frontend возвращён к штатному документированному вызову:
+`sb.auth.verifyOtp({email, token, type:"email"})`.
+
+Удалён временный клиентский SHA-224 workaround.
+
+Публикация:
+- `35676cc79ca9aeaab877d18685816f7fe6862e4b` / `566b4664068f8d4ed57fec1d684cd3b0d4669598` — возврат стандартной OTP-проверки;
+- `220d99c03ce7266e6789949fa04f8a0aa8db9525` — версия входа `20261002-10`;
+- syntax-check `core.js`: ok.
+
+Контроль:
+1. дождаться публикации GitHub Pages;
+2. увидеть «Версия входа: 20261002-10»;
+3. запросить один новый код;
+4. подтвердить его один раз;
+5. в Auth log ожидается `POST /verify -> 200`.

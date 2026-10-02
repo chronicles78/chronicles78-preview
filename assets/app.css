@@ -2048,3 +2048,76 @@ html[data-theme="dark"] .nav.active b{
   .photoGrid{grid-template-columns:repeat(5,minmax(0,1fr))}
   .cityGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+
+/* Desktop workspace width: full content area */
+@media (min-width:1024px){
+  /* Override the legacy 760px content-column rule for working sections. */
+  main>#chat,
+  main>#people,
+  main>#stories,
+  main>#city,
+  main>#questions{
+    width:100%;
+    max-width:none!important;
+    margin:0;
+  }
+
+  #people>.archiveList,
+  #stories>.archiveList,
+  #city>.archiveList,
+  #questions>.archiveList,
+  .peopleArchivePage,
+  .storyArchivePage,
+  .cityArchivePage{
+    width:100%;
+    max-width:none!important;
+    margin-left:0;
+    margin-right:0;
+  }
+
+  /* Use the entire useful desktop canvas, while preserving readable card widths through grids. */
+  #people .peopleArchiveIntro,
+  #stories .storyArchiveIntro,
+  #city .cityArchiveIntro,
+  #questions>div>h2,
+  #questions .questionToolbar,
+  #questions #questionStats{
+    max-width:none;
+  }
+
+  #chat{
+    min-width:0;
+  }
+  #chat .chat{
+    width:100%;
+    max-width:none;
+  }
+
+  #storiesList,
+  #questionsList,
+  #peopleList,
+  #city .cityGrid{
+    width:100%;
+    max-width:none;
+  }
+
+  /* At common desktop widths, use three useful columns where the content supports cards. */
+  #storiesList,
+  #questionsList{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .cityGrid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+
+@media (min-width:1600px){
+  #storiesList,
+  #questionsList{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .cityGrid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}

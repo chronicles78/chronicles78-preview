@@ -24,7 +24,7 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261002-35">
+<link rel="stylesheet" href="assets/app.css?v=20261002-36">
 </head>
 <body>
 <header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">ХРОНИКИ 78-й</div></div><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Сменить тему" aria-label="Сменить тему">◐</button><div class="status" id="status">Подключение…</div></div></header>
@@ -227,67 +227,80 @@
   <div id="consentGateMsg" class="small"></div>
 </div>
 
-<details class="profileSection" id="profilePersonalSection" style="display:none">
-  <summary>
-    <span class="profileSectionIcon">○</span>
-    <span class="profileSectionText"><b>Мой профиль</b><small>Имя, приватность и оформление</small></span>
-    <span class="profileSectionArrow">⌄</span>
-  </summary>
-  <div class="profileSectionBody">
-    <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
-    <div class="card form" id="privacyBox" style="display:none">
-      <b>Приватность</b>
-      <div id="privacyConsentState" class="small" style="margin-top:7px"></div>
-      <p class="small"><a href="consent.html" target="_blank" rel="noopener">Текст действующего согласия</a></p>
-      <button class="secondary" id="privacyRequestBtn" type="button">Отозвать согласие / изменить использование данных</button>
+<div class="profileWorkspace" id="profileWorkspace" style="display:none">
+  <nav class="profilePrimaryNav" aria-label="Разделы профиля">
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="personal" style="display:none"><span>○</span><b>Мой профиль</b><small>Имя · приватность · оформление</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="my" style="display:none"><span>▧</span><b>Мои материалы</b><small>Фотографии и отправки</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="editorial" style="display:none"><span>✎</span><b>Редакция</b><small>Проверка и модерация</small></button>
+    <button class="profilePrimaryTab" type="button" data-profile-section-tab="admin" style="display:none"><span>⚙</span><b>Администрирование</b><small>Статистика · участники · архив</small></button>
+  </nav>
+
+  <section class="profileSectionPane" id="profilePersonalSection" data-profile-section-pane="personal" hidden>
+    <nav class="profileSecondaryNav" aria-label="Настройки профиля">
+      <button class="profileSecondaryTab active" type="button" data-profile-subtab="personal-name">Имя</button>
+      <button class="profileSecondaryTab" type="button" data-profile-subtab="personal-privacy">Приватность</button>
+      <button class="profileSecondaryTab" type="button" data-profile-subtab="personal-theme">Оформление</button>
+    </nav>
+    <div class="profileHorizontalContent">
+      <div class="profileSubpane active" data-profile-pane="personal-name">
+        <div class="card form" id="nameBox" style="display:none"><b>Имя в чате</b><label>Отображаемое имя</label><input id="displayName"><button class="primary" id="saveNameBtn">Сохранить имя</button><div id="nameMsg"></div></div>
+      </div>
+      <div class="profileSubpane" data-profile-pane="personal-privacy" hidden>
+        <div class="card form" id="privacyBox" style="display:none">
+          <b>Приватность</b>
+          <div id="privacyConsentState" class="small" style="margin-top:7px"></div>
+          <p class="small"><a href="consent.html" target="_blank" rel="noopener">Текст действующего согласия</a></p>
+          <button class="secondary" id="privacyRequestBtn" type="button">Отозвать согласие / изменить использование данных</button>
+        </div>
+      </div>
+      <div class="profileSubpane" data-profile-pane="personal-theme" hidden>
+        <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
+      </div>
     </div>
-    <div class="card form"><b>Оформление</b><label>Тема сайта</label><select id="themeSelect"><option value="auto">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select><div class="small" style="margin-top:8px">Выбор сохраняется на этом устройстве.</div></div>
-  </div>
-</details>
+  </section>
 
-<details class="profileSection" id="profileMySection" data-profile-load="my" style="display:none">
-  <summary>
-    <span class="profileSectionIcon">▧</span>
-    <span class="profileSectionText"><b>Мои материалы</b><small>Отправленные фотографии и их состояние</small></span>
-    <span class="profileSectionArrow">⌄</span>
-  </summary>
-  <div class="profileSectionBody">
-    <div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
-  </div>
-</details>
+  <section class="profileSectionPane" id="profileMySection" data-profile-section-pane="my" hidden>
+    <nav class="profileSecondaryNav" aria-label="Мои материалы">
+      <button class="profileSecondaryTab active" type="button" data-profile-subtab="my-photos">Мои фотографии</button>
+    </nav>
+    <div class="profileHorizontalContent">
+      <div class="profileSubpane active" data-profile-pane="my-photos" data-profile-load="my">
+        <div class="card" id="myPhotoSubmissionsBox" style="display:none"><h2>Мои фотографии</h2><div id="myPhotoSubmissionsList" class="notice">Загрузка…</div></div>
+      </div>
+    </div>
+  </section>
 
-<details class="profileSection" id="profileEditorialSection" style="display:none">
-  <summary>
-    <span class="profileSectionIcon">✎</span>
-    <span class="profileSectionText"><b>Работа редакции</b><small>Проверка материалов, подписей и жалоб</small></span>
-    <span class="profileSectionArrow">⌄</span>
-  </summary>
-  <div class="profileSectionBody">
-    <details class="profileSubsection" data-profile-load="photo-review">
-      <summary><span><b>Фотографии на проверке</b><small>Новые материалы участников</small></span><span>⌄</span></summary>
-      <div class="profileSubsectionBody"><div class="card" id="photoSubmissionReviewBox" style="display:none"><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div></div>
-    </details>
-    <details class="profileSubsection" data-profile-load="identity-review">
-      <summary><span><b>Подписи к фотографиям</b><small>Предложения по идентификации людей</small></span><span>⌄</span></summary>
-      <div class="profileSubsectionBody"><div class="card" id="identityReviewBox" style="display:none"><div id="identityReviewList" class="notice">Загрузка…</div></div></div>
-    </details>
-    <details class="profileSubsection" data-profile-load="moderation">
-      <summary><span><b>Жалобы и модерация</b><small>Обращения, требующие решения редакции</small></span><span>⌄</span></summary>
-      <div class="profileSubsectionBody"><div class="card" id="moderationBox" style="display:none"><div id="moderationList" class="notice">Загрузка…</div></div></div>
-    </details>
-  </div>
-</details>
+  <section class="profileSectionPane" id="profileEditorialSection" data-profile-section-pane="editorial" hidden>
+    <nav class="profileSecondaryNav" aria-label="Работа редакции">
+      <button class="profileSecondaryTab active" type="button" data-profile-subtab="editorial-photo">Фотографии</button>
+      <button class="profileSecondaryTab" type="button" data-profile-subtab="editorial-identity">Подписи</button>
+      <button class="profileSecondaryTab" type="button" data-profile-subtab="editorial-moderation">Жалобы</button>
+    </nav>
+    <div class="profileHorizontalContent">
+      <div class="profileSubpane active" data-profile-pane="editorial-photo" data-profile-load="photo-review">
+        <div class="profilePaneIntro"><b>Фотографии на проверке</b><span>Новые материалы участников</span></div>
+        <div class="card" id="photoSubmissionReviewBox" style="display:none"><div id="photoSubmissionReviewList" class="notice">Загрузка…</div></div>
+      </div>
+      <div class="profileSubpane" data-profile-pane="editorial-identity" data-profile-load="identity-review" hidden>
+        <div class="profilePaneIntro"><b>Подписи к фотографиям</b><span>Предложения по идентификации людей</span></div>
+        <div class="card" id="identityReviewBox" style="display:none"><div id="identityReviewList" class="notice">Загрузка…</div></div>
+      </div>
+      <div class="profileSubpane" data-profile-pane="editorial-moderation" data-profile-load="moderation" hidden>
+        <div class="profilePaneIntro"><b>Жалобы и модерация</b><span>Обращения, требующие решения редакции</span></div>
+        <div class="card" id="moderationBox" style="display:none"><div id="moderationList" class="notice">Загрузка…</div></div>
+      </div>
+    </div>
+  </section>
 
-<details class="profileSection profileAdminSection" id="profileAdminSection" style="display:none">
-  <summary>
-    <span class="profileSectionIcon">⚙</span>
-    <span class="profileSectionText"><b>Администрирование</b><small>Посещаемость, участники и хранилище</small></span>
-    <span class="profileSectionArrow">⌄</span>
-  </summary>
-  <div class="profileSectionBody">
-    <details class="profileSubsection" data-profile-load="traffic">
-      <summary><span><b>Посещаемость</b><small>Кто заходил, онлайн, разделы и чат</small></span><span>⌄</span></summary>
-      <div class="profileSubsectionBody">
+  <section class="profileSectionPane" id="profileAdminSection" data-profile-section-pane="admin" hidden>
+    <nav class="profileSecondaryNav" aria-label="Администрирование">
+      <button class="profileSecondaryTab active" type="button" data-profile-subtab="admin-traffic">Посещаемость</button>
+      <button class="profileSecondaryTab" type="button" data-profile-subtab="admin-users">Участники</button>
+      <button class="profileSecondaryTab" type="button" data-profile-subtab="admin-archive">Глубокий архив</button>
+    </nav>
+    <div class="profileHorizontalContent">
+      <div class="profileSubpane active" data-profile-pane="admin-traffic" data-profile-load="traffic">
+        <div class="profilePaneIntro"><b>Посещаемость</b><span>Кто заходил, онлайн, разделы и чат</span></div>
         <div class="card trafficAdminBox" id="trafficStatsBox" style="display:none">
           <div class="trafficAdminHead"><div><h2>Посещаемость</h2><p>Внутренняя статистика сайта и чата. Зарегистрированные участники — по имени, гости — анонимно.</p></div><button class="secondary" id="trafficRefreshBtn" type="button">Обновить</button></div>
           <div id="trafficStatsState" class="notice">Статистика ещё не загружена.</div>
@@ -303,17 +316,17 @@
           <div class="trafficPrivacyNote">Гости считаются по анонимным сессиям. IP‑адреса и цифровой fingerprint устройства не сохраняются.</div>
         </div>
       </div>
-    </details>
-    <details class="profileSubsection" data-profile-load="users">
-      <summary><span><b>Участники</b><small>Доступ, роли и привязка к архиву</small></span><span>⌄</span></summary>
-      <div class="profileSubsectionBody"><div class="card" id="adminUsersBox" style="display:none"><div id="adminUsersList" class="notice">Загрузка…</div></div></div>
-    </details>
-    <details class="profileSubsection" data-profile-load="archive">
-      <summary><span><b>Глубокий архив</b><small>Google Drive и состояние хранения оригиналов</small></span><span>⌄</span></summary>
-      <div class="profileSubsectionBody"><div class="card" id="archiveStorageBox" style="display:none"><div id="archiveStorageState" class="notice">Загрузка…</div></div></div>
-    </details>
-  </div>
-</details>
+      <div class="profileSubpane" data-profile-pane="admin-users" data-profile-load="users" hidden>
+        <div class="profilePaneIntro"><b>Участники</b><span>Доступ, роли и привязка к архиву</span></div>
+        <div class="card" id="adminUsersBox" style="display:none"><div id="adminUsersList" class="notice">Загрузка…</div></div>
+      </div>
+      <div class="profileSubpane" data-profile-pane="admin-archive" data-profile-load="archive" hidden>
+        <div class="profilePaneIntro"><b>Глубокий архив</b><span>Google Drive и состояние хранения оригиналов</span></div>
+        <div class="card" id="archiveStorageBox" style="display:none"><div id="archiveStorageState" class="notice">Загрузка…</div></div>
+      </div>
+    </div>
+  </section>
+</div>
 <div class="card form" id="adminLoginBox">
   <b>Вход администратора</b>
   <div class="notice" style="margin-top:9px"><b>Отдельный вход без заявок и согласований.</b><br>Введите e-mail администратора и пароль.</div>
@@ -330,7 +343,7 @@
   <b>Вход участника</b>
   <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 8-значный код — введите его здесь же. Пароль не нужен.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-14</div>
+  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-15</div>
   <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
   <button class="primary" id="loginBtn">Получить код для входа</button>
   <div id="otpLoginBox" style="display:none;margin-top:10px">
@@ -390,7 +403,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261002-14"></script>
+<script src="assets/js/core.js?v=20261002-15"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>

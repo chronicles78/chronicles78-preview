@@ -26,10 +26,17 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261002-46">
+<link rel="stylesheet" href="assets/app.css?v=20261002-47">
 </head>
 <body>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">ХРОНИКИ 78-й</div></div><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261002-26</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<svg class="archiveSvgDefs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <clipPath id="photoPrintScallop" clipPathUnits="objectBoundingBox">
+      <path d="M .04 .022 Q .06556 0 .09111 .022 Q .11667 0 .14222 .022 Q .16778 0 .19333 .022 Q .21889 0 .24444 .022 Q .27 0 .29556 .022 Q .32111 0 .34667 .022 Q .37222 0 .39778 .022 Q .42333 0 .44889 .022 Q .47444 0 .5 .022 Q .52556 0 .55111 .022 Q .57667 0 .60222 .022 Q .62778 0 .65333 .022 Q .67889 0 .70444 .022 Q .73 0 .75556 .022 Q .78111 0 .80667 .022 Q .83222 0 .85778 .022 Q .88333 0 .90889 .022 Q .93444 0 .96 .022 Q 1 0 .978 .04 Q 1 .07538 .978 .11077 Q 1 .14615 .978 .18154 Q 1 .21692 .978 .25231 Q 1 .28769 .978 .32308 Q 1 .35846 .978 .39385 Q 1 .42923 .978 .46462 Q 1 .5 .978 .53538 Q 1 .57077 .978 .60615 Q 1 .64154 .978 .67692 Q 1 .71231 .978 .74769 Q 1 .78308 .978 .81846 Q 1 .85385 .978 .88923 Q 1 .92462 .978 .96 Q 1 1 .96 .978 Q .93444 1 .90889 .978 Q .88333 1 .85778 .978 Q .83222 1 .80667 .978 Q .78111 1 .75556 .978 Q .73 1 .70444 .978 Q .67889 1 .65333 .978 Q .62778 1 .60222 .978 Q .57667 1 .55111 .978 Q .52556 1 .5 .978 Q .47444 1 .44889 .978 Q .42333 1 .39778 .978 Q .37222 1 .34667 .978 Q .32111 1 .29556 .978 Q .27 1 .24444 .978 Q .21889 1 .19333 .978 Q .16778 1 .14222 .978 Q .11667 1 .09111 .978 Q .06556 1 .04 .978 Q 0 1 .022 .96 Q 0 .92462 .022 .88923 Q 0 .85385 .022 .81846 Q 0 .78308 .022 .74769 Q 0 .71231 .022 .67692 Q 0 .64154 .022 .60615 Q 0 .57077 .022 .53538 Q 0 .5 .022 .46462 Q 0 .42923 .022 .39385 Q 0 .35846 .022 .32308 Q 0 .28769 .022 .25231 Q 0 .21692 .022 .18154 Q 0 .14615 .022 .11077 Q 0 .07538 .022 .04 Q 0 0 .04 .022 Z"></path>
+    </clipPath>
+  </defs>
+</svg>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">ХРОНИКИ 78-й</div></div><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261002-27</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active"><div class="pad homePad"><div class="homeWrap">
   <section class="memoryMosaicHero" id="memoryMosaicHero">
@@ -345,7 +352,7 @@
   <b>Вход участника</b>
   <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 8-значный код — введите его здесь же. Пароль не нужен.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-26</div>
+  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-27</div>
   <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
   <button class="primary" id="loginBtn">Получить код для входа</button>
   <div id="otpLoginBox" style="display:none;margin-top:10px">

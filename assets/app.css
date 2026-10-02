@@ -2693,3 +2693,24 @@ html[data-theme="dark"] .photoTileBody{
 html[data-theme="dark"] .homeFreshCard>img{
   background:#f4efe5!important;
 }
+
+
+/* Home fresh archive: full-width natural-ratio photos */
+.homeFreshCard>img{
+  display:block;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:initial!important;
+  object-position:center center;
+  padding:0!important;
+  background:#fff!important;
+}
+@media(max-width:760px){
+  .homeFreshCard>img{
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+  }
+}

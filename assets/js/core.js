@@ -1,11 +1,28 @@
 const THEME_KEY="chronicles78-theme";
+const THEME_MODES=["auto","light","dark"];
 function systemTheme(){return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
-function getTheme(){return localStorage.getItem(THEME_KEY)||"auto"}
+function getTheme(){
+ const saved=localStorage.getItem(THEME_KEY)||"auto";
+ return THEME_MODES.includes(saved)?saved:"auto";
+}
 function applyTheme(mode){
+ mode=THEME_MODES.includes(mode)?mode:"auto";
  const actual=mode==="auto"?systemTheme():mode;
  document.documentElement.dataset.theme=actual;
+ document.documentElement.dataset.themeMode=mode;
+ const spec={
+   auto:{icon:"◐",label:"Авто"},
+   light:{icon:"☀",label:"Светлая"},
+   dark:{icon:"☾",label:"Тёмная"}
+ }[mode];
  const btn=document.getElementById("themeBtn");
- if(btn){btn.textContent=actual==="dark"?"☀":"☾";btn.title=actual==="dark"?"Светлая тема":"Тёмная тема";}
+ if(btn){
+   btn.innerHTML='<span class="themeBtnIcon">'+spec.icon+'</span><span class="themeBtnLabel">'+spec.label+'</span>';
+   btn.title="Тема сайта: "+spec.label+". Нажмите для переключения.";
+   btn.setAttribute("aria-label",btn.title);
+ }
+ const select=document.getElementById("themeSelect");
+ if(select&&select.value!==mode)select.value=mode;
 }
 applyTheme(getTheme());
 const mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
@@ -181,9 +198,10 @@ let user=null,profile=null,currentRoom="general",unsubMsg=null,unsubReact=null,u
 const rooms=[{id:"general",name:"Редколлегия"},{id:"photo",name:"Фотоархив"},{id:"tanin",name:"Танин Шанхай"},{id:"upk",name:"УПК"},{id:"10a",name:"10А"},{id:"10b",name:"10Б"}];
 const $=id=>document.getElementById(id);
 $("themeBtn").onclick=()=>{
- const actual=document.documentElement.dataset.theme;
- const next=actual==="dark"?"light":"dark";
- localStorage.setItem(THEME_KEY,next);applyTheme(next);
+ const current=getTheme();
+ const next=THEME_MODES[(THEME_MODES.indexOf(current)+1)%THEME_MODES.length];
+ localStorage.setItem(THEME_KEY,next);
+ applyTheme(next);
 };
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function literaryHtml(s){

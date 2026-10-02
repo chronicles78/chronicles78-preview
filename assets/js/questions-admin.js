@@ -302,28 +302,42 @@ async function loadAdminUsers(){
  const {data,error}=await sb.rpc("admin_pending_users");
  if(error){$("adminUsersList").innerHTML='<div class="err">'+esc(error.message)+'</div>';return}
  const rows=data||[];
+ const pending=rows.filter(u=>!u.is_active&&!u.access_blocked).length;
  $("adminUsersList").className="";
- $("adminUsersList").innerHTML=rows.map(u=>{
-   const confirmed=!!u.email_confirmed_at;
-   return '<div class="archiveCard"><h3>'+esc(u.display_name||"Без имени")+'</h3>'+
-    '<div class="small">'+esc(u.email||"")+'</div>'+
-    '<div style="margin-top:6px">'+
-      '<span class="badge">'+(confirmed?"e-mail подтверждён":"ждёт подтверждения e-mail")+'</span>'+
-      '<span class="badge">'+(u.has_consent?"согласие есть":"согласие не принято")+'</span>'+
-      '<span class="badge">'+(u.access_blocked?"доступ отключён":(u.is_active?"доступ активен":"доступ не активен"))+'</span>'+
-    '</div>'+
-    '<div class="small" style="margin-top:6px">Регистрация: '+new Date(u.created_at).toLocaleString("ru-RU")+'</div>'+
-    (u.access_blocked&&confirmed?'<button class="secondary" data-admin-activate="'+u.user_id+'">Включить доступ</button>':'')+
-    (!u.access_blocked&&u.is_active?'<button class="secondary" data-admin-disable="'+u.user_id+'">Отключить доступ</button>':'')+
-    (!confirmed?'<div class="notice" style="margin-top:8px">Остался только переход по ссылке из письма. Ручная активация администратором не нужна.</div>':'')+
-    '</div>';
- }).join("")||'<div class="notice">Участников пока нет.</div>';
- $("adminUsersList").querySelectorAll("[data-admin-activate]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminActivate,true));
- $("adminUsersList").querySelectorAll("[data-admin-disable]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminDisable,false));
+ $("adminUsersList").innerHTML=
+   '<div class="notice"><b>Заявки на доступ: '+pending+'</b><br>Допуск возможен только после подтверждения e-mail и действующего согласия. Решение принимает администратор.</div>'+
+   (rows.map(u=>{
+     const confirmed=!!u.email_confirmed_at;
+     const canApprove=confirmed&&!!u.has_consent;
+     const state=u.is_active&&!u.access_blocked?"допущен":(u.access_blocked?"отклонён / отключён":"ожидает решения");
+     return '<div class="archiveCard"><h3>'+esc(u.display_name||"Без имени")+'</h3>'+
+      '<div class="small">'+esc(u.email||"")+'</div>'+
+      '<div style="margin-top:6px">'+
+        '<span class="badge">'+(confirmed?"e-mail подтверждён":"e-mail не подтверждён")+'</span>'+
+        '<span class="badge">'+(u.has_consent?"согласие есть":"нет действующего согласия")+'</span>'+
+        '<span class="badge">'+esc(state)+'</span>'+
+      '</div>'+
+      '<div class="small" style="margin-top:6px">Регистрация: '+new Date(u.created_at).toLocaleString("ru-RU")+'</div>'+
+      (!u.is_active&&!u.access_blocked&&canApprove?'<div class="reviewActions"><button class="primary" data-admin-activate="'+u.user_id+'">Допустить</button><button class="secondary" data-admin-reject="'+u.user_id+'">Отклонить</button></div>':'')+
+      (!u.is_active&&!u.access_blocked&&!canApprove?'<div class="reviewActions"><button class="secondary" data-admin-reject="'+u.user_id+'">Отклонить</button></div>':'')+
+      (u.access_blocked&&canApprove?'<button class="secondary" data-admin-activate="'+u.user_id+'">Восстановить доступ</button>':'')+
+      (u.is_active&&!u.access_blocked?'<button class="secondary" data-admin-disable="'+u.user_id+'">Отключить доступ</button>':'')+
+      (!confirmed?'<div class="formHint">Сначала кандидат должен подтвердить e-mail по ссылке из письма.</div>':'')+
+      (confirmed&&!u.has_consent?'<div class="formHint">Для допуска кандидат должен принять действующее согласие.</div>':'')+
+      '</div>';
+   }).join("")||'<div class="notice">Участников пока нет.</div>');
+ $("adminUsersList").querySelectorAll("[data-admin-activate]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminActivate,true,"Допустить этого участника в закрытый архив?"));
+ $("adminUsersList").querySelectorAll("[data-admin-reject]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminReject,false,"Отклонить эту заявку?"));
+ $("adminUsersList").querySelectorAll("[data-admin-disable]").forEach(b=>b.onclick=()=>adminSetAccess(b.dataset.adminDisable,false,"Отключить доступ этого участника?"));
 }
-async function adminSetAccess(uid,on){
+async function adminSetAccess(uid,on,question){
+ if(question&&!confirm(question))return;
  const {error}=await sb.rpc("admin_set_profile_access",{p_user_id:uid,p_is_active:on,p_person_id:null,p_class_group:null});
- if(error){alert("Не изменено: "+error.message);return}
+ if(error){
+   const msg=String(error.message||error);
+   alert("Не изменено: "+(msg.includes("email not confirmed")?"e-mail ещё не подтверждён":msg.includes("consent not accepted")?"нет действующего согласия":msg));
+   return;
+ }
  await loadAdminUsers();
 }
 init();

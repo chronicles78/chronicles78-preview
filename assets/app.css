@@ -2174,7 +2174,7 @@ html[data-theme="dark"] .nav.active b{
 
 
 /* Profile desktop: Supabase-like rail -> section -> workspace */
-@media (min-width:1024px){
+@media (min-width:900px){
   #profile .profileWorkspace{
     display:grid!important;
     grid-template-columns:58px minmax(0,1fr);
@@ -2358,6 +2358,25 @@ html[data-theme="dark"] .nav.active b{
 }
 
 /* Preserve current compact horizontal tabs on tablet/mobile. */
-@media (max-width:1023px){
+@media (max-width:899px){
   #profile .profileWorkspace{display:block!important}
+}
+
+
+/* Global visible build marker */
+.buildVersion{
+ display:inline-flex;
+ align-items:center;
+ min-height:24px;
+ padding:3px 6px;
+ border:1px solid var(--line);
+ border-radius:4px;
+ background:var(--soft-2);
+ color:var(--muted);
+ font:700 9px/1 "Courier New",monospace;
+ letter-spacing:.02em;
+ white-space:nowrap;
+}
+@media(max-width:560px){
+ .buildVersion{font-size:8px;padding:3px 4px}
 }

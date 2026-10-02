@@ -2595,3 +2595,54 @@ html[data-theme-mode="light"] option{
     drop-shadow(0 0 1px rgba(69,48,29,.52))
     drop-shadow(0 8px 11px rgba(54,40,25,.28))!important;
 }
+
+
+/* Photo archive: physical print on album background */
+.photoTile{
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.photoTileImage{
+  width:calc(100% - 24px)!important;
+  margin:12px 12px 10px!important;
+  padding:12px!important;
+  background:#fffef9!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  clip-path:polygon(
+    0% 4.6%, 5% 0%, 10% 4.6%, 15% 0%, 20% 4.6%, 25% 0%, 30% 4.6%, 35% 0%, 40% 4.6%, 45% 0%, 50% 4.6%, 55% 0%, 60% 4.6%, 65% 0%, 70% 4.6%, 75% 0%, 80% 4.6%, 85% 0%, 90% 4.6%, 95% 0%, 100% 4.6%,
+    95.4% 5%, 100% 10%, 95.4% 15%, 100% 20%, 95.4% 25%, 100% 30%, 95.4% 35%, 100% 40%, 95.4% 45%, 100% 50%, 95.4% 55%, 100% 60%, 95.4% 65%, 100% 70%, 95.4% 75%, 100% 80%, 95.4% 85%, 100% 90%, 95.4% 95%, 100% 100%,
+    95% 95.4%, 90% 100%, 85% 95.4%, 80% 100%, 75% 95.4%, 70% 100%, 65% 95.4%, 60% 100%, 55% 95.4%, 50% 100%, 45% 95.4%, 40% 100%, 35% 95.4%, 30% 100%, 25% 95.4%, 20% 100%, 15% 95.4%, 10% 100%, 5% 95.4%, 0% 100%,
+    4.6% 95%, 0% 90%, 4.6% 85%, 0% 80%, 4.6% 75%, 0% 70%, 4.6% 65%, 0% 60%, 4.6% 55%, 0% 50%, 4.6% 45%, 0% 40%, 4.6% 35%, 0% 30%, 4.6% 25%, 0% 20%, 4.6% 15%, 0% 10%, 4.6% 5%
+  )!important;
+  filter:
+    drop-shadow(0 1px 0 rgba(72,52,31,.30))
+    drop-shadow(0 7px 10px rgba(54,40,25,.26))!important;
+}
+.photoTileImage img{
+  border:1px solid rgba(28,39,48,.13)!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.42) inset!important;
+}
+.photoTileBody{
+  margin:0 4px 4px;
+  background:#fff!important;
+  border:1px solid rgba(93,70,42,.15);
+  border-radius:5px;
+  box-shadow:0 4px 12px rgba(67,48,28,.05);
+}
+html[data-theme="dark"] .photoTile{
+  background:transparent!important;
+}
+html[data-theme="dark"] .photoTileBody{
+  background:var(--paper)!important;
+  border-color:var(--line);
+}
+.photoTile:hover .photoTileImage{
+  transform:translateY(-2px) rotate(-.15deg);
+  filter:
+    drop-shadow(0 1px 0 rgba(72,52,31,.34))
+    drop-shadow(0 9px 13px rgba(54,40,25,.30))!important;
+}

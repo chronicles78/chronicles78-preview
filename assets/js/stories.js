@@ -39,8 +39,8 @@ function openStoryContext(id){
    preview,
    actions:[
      {icon:fragment?"?":"▤",label:fragment?"Что известно":"Читать историю",kind:"primary",run:()=>openStory(id)},
-     {icon:"💬",label:"Обсудить",hint:"Открыть связанную комнату чата",run:()=>{currentRoom=room;renderRooms();showView("chat");subscribe()}},
-     ...(s.data?.media_ids?.length?[{icon:"▧",label:"Связанные фотографии",hint:s.data.media_ids.length+" фото",run:()=>{mediaFocus=null;photoMode="archive";photoFilter="story";showView("photos");$("photoSearch").value=s.title;renderPhotosSection()}}]:[])
+     {icon:"💬",label:"Обсудить",hint:"Открыть связанную комнату чата",run:async()=>{currentRoom=room;renderRooms();await showView("chat");subscribe()}},
+     ...(s.data?.media_ids?.length?[{icon:"▧",label:"Связанные фотографии",hint:s.data.media_ids.length+" фото",run:async()=>{mediaFocus=null;photoMode="archive";photoFilter="story";await showView("photos");if($("photoSearch"))$("photoSearch").value=s.title;renderPhotosSection()}}]:[])
    ]
  });
 }

@@ -2714,3 +2714,13 @@ html[data-theme="dark"] .homeFreshCard>img{
     max-height:none!important;
   }
 }
+
+
+/* Home fresh archive: keep each card at its natural content height */
+.homeFreshGrid{
+  align-items:start;
+}
+.homeFreshCard{
+  align-self:start;
+  width:100%;
+}

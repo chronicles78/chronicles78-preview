@@ -2313,3 +2313,42 @@ https://liveviewer.ru/2020/08/kraya-istorii-fotograficheskij-rezak-hh-veka/
 - build marker: 20261003-31;
 - app.css?v=20261003-50;
 - CSS brace check: 1815 / 1815.
+
+
+## 94. Резервное копирование — аудит и усиление контура — 2026-10-03
+
+Проведена фактическая проверка резервного контура.
+
+Обнаружено:
+- последние три запуска `.github/workflows/backup.yml` завершались на шаге `Validate backup secrets`;
+- в последнем логе подтверждено отсутствие как минимум `SUPABASE_DB_URL`;
+- старый workflow копировал только `archive-media` и `chat-media`, хотя фактически Storage содержит 4 bucket: `archive-media`, `archive-originals`, `archive-pending`, `chat-media`;
+- в GitHub было сохранено 8 исходников Edge Functions при 11 фактически развёрнутых;
+- `site-traffic` в Supabase отличался от версии в GitHub.
+
+Исправлено в исходном коде:
+- `Validate backup secrets` теперь собирает полный список отсутствующих имён и только затем завершает шаг с ошибкой;
+- Storage backup переведён на динамическое перечисление и копирование всех S3 buckets;
+- в manifest добавляются список buckets, количество файлов по каждому bucket и общий объём;
+- добавлен backup истории `supabase_migrations`;
+- data dump исключает служебные vector storage tables согласно актуальному Supabase backup guidance;
+- перед загрузкой artifact проверяется, что зашифрованный файл не пуст;
+- timeout увеличен до 45 минут;
+- BACKUP.md обновлён под фактическую схему.
+
+Синхронизация Edge Functions:
+- подтверждено точное совпадение живых и GitHub-версий для process-archive-photo, moderate-photo-submission, register-photo-submission, mirror-original-to-drive, story-assistant, drive-photo-import, drive-video-import;
+- live `site-traffic` сохранён в GitHub вместо устаревшей копии;
+- добавлены отсутствовавшие live-исходники `voice-transcribe`, `direct-drive-photo-upload`, `drive-oauth-diagnostic`;
+- секреты Edge Functions в репозиторий не добавлялись.
+
+Перед этим создан аварийный snapshot на Google Drive:
+`2026-10-03_Хроники-78_backup_HEAD-8134ab7`.
+В нём сохранены опубликованный сайт, данные public-схемы, inventory Storage, схема/миграции и live Edge Functions. Это контрольная копия до восстановления штатного зашифрованного workflow.
+
+Видимая версия сайта и cache-version не менялись, так как пользовательский frontend не изменялся.
+
+Следующий обязательный шаг:
+- создать/восстановить четыре GitHub Actions secrets;
+- выполнить ручной `Chronicles-78 encrypted backup`;
+- проверить успешный artifact и затем сохранить его на Google Drive.

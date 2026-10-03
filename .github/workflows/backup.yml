@@ -12,7 +12,7 @@ permissions:
 jobs:
   backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout full repository history
@@ -29,12 +29,16 @@ jobs:
           BACKUP_ENCRYPTION_PASSWORD: ${{ secrets.BACKUP_ENCRYPTION_PASSWORD }}
         run: |
           set -euo pipefail
+          missing=0
           for v in SUPABASE_DB_URL SUPABASE_S3_ACCESS_KEY_ID SUPABASE_S3_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSWORD; do
             if [ -z "${!v:-}" ]; then
               echo "::error::Missing required GitHub Actions secret: $v"
-              exit 1
+              missing=1
             fi
           done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
@@ -53,7 +57,7 @@ jobs:
           set -euo pipefail
           STAMP="$(date -u +'%Y%m%dT%H%M%SZ')"
           echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
-          mkdir -p backup/database backup/storage/archive-media backup/storage/chat-media backup/source
+          mkdir -p backup/database backup/storage backup/source
           {
             echo "project=Хроники-78"
             echo "created_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -70,9 +74,12 @@ jobs:
           set -euo pipefail
           supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/roles.sql --role-only
           supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/schema.sql
-          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/data.sql --use-copy --data-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/data.sql --use-copy --data-only \
+            -x "storage.buckets_vectors" -x "storage.vector_indexes"
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/migration_history_schema.sql --schema supabase_migrations
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/database/migration_history_data.sql --use-copy --data-only --schema supabase_migrations
 
-      - name: Copy Supabase Storage
+      - name: Copy all Supabase Storage buckets
         env:
           RCLONE_CONFIG_SUPABASE_TYPE: s3
           RCLONE_CONFIG_SUPABASE_PROVIDER: Other
@@ -84,13 +91,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rclone copy supabase:archive-media backup/storage/archive-media --fast-list --transfers 4 --checkers 8
-          rclone copy supabase:chat-media backup/storage/chat-media --fast-list --transfers 4 --checkers 8
+          mapfile -t buckets < <(rclone lsf supabase: --dirs-only | sed 's#/$##' | sed '/^$/d')
+          if [ "${#buckets[@]}" -eq 0 ]; then
+            echo "::error::Supabase S3 returned no Storage buckets"
+            exit 1
+          fi
+
           {
-            echo "archive_media_files=$(find backup/storage/archive-media -type f | wc -l | tr -d ' ')"
-            echo "chat_media_files=$(find backup/storage/chat-media -type f | wc -l | tr -d ' ')"
-            echo "storage_bytes=$(du -sb backup/storage | cut -f1)"
+            echo "storage_bucket_count=${#buckets[@]}"
+            printf 'storage_buckets='
+            (IFS=,; echo "${buckets[*]}")
           } >> backup/MANIFEST.txt
+
+          for bucket in "${buckets[@]}"; do
+            mkdir -p "backup/storage/$bucket"
+            rclone copy "supabase:$bucket" "backup/storage/$bucket" --fast-list --transfers 4 --checkers 8
+            key="$(printf '%s' "$bucket" | tr '-' '_')"
+            count="$(find "backup/storage/$bucket" -type f | wc -l | tr -d ' ')"
+            echo "storage_${key}_files=$count" >> backup/MANIFEST.txt
+          done
+
+          echo "storage_bytes=$(du -sb backup/storage | cut -f1)" >> backup/MANIFEST.txt
 
       - name: Bundle website source history
         shell: bash
@@ -113,7 +134,11 @@ jobs:
         run: |
           set -euo pipefail
           tar -czf "/tmp/chronicles78-backup-${STAMP}.tar.gz" backup
-          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000             -in "/tmp/chronicles78-backup-${STAMP}.tar.gz"             -out "chronicles78-backup-${STAMP}.tar.gz.enc"             -pass env:BACKUP_ENCRYPTION_PASSWORD
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in "/tmp/chronicles78-backup-${STAMP}.tar.gz" \
+            -out "chronicles78-backup-${STAMP}.tar.gz.enc" \
+            -pass env:BACKUP_ENCRYPTION_PASSWORD
+          test -s "chronicles78-backup-${STAMP}.tar.gz.enc"
           rm -rf backup "/tmp/chronicles78-backup-${STAMP}.tar.gz"
 
       - name: Upload encrypted backup artifact

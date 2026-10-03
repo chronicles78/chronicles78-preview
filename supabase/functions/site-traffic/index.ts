@@ -90,7 +90,29 @@ Deno.serve(async(req:Request)=>{
         session_id:sessionId,user_id:userId||null,first_seen_at:now,last_seen_at:now,current_view:view,
         device_type:device,platform,page_views:action==="track"?1:0,chat_views:action==="track"&&view==="chat"?1:0
       });
-      if(error)return res({error:"session_create_failed",detail:error.message},422);
+      if(error){
+        // A fresh browser session can issue two view/heartbeat calls nearly at once.
+        // If another request inserted this same session_id first, recover instead of
+        // surfacing a false 422 to the client.
+        if(error.code==="23505"){
+          const {data:created,error:retryLookup}=await admin.from("traffic_sessions")
+            .select("session_id,user_id,page_views,chat_views")
+            .eq("session_id",sessionId).maybeSingle();
+          if(retryLookup||!created)return res({error:"session_race_lookup_failed",detail:retryLookup?.message||error.message},422);
+          const retryPatch:any={
+            last_seen_at:now,current_view:view,device_type:device,platform,
+            user_id:userId||created.user_id||null
+          };
+          if(action==="track"){
+            retryPatch.page_views=Number(created.page_views||0)+1;
+            if(view==="chat")retryPatch.chat_views=Number(created.chat_views||0)+1;
+          }
+          const {error:retryUpdate}=await admin.from("traffic_sessions").update(retryPatch).eq("session_id",sessionId);
+          if(retryUpdate)return res({error:"session_race_update_failed",detail:retryUpdate.message},422);
+        }else{
+          return res({error:"session_create_failed",detail:error.message},422);
+        }
+      }
     }
 
     if(action==="track"){

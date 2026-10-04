@@ -929,6 +929,7 @@ async function loadHome(){
  }
 
  $("homeState").textContent="Архив открыт · "+profile.display_name;
+ if(typeof initHomeEraTv==="function")void initHomeEraTv();
  box.innerHTML='<div class="homeLoadingLine">Собираю сегодняшнюю страницу архива…</div>';
 
  const featuredIds=["MEDIA-045","MEDIA-013","MEDIA-012"];

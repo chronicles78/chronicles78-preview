@@ -172,9 +172,23 @@ function eraTvMeta(v){
 }
 function prepareHomeEraTv(){
  const screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart");if(!screen)return;
- eraTvItems=(videoCache||[]).filter(isEraTvVideo);
+ const atmosphere=(videoCache||[]).filter(v=>{
+  const path=String(v?.data?.drive_folder_path||"").toLowerCase();
+  const topic=String(v?.data?.preliminary_topic||"").toLowerCase();
+  return topic==="атмосфера времени"||path.split(" / ").includes("атмосфера времени");
+ });
+ eraTvItems=atmosphere.filter(isEraTvVideo);
  if(!eraTvItems.length){
-  screen.classList.remove("ready","on");if(empty)empty.textContent="В папке «Атмосфера времени» пока нет готовых MP4/WebM-клипов.";if(start)start.style.display="none";return;
+  screen.classList.remove("ready","on");
+  if(empty){
+   if(atmosphere.length){
+    const waiting=atmosphere.filter(videoNeedsConversion).length;
+    empty.textContent=waiting
+      ? "Ролик найден. Формат MOV пока не воспроизводится телевизором — нужен MP4/WebM."
+      : "Ролики «Атмосферы времени» найдены, но пока не готовы к показу.";
+   }else empty.textContent="В папке «Атмосфера времени» пока нет импортированных роликов.";
+  }
+  if(start)start.style.display="none";return;
  }
  screen.classList.add("ready");if(start)start.style.display="";
  eraTvIndex=Math.floor(Math.random()*eraTvItems.length);

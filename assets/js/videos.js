@@ -256,7 +256,4 @@ async function initHomeEraTv(){
   console.error("Home TV init failed",e);
  }
 }
-setTimeout(()=>void initHomeEraTv(),250);
-sb.auth.onAuthStateChange((event,session)=>{
- if(session&&["INITIAL_SESSION","SIGNED_IN","TOKEN_REFRESHED"].includes(event))setTimeout(()=>void initHomeEraTv(),50);
-});
+

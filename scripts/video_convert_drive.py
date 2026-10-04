@@ -25,6 +25,9 @@ CLIENT_ID = os.environ["GOOGLE_DRIVE_CLIENT_ID"].strip()
 CLIENT_SECRET = os.environ["GOOGLE_DRIVE_CLIENT_SECRET"].strip()
 REFRESH_TOKEN = os.environ["GOOGLE_DRIVE_REFRESH_TOKEN"].strip()
 MAX_FILES = max(1, min(int(os.environ.get("MAX_FILES", "4")), 20))
+RECOVER_FILE_ID = os.environ.get("RECOVER_FILE_ID", "").strip()
+RECOVER_FROM_FOLDER_ID = os.environ.get("RECOVER_FROM_FOLDER_ID", "").strip()
+RECOVER_TO_FOLDER_ID = os.environ.get("RECOVER_TO_FOLDER_ID", "").strip()
 
 session = requests.Session()
 access_token = ""
@@ -341,6 +344,42 @@ def move_file(file_id, old_parent_id, new_parent_id):
         raise RuntimeError(f"Drive move failed: HTTP {r.status_code} {r.text[:500]}")
     return r.json()
 
+def delete_drive_file(file_id):
+    r = session.delete(
+        DRIVE_API + f"/files/{file_id}",
+        headers=auth_headers(),
+        params={"supportsAllDrives": "true"},
+        timeout=120,
+    )
+    if r.status_code == 401:
+        refresh_access_token()
+        r = session.delete(
+            DRIVE_API + f"/files/{file_id}",
+            headers=auth_headers(),
+            params={"supportsAllDrives": "true"},
+            timeout=120,
+        )
+    if not r.ok and r.status_code != 404:
+        raise RuntimeError(f"Drive delete failed: HTTP {r.status_code} {r.text[:500]}")
+
+def recover_failed_file_if_requested():
+    if not RECOVER_FILE_ID:
+        return
+    if not RECOVER_FROM_FOLDER_ID or not RECOVER_TO_FOLDER_ID:
+        raise RuntimeError("Recovery requested without from/to folder IDs")
+    source_items = list_children(RECOVER_FROM_FOLDER_ID)
+    recovered = next((x for x in source_items if x.get("id") == RECOVER_FILE_ID), None)
+    if not recovered:
+        log(f"Recovery file {RECOVER_FILE_ID} is no longer in the errors folder; skipping recovery.")
+        return
+    move_file(RECOVER_FILE_ID, RECOVER_FROM_FOLDER_ID, RECOVER_TO_FOLDER_ID)
+    log(f"Recovered failed source back to conversion inbox: {recovered.get('name')}")
+    error_name = safe_stem(str(recovered.get("name") or "")) + ".conversion-error.txt"
+    for item in source_items:
+        if item.get("name") == error_name:
+            delete_drive_file(item["id"])
+            log(f"Deleted stale conversion error log: {error_name}")
+
 def upload_small_text(parent_id, name, text):
     boundary = "chronicles78-boundary"
     meta = json.dumps({"name": name, "parents": [parent_id], "mimeType": "text/plain"})
@@ -369,6 +408,8 @@ def main():
     refresh_access_token()
     if not ROOT_ID:
         die("ARCHIVE_ROOT_FOLDER_ID is empty")
+
+    recover_failed_file_if_requested()
 
     ready_root = ensure_folder(ROOT_ID, VIDEO_READY_ROOT_NAME)
     source_root = ensure_folder(ROOT_ID, SOURCE_ROOT_NAME)

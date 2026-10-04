@@ -15,6 +15,7 @@ async function prepareVideoArchive(){
    if(v.data?.poster_storage_path){const u=await archiveSignedImage(v.data.poster_storage_path);if(u)videoPosterSigned[v.id]=u}
  }));
  if(photoWorkspace==="videos")renderVideoArchive();
+ prepareHomeEraTv();
 }
 function videoTopicLabel(v){return String(v.data?.preliminary_topic||"").trim()||"Без темы"}
 function videoMetaLine(v){
@@ -156,3 +157,55 @@ async function importDriveVideos(){
 }
 if($("videoImportScanBtn"))$("videoImportScanBtn").onclick=scanDriveVideos;
 if($("videoImportRunBtn"))$("videoImportRunBtn").onclick=importDriveVideos;
+
+
+/* Home TV: only videos placed in the Drive subfolder "Атмосфера времени". */
+let eraTvItems=[],eraTvIndex=0,eraTvUrl=null,eraTvBusy=false;
+function isEraTvVideo(v){
+ const path=String(v?.data?.drive_folder_path||"").toLowerCase();
+ const topic=String(v?.data?.preliminary_topic||"").toLowerCase();
+ return !videoNeedsConversion(v)&&(topic==="атмосфера времени"||path.split(" / ").includes("атмосфера времени"));
+}
+function eraTvMeta(v){
+ const bits=[v?.approx_date_text,v?.location_text,v?.data?.duration_ms?videoDuration(v.data.duration_ms):null].filter(Boolean);
+ return bits.join(" · ")||"Эфир из нашей молодости";
+}
+function prepareHomeEraTv(){
+ const screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart");if(!screen)return;
+ eraTvItems=(videoCache||[]).filter(isEraTvVideo);
+ if(!eraTvItems.length){
+  screen.classList.remove("ready","on");if(empty)empty.textContent="В папке «Атмосфера времени» пока нет готовых MP4/WebM-клипов.";if(start)start.style.display="none";return;
+ }
+ screen.classList.add("ready");if(start)start.style.display="";
+ eraTvIndex=Math.floor(Math.random()*eraTvItems.length);
+ showEraTvCard(false);
+}
+function showEraTvCard(play){
+ if(!eraTvItems.length)return;
+ eraTvIndex=(eraTvIndex+eraTvItems.length)%eraTvItems.length;
+ const v=eraTvItems[eraTvIndex],title=$("eraTvClipTitle"),meta=$("eraTvClipMeta"),player=$("eraTvPlayer"),screen=$("eraTvScreen");
+ if(title)title.textContent=v.title||"Атмосфера времени";if(meta)meta.textContent=eraTvMeta(v);
+ const poster=videoPosterSigned[v.id]||"";if(player){player.pause();player.removeAttribute("src");player.load();if(poster)player.poster=poster;else player.removeAttribute("poster")}
+ if(screen)screen.classList.remove("on");
+ if(play)void playEraTv();
+}
+async function playEraTv(){
+ if(eraTvBusy||!eraTvItems.length)return;
+ const v=eraTvItems[eraTvIndex],player=$("eraTvPlayer"),screen=$("eraTvScreen"),empty=$("eraTvEmpty");if(!player||!screen)return;
+ eraTvBusy=true;if(empty)empty.textContent="Настраиваю канал…";
+ try{
+  const {data,error}=await sb.functions.invoke("drive-video-import",{body:{action:"playback_url",mediaId:v.id}});
+  if(error||!data?.ok)throw new Error(await driveVideoError(error,data));
+  eraTvUrl=data.url;player.src=eraTvUrl;player.controls=false;player.muted=false;screen.classList.add("ready","on");
+  await player.play();
+ }catch(e){screen.classList.remove("on");if(empty){empty.textContent=e?.message||"Не удалось включить эфир.";empty.style.display="flex"}}
+ finally{eraTvBusy=false}
+}
+function stepEraTv(delta){
+ if(!eraTvItems.length)return;eraTvIndex=(eraTvIndex+delta+eraTvItems.length)%eraTvItems.length;showEraTvCard(true);
+}
+if($("eraTvStart"))$("eraTvStart").onclick=playEraTv;
+if($("eraTvPrev"))$("eraTvPrev").onclick=()=>stepEraTv(-1);
+if($("eraTvNext"))$("eraTvNext").onclick=()=>stepEraTv(1);
+if($("eraTvSound"))$("eraTvSound").onclick=()=>{const p=$("eraTvPlayer");if(!p)return;p.muted=!p.muted;$("eraTvSound").textContent=p.muted?"×♪":"♪"};
+if($("eraTvPlayer"))$("eraTvPlayer").onended=()=>stepEraTv(1);

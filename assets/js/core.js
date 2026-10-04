@@ -888,11 +888,13 @@ function renderRooms(){
 let homeSearchCache=null;
 
 function homeMondayKey(){
- const d=new Date();
- d.setHours(0,0,0,0);
- const shift=(d.getDay()+6)%7;
- d.setDate(d.getDate()-shift);
- return Math.floor(d.getTime()/604800000);
+ const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Samara",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"}).formatToParts(new Date());
+ const get=t=>parts.find(x=>x.type===t)?.value||"";
+ const y=Number(get("year")),m=Number(get("month")),d=Number(get("day"));
+ const date=new Date(Date.UTC(y,m-1,d));
+ const shift=(date.getUTCDay()+6)%7;
+ date.setUTCDate(date.getUTCDate()-shift);
+ return Math.floor(date.getTime()/604800000);
 }
 function homeTextExcerpt(value,max=190){
  const t=String(value||"").replace(/\s+/g," ").trim();
@@ -1036,7 +1038,8 @@ async function loadHome(){
  const newestStory=[...candidates].filter(x=>x.st.id!==weekly?.st.id).sort((a,b)=>new Date(b.st.updated_at)-new Date(a.st.updated_at))[0]||weekly||null;
 
  const usedIds=new Set([weeklyMedia?.id,newestStory?.cover?.id].filter(Boolean));
- const unknownPerson=(unknownPeopleRes.data||[]).find(p=>(regionsRes.data||[]).some(r=>r.person_id===p.id))||null;
+ const unknownCandidates=(unknownPeopleRes.data||[]).filter(p=>(regionsRes.data||[]).some(r=>r.person_id===p.id));
+ const unknownPerson=unknownCandidates.length?unknownCandidates[Math.abs(homeMondayKey()+1)%unknownCandidates.length]:null;
  const unknownRegion=unknownPerson?(regionsRes.data||[]).find(r=>r.person_id===unknownPerson.id):null;
  const freshPhoto=media.find(m=>!usedIds.has(m.id)&&m.current_storage_path)||media[0]||null;
 

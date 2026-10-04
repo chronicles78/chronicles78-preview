@@ -227,11 +227,19 @@ function stepEraTv(delta){
  if(!eraTvItems.length)return;
  const wasOn=eraTvPowered;eraTvIndex=(eraTvIndex+delta+eraTvItems.length)%eraTvItems.length;showEraTvCard(wasOn);
 }
-if($("eraTvStart"))$("eraTvStart").onclick=playEraTv;
-if($("eraTvPower"))$("eraTvPower").onclick=()=>{if(eraTvPowered)powerOffEraTv();else playEraTv()};
-if($("eraTvPrev"))$("eraTvPrev").onclick=()=>stepEraTv(-1);
-if($("eraTvNext"))$("eraTvNext").onclick=()=>stepEraTv(1);
-if($("eraTvSound"))$("eraTvSound").onclick=()=>{const p=$("eraTvPlayer");if(!p||!eraTvPowered)return;p.muted=!p.muted;$("eraTvSound").textContent=p.muted?"×♪":"♪"};
+document.addEventListener("click",e=>{
+ const b=e.target.closest?.("#eraTvStart,#eraTvPower,#eraTvPrev,#eraTvNext,#eraTvSound");
+ if(!b)return;
+ e.preventDefault();e.stopPropagation();
+ if(b.id==="eraTvStart"){void playEraTv();return}
+ if(b.id==="eraTvPower"){if(eraTvPowered)powerOffEraTv();else void playEraTv();return}
+ if(b.id==="eraTvPrev"){stepEraTv(-1);return}
+ if(b.id==="eraTvNext"){stepEraTv(1);return}
+ if(b.id==="eraTvSound"){
+  const p=$("eraTvPlayer");if(!p||!eraTvPowered)return;
+  p.muted=!p.muted;b.textContent=p.muted?"×♪":"♪";
+ }
+},true);
 if($("eraTvPlayer"))$("eraTvPlayer").onended=()=>{if(eraTvPowered)stepEraTv(1)};
 
 async function initHomeEraTv(){

@@ -421,7 +421,7 @@ def main():
 
             src_ext = Path(src_name).suffix or ".bin"
             src_local = work / (file_id + src_ext)
-            out_local = work / (file_id + ".mp4")
+            out_local = work / (file_id + ".normalized.mp4")
             try:
                 download_file(file_id, src_local)
                 log(f"Downloaded {src_local.stat().st_size} bytes")

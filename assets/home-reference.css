@@ -369,7 +369,7 @@ body:has(#home.view.active) main{
   background:rgba(255,251,243,.92)!important;box-shadow:0 2px 7px rgba(65,44,24,.045)!important;
   text-align:left!important;overflow:hidden!important;cursor:pointer!important;
 }
-.homeFreshLiveImage,.homeFreshLiveFace{width:100%!important;height:100%!important;min-height:0!important;background:#d8cbb8 center/cover no-repeat!important;overflow:hidden!important}
+.homeFreshLiveImage,.homeFreshLiveFace{width:100%!important;height:100%!important;min-height:0!important;background-color:#d8cbb8!important;background-repeat:no-repeat!important;overflow:hidden!important}
 .homeFreshLiveImage img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
 .homeFreshLiveFace{display:grid!important;place-items:center!important;color:#fff!important;font:700 28px/1 Georgia,serif!important}
 .homeFreshLiveCard>div:last-child{

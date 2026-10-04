@@ -1,1 +1,1 @@
-Recover and retry failed MP4 normalization
+Process remaining MP4 normalization batch

@@ -977,11 +977,22 @@ async function loadHome(){
    quoteBy=qEssay.title+(qEssay.period?" · "+qEssay.period:"");
  }
 
- const peopleThumb=classUrl||featuredUrls[0]||"";
- const storiesThumb=storyUrl||featuredUrls[1]||albumUrl||"";
- const cityThumb=featuredUrls[2]||featuredUrls[0]||albumUrl||"";
+ const usedHomeImages=new Set();
+ const uniqueHomeImage=(...urls)=>{
+   for(const url of urls){if(url&&!usedHomeImages.has(url)){usedHomeImages.add(url);return url}}
+   return "";
+ };
+ const peopleThumb=uniqueHomeImage(classUrl,featuredUrls[0],albumUrl);
+ const storiesThumb=uniqueHomeImage(storyUrl,featuredUrls[1],featuredUrls[0],albumUrl);
+ const cityThumb=uniqueHomeImage(featuredUrls[2],featuredUrls[0],albumUrl);
  const editor=profile.role==="editor"||profile.role==="admin";
- const latestPhoto=mr.find(m=>m.current_storage_path)||null;
+ const latestPhoto=mr.find(m=>m.current_storage_path&&![
+   classPhoto.data?.storage_path,
+   storyPhoto?.current_storage_path,
+   ...featuredRows.map(x=>x.current_storage_path)
+ ].includes(m.current_storage_path))||mr.find(m=>m.current_storage_path)||null;
+ const latestPhotoUrl=latestPhoto?.current_storage_path?await archiveSignedImage(latestPhoto.current_storage_path):null;
+ const freshPhotoThumb=uniqueHomeImage(latestPhotoUrl);
 
  const gatewayImg=(url,alt)=>url?'<img src="'+url+'" alt="'+esc(alt||"")+'">':'<div class="homeGatewayPlaceholder"></div>';
 
@@ -1019,7 +1030,7 @@ async function loadHome(){
      '<div class="homeSectionHead"><h2>Что нового в архиве</h2><button class="textLink" data-home-view="photos">Открыть весь архив →</button></div>'+
      '<div class="homeFreshGrid">'+
        '<button class="homeFreshCard" data-home-view="photos">'+
-         (latestPhoto&&albumUrl?'<img src="'+albumUrl+'" alt="'+esc(latestPhoto.title||"Новые фотографии")+'">':'<div class="homeFreshPlaceholder">▧</div>')+
+         (latestPhoto&&freshPhotoThumb?'<img src="'+freshPhotoThumb+'" alt="'+esc(latestPhoto.title||"Новые фотографии")+'">':'<div class="homeFreshPlaceholder">▧</div>')+
          '<div><small>НОВЫЕ ФОТОГРАФИИ</small><b>'+esc(latestPhoto?.title||"Фотоархив пополняется")+'</b><span>Открыть фотоархив →</span></div>'+
        '</button>'+
        (lead?'<button class="homeFreshCard" data-home-story="'+esc(lead.id)+'">'+

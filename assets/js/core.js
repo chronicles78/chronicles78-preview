@@ -991,19 +991,17 @@ async function loadHome(){
     '<button id="homeClassPhotoLive" class="homeClassPhotoLive" type="button" title="10Б · школа №78"></button>'+
     '<section id="homeWeekLive" class="homeWeekLive" hidden></section>'+
     '<section id="homeFreshLive" class="homeFreshLive" hidden></section>'+
-    '<button id="homeSearchBtn" class="homeSearchBtn" type="button" aria-label="Поиск по архиву" title="Поиск по архиву"></button>'+
-    '<button id="homeThemeToggle" class="homeThemeToggle" type="button" aria-label="Тёмная тема" title="Тёмная тема">☾</button>'+
    '</div>');
   layer=$("homeLiveLayer");
-  $("homeSearchBtn").onclick=openHomeSearch;
-  $("homeThemeToggle").onclick=()=>{
-    const dark=document.documentElement.dataset.theme==="dark";
-    const next=dark?"light":"dark";
-    localStorage.setItem(THEME_KEY,next);
-    applyTheme(next);
-    homeThemeSync();
-  };
  }
+ if($("homeSearchBtn"))$("homeSearchBtn").onclick=openHomeSearch;
+ if($("homeThemeToggle"))$("homeThemeToggle").onclick=()=>{
+   const dark=document.documentElement.dataset.theme==="dark";
+   const next=dark?"light":"dark";
+   localStorage.setItem(THEME_KEY,next);
+   applyTheme(next);
+   homeThemeSync();
+ };
  homeThemeSync();
 
  if(!user||!profile?.is_active){

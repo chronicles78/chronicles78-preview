@@ -1031,24 +1031,23 @@ async function loadHome(){
      '<div class="homeFreshGrid">'+
        '<button class="homeFreshCard" data-home-view="photos">'+
          (latestPhoto&&freshPhotoThumb?'<img src="'+freshPhotoThumb+'" alt="'+esc(latestPhoto.title||"Новые фотографии")+'">':'<div class="homeFreshPlaceholder">▧</div>')+
-         '<div><small>НОВЫЕ ФОТОГРАФИИ</small><b>'+esc(latestPhoto?.title||"Фотоархив пополняется")+'</b><span>Открыть фотоархив →</span></div>'+
+         '<div><small>НОВЫЕ ФОТОГРАФИИ</small><b>'+esc(latestPhoto?.title||"Новые фотографии")+'</b><span>Фотоархив · '+mr.length+' материалов →</span></div>'+
        '</button>'+
        (lead?'<button class="homeFreshCard" data-home-story="'+esc(lead.id)+'">'+
          (cityThumb?'<img src="'+cityThumb+'" alt="'+esc(lead.title)+'">':'<div class="homeFreshPlaceholder">✎</div>')+
-         '<div><small>ИСТОРИЯ</small><b>'+esc(lead.title)+'</b><span>Читать →</span></div>'+
-       '</button>':'')+
-       (msgs.length?'<button class="homeFreshCard" data-home-view="chat">'+
-         '<div class="homeFreshPlaceholder chat">◌</div>'+
-         '<div><small>ЧАТ · '+esc(roomName(msgs[0].room_id))+'</small><b>'+esc(msgs[0].author?.display_name||"Новая реплика")+'</b><span>'+esc((msgs[0].body||"Новое сообщение").slice(0,90))+'</span></div>'+
-       '</button>':'')+
+         '<div><small>НОВАЯ ИСТОРИЯ</small><b>'+esc(lead.title)+'</b><span>Читать историю →</span></div>'+
+       '</button>':'<button class="homeFreshCard" data-home-view="stories"><div class="homeFreshPlaceholder">✎</div><div><small>НОВАЯ ИСТОРИЯ</small><b>Истории класса</b><span>Открыть →</span></div></button>')+
        (needPhoto[0]?'<button class="homeFreshCard" data-home-photo="'+esc(needPhoto[0].id)+'">'+
          '<div class="homeFreshPlaceholder question">?</div>'+
-         '<div><small>НУЖНА ПОМОЩЬ</small><b>'+esc(needPhoto[0].title)+'</b><span>Помочь разобраться →</span></div>'+
-       '</button>':'')+
+         '<div><small>НЕОПОЗНАННОЕ ЛИЦО</small><b>'+esc(needPhoto[0].title||"Нужна помощь")+'</b><span>Кто это на фото? →</span></div>'+
+       '</button>':'<button class="homeFreshCard" data-home-view="questions"><div class="homeFreshPlaceholder question">?</div><div><small>ОТКРЫТЫЙ ВОПРОС</small><b>Помочь архиву</b><span>Открыть вопросы →</span></div></button>')+
      '</div>'+
    '</section>'+
-
-   '<div class="homeMemoryRibbon"><div class="homeMemoryCity">Куйбышев · Волга · школа №78 · 1983</div><blockquote>«'+esc(quoteText||"Память складывается не из дат. Она складывается из голосов, лиц и деталей.")+'»</blockquote><span>'+esc(quoteBy||"Из наших воспоминаний")+'</span></div>'+
+   '<div class="homeMemoryRibbon">'+
+     (featuredUrls[2]?'<img class="homeMemoryBackdrop" src="'+featuredUrls[2]+'" alt="">':'')+
+     '<div class="homeMemoryOverlay"></div>'+
+     '<div class="homeMemoryQuoteWrap"><blockquote>«'+esc(quoteText||"Куйбышев — это не просто город. Это фон, на котором мы стали собой.")+'»</blockquote><span>— '+esc(quoteBy||"Из наших воспоминаний")+'</span></div>'+
+   '</div>'+
    '<div class="memoryArchiveNote"><b>Здесь нет одной «официальной версии» прошлого.</b> Разные воспоминания могут не совпадать — мы сохраняем их рядом и отмечаем, что подтверждено фотографией, документом или несколькими свидетелями.</div>'+
    (editor?'<div class="memoryEditorStrip"><b>Редакторский слой:</b> '+sr.length+' историй · '+mr.length+' свежих фото в выборке · '+openQ.length+' открытых вопросов · '+unknown10A.length+' неопознанных в 10А.</div>':'');
 

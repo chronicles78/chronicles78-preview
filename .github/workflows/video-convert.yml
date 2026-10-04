@@ -1,6 +1,10 @@
 name: Chronicles-78 video converter
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/video-convert-trigger.txt"
   workflow_dispatch:
     inputs:
       max_files:

@@ -689,7 +689,7 @@ function showView(v,{track=true}={}){
  if($("storyDetail")?.classList.contains("open")){$("storyDetail").classList.remove("open");openStoryId=null;}
  document.querySelectorAll(".view").forEach(x=>x.classList.toggle("active",x.id===v));
  document.querySelectorAll(".nav[data-view]").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
- const secondary=["photos","city","questions","profile"].includes(v);
+ const secondary=["photos","city","questions","tv","profile"].includes(v);
  $("mobileMoreBtn")?.classList.toggle("active",secondary);
 
  let ready=Promise.resolve(true);
@@ -700,6 +700,7 @@ function showView(v,{track=true}={}){
  else if(v==="photos")ready=Promise.resolve(loadPhotos());
  else if(v==="city")ready=Promise.resolve(loadCityEssays());
  else if(v==="questions")ready=Promise.resolve(loadQuestions());
+ else if(v==="tv"){if(typeof initHomeEraTv==="function")ready=Promise.resolve(initHomeEraTv());}
  else if(v==="profile"&&user&&profile?.is_active){
    ready=Promise.resolve(true);
  }
@@ -929,7 +930,6 @@ async function loadHome(){
  }
 
  $("homeState").textContent="Архив открыт · "+profile.display_name;
- if(typeof initHomeEraTv==="function")void initHomeEraTv();
  box.innerHTML='<div class="homeLoadingLine">Собираю сегодняшнюю страницу архива…</div>';
 
  const featuredIds=["MEDIA-045","MEDIA-013","MEDIA-012"];

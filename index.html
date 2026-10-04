@@ -27,7 +27,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
 <link rel="stylesheet" href="assets/app.css?v=20261004-57">
-<link rel="stylesheet" href="assets/home-reference.css?v=20261004-9">
+<link rel="stylesheet" href="assets/home-reference.css?v=20261004-10">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
 </head>
 <body>
@@ -38,12 +38,12 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">ХРОНИКИ 78-й</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="tv" type="button">Телевизор</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-55</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">ХРОНИКИ 78-й</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="tv" type="button">Телевизор</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-56</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active">
   <div class="homeReferenceStage" id="homeReferenceStage">
     <img class="homeReferenceImage" id="homeReferenceImage"
-      src="assets/home-reference-exact.jpg?v=1"
+      src="assets/home-reference-exact.jpg?v=2"
       alt="Хроники 78-й — главная страница">
     <button class="homeHotspot hsPeopleTop" type="button" data-home-view="people" aria-label="Люди"></button>
     <button class="homeHotspot hsStoriesTop" type="button" data-home-view="stories" aria-label="Истории"></button>
@@ -52,6 +52,9 @@
     <button class="homeHotspot hsChatTop" type="button" data-home-view="chat" aria-label="Чат"></button>
     <button class="homeReferenceTvLink" type="button" data-home-view="tv">Телевизор</button>
     <button class="homeHotspot hsProfileTop" type="button" data-home-view="profile" aria-label="Профиль"></button>
+    <button id="homeSearchBtn" class="homeSearchBtn" type="button" aria-label="Поиск по архиву" title="Поиск по архиву"></button>
+    <button id="homeThemeToggle" class="homeThemeToggle" type="button" aria-label="Тёмная тема" title="Тёмная тема">☾</button>
+    <div id="homeVersionBadge" class="homeVersionBadge">v56</div>
 
     <button class="homeHotspot hsHeroStories" type="button" data-home-view="stories" aria-label="Читать истории"></button>
     <button class="homeHotspot hsHeroPeople" type="button" data-home-view="people" aria-label="Люди нашего класса"></button>
@@ -464,7 +467,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261004-27"></script>
+<script src="assets/js/core.js?v=20261004-28"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>

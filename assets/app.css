@@ -2753,3 +2753,29 @@ html[data-theme="dark"] .eraTvSection{background:linear-gradient(135deg,rgba(59,
 .eraTvPanel{min-width:105px}
 .eraTvBrand{width:100%;font-size:8px!important;letter-spacing:0!important;white-space:nowrap!important;word-break:keep-all!important;overflow:visible}
 @media(max-width:560px){.eraTvPanel{min-width:70px}.eraTvBrand{font-size:6px!important}}
+
+/* TV nameplate: structural fix. Full cabinet width, never wraps. */
+.eraTvBrand{display:none!important}
+.eraTvCabinet{grid-template-rows:auto auto}
+.eraTvNameplate{
+ grid-column:1 / -1;
+ display:block;
+ width:max-content;
+ max-width:calc(100% - 24px);
+ justify-self:center;
+ margin:2px auto -4px;
+ padding:4px 16px 3px;
+ box-sizing:border-box;
+ white-space:nowrap!important;
+ word-break:normal!important;
+ overflow-wrap:normal!important;
+ font:700 11px/1.1 system-ui,sans-serif;
+ letter-spacing:.14em;
+ color:#d8c5a2;
+ border:1px solid rgba(216,197,162,.35);
+ border-radius:3px;
+ background:rgba(30,21,16,.34);
+}
+@media(max-width:560px){
+ .eraTvNameplate{font-size:9px;letter-spacing:.08em;padding-left:10px;padding-right:10px}
+}

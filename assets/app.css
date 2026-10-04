@@ -2779,3 +2779,8 @@ html[data-theme="dark"] .eraTvSection{background:linear-gradient(135deg,rgba(59,
 @media(max-width:560px){
  .eraTvNameplate{font-size:9px;letter-spacing:.08em;padding-left:10px;padding-right:10px}
 }
+
+/* 2026-10-04: site title — never wrap */
+.mosaicTitleCard h1{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;font-size:clamp(30px,5.2vw,64px)!important;letter-spacing:-.035em}
+header.top .brand{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important}
+@media(max-width:520px){.mosaicTitleCard h1{font-size:clamp(25px,8.2vw,40px)!important;letter-spacing:-.045em}}

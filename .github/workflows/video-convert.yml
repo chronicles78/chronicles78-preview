@@ -1,10 +1,8 @@
 name: Chronicles-78 video converter
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "scripts/video-convert-trigger.txt"
+  schedule:
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       max_files:

@@ -279,7 +279,6 @@ def drive_copy_exact(file_id, parent_id, name):
         json_body={
             "name": name,
             "parents": [parent_id],
-            "mimeType": "video/mp4",
             "appProperties": {
                 "chronicles78SourceId": file_id,
                 "chronicles78Normalized": "mp4-h264-aac-v1",
@@ -315,7 +314,7 @@ def upload_resumable(local_path, parent_id, name, source_id, processing="transco
     )
     if init.status_code == 401:
         refresh_access_token()
-        return upload_resumable(local_path, parent_id, name, source_id)
+        return upload_resumable(local_path, parent_id, name, source_id, processing=processing)
     if not init.ok:
         raise RuntimeError(f"Drive resumable upload init failed: HTTP {init.status_code} {init.text[:500]}")
     location = init.headers.get("Location")

@@ -237,6 +237,7 @@ if($("eraTvPlayer"))$("eraTvPlayer").onended=()=>{if(eraTvPowered)stepEraTv(1)};
 async function initHomeEraTv(){
  if(!$("eraTvScreen"))return;
  try{
+  await sb.auth.getSession();
   const {data,error}=await sb.from("archive_media")
    .select("id,title,approx_date_text,location_text,data")
    .eq("media_type","video")
@@ -255,4 +256,7 @@ async function initHomeEraTv(){
   console.error("Home TV init failed",e);
  }
 }
-void initHomeEraTv();
+setTimeout(()=>void initHomeEraTv(),250);
+sb.auth.onAuthStateChange((event,session)=>{
+ if(session&&["INITIAL_SESSION","SIGNED_IN","TOKEN_REFRESHED"].includes(event))setTimeout(()=>void initHomeEraTv(),50);
+});

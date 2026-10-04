@@ -31,6 +31,9 @@ access_token = ""
 summary = {
     "processed": 0,
     "converted": 0,
+    "copied_without_reencode": 0,
+    "remuxed": 0,
+    "transcoded": 0,
     "archived_originals": 0,
     "failed": 0,
     "skipped": 0,
@@ -161,16 +164,85 @@ def download_file(file_id, dest):
             if chunk:
                 fh.write(chunk)
 
-def probe_has_video(path):
+def probe_media(path):
     p = subprocess.run([
-        "ffprobe", "-v", "error", "-select_streams", "v:0",
-        "-show_entries", "stream=index", "-of", "csv=p=0", str(path)
+        "ffprobe", "-v", "error",
+        "-show_entries", "stream=index,codec_type,codec_name,pix_fmt,width,height",
+        "-of", "json", str(path)
     ], capture_output=True, text=True)
-    return p.returncode == 0 and bool(p.stdout.strip())
+    if p.returncode != 0:
+        tail = "\n".join((p.stderr or "").splitlines()[-20:])
+        raise RuntimeError("ffprobe failed:\n" + tail)
+    try:
+        info = json.loads(p.stdout or "{}")
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"ffprobe returned invalid JSON: {e}")
+    videos = [x for x in info.get("streams", []) if x.get("codec_type") == "video"]
+    audios = [x for x in info.get("streams", []) if x.get("codec_type") == "audio"]
+    if not videos:
+        raise RuntimeError("Во входном файле не найдена видеодорожка")
+    return {"video": videos[0], "audio": audios[0] if audios else None}
+
+def codecs_ready_for_web(info):
+    video = info["video"]
+    audio = info["audio"]
+    width = int(video.get("width") or 0)
+    height = int(video.get("height") or 0)
+    return (
+        video.get("codec_name") == "h264"
+        and video.get("pix_fmt") == "yuv420p"
+        and (not audio or audio.get("codec_name") == "aac")
+        and width > 0 and height > 0
+        and width <= 1920 and height <= 1080
+    )
+
+def mp4_has_faststart(path):
+    moov_pos = None
+    mdat_pos = None
+    file_size = path.stat().st_size
+    with open(path, "rb") as fh:
+        pos = 0
+        while pos + 8 <= file_size:
+            fh.seek(pos)
+            header = fh.read(8)
+            if len(header) < 8:
+                break
+            size = int.from_bytes(header[:4], "big")
+            kind = header[4:8]
+            header_size = 8
+            if size == 1:
+                ext = fh.read(8)
+                if len(ext) < 8:
+                    break
+                size = int.from_bytes(ext, "big")
+                header_size = 16
+            elif size == 0:
+                size = file_size - pos
+            if size < header_size or pos + size > file_size:
+                break
+            if kind == b"moov" and moov_pos is None:
+                moov_pos = pos
+            elif kind == b"mdat" and mdat_pos is None:
+                mdat_pos = pos
+            if moov_pos is not None and mdat_pos is not None:
+                break
+            pos += size
+    return moov_pos is not None and (mdat_pos is None or moov_pos < mdat_pos)
+
+def remux_to_mp4(src, dst):
+    cmd = [
+        "ffmpeg", "-hide_banner", "-nostdin", "-y", "-i", str(src),
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn",
+        "-c", "copy", "-movflags", "+faststart", str(dst),
+    ]
+    p = subprocess.run(cmd, capture_output=True, text=True)
+    if p.returncode != 0:
+        tail = "\n".join((p.stderr or "").splitlines()[-30:])
+        raise RuntimeError("FFmpeg remux failed:\n" + tail)
+    if not dst.exists() or dst.stat().st_size == 0:
+        raise RuntimeError("FFmpeg remux completed but MP4 is empty")
 
 def convert_to_mp4(src, dst):
-    if not probe_has_video(src):
-        raise RuntimeError("Во входном файле не найдена видеодорожка")
     vf = "bwdif=mode=send_frame:parity=auto:deint=interlaced,scale=w='min(1920,iw)':h='min(1080,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2"
     cmd = [
         "ffmpeg", "-hide_banner", "-nostdin", "-y", "-i", str(src),
@@ -185,9 +257,9 @@ def convert_to_mp4(src, dst):
     p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode != 0:
         tail = "\n".join((p.stderr or "").splitlines()[-30:])
-        raise RuntimeError("FFmpeg failed:\n" + tail)
+        raise RuntimeError("FFmpeg transcode failed:\n" + tail)
     if not dst.exists() or dst.stat().st_size == 0:
-        raise RuntimeError("FFmpeg completed but MP4 is empty")
+        raise RuntimeError("FFmpeg transcode completed but MP4 is empty")
 
 def find_existing_output(folder_id, output_name, source_id):
     for item in list_children(folder_id):
@@ -200,7 +272,26 @@ def find_existing_output(folder_id, output_name, source_id):
             return item
     return None
 
-def upload_resumable(local_path, parent_id, name, source_id):
+def drive_copy_exact(file_id, parent_id, name):
+    r = drive_post(
+        f"/files/{file_id}/copy",
+        params={"fields": "id,name,size,parents,appProperties", "supportsAllDrives": "true"},
+        json_body={
+            "name": name,
+            "parents": [parent_id],
+            "mimeType": "video/mp4",
+            "appProperties": {
+                "chronicles78SourceId": file_id,
+                "chronicles78Normalized": "mp4-h264-aac-v1",
+                "chronicles78Processing": "exact-copy",
+            },
+        },
+    )
+    if not r.ok:
+        raise RuntimeError(f"Drive exact copy failed: HTTP {r.status_code} {r.text[:500]}")
+    return r.json()
+
+def upload_resumable(local_path, parent_id, name, source_id, processing="transcode"):
     metadata = {
         "name": name,
         "parents": [parent_id],
@@ -208,6 +299,7 @@ def upload_resumable(local_path, parent_id, name, source_id):
         "appProperties": {
             "chronicles78SourceId": source_id,
             "chronicles78Normalized": "mp4-h264-aac-v1",
+            "chronicles78Processing": processing,
         },
     }
     init = session.post(
@@ -334,10 +426,37 @@ def main():
             try:
                 download_file(file_id, src_local)
                 log(f"Downloaded {src_local.stat().st_size} bytes")
-                convert_to_mp4(src_local, out_local)
-                log(f"Converted to MP4: {out_local.stat().st_size} bytes")
-                uploaded = upload_resumable(out_local, ready_parent, out_name, file_id)
-                log(f"Uploaded MP4: {uploaded.get('id')} / {out_name}")
+                info = probe_media(src_local)
+                video = info["video"]
+                audio = info["audio"]
+                log(
+                    "Probe: "
+                    + f"video={video.get('codec_name')}/{video.get('pix_fmt')} "
+                    + f"{video.get('width')}x{video.get('height')} "
+                    + f"audio={(audio or {}).get('codec_name') if audio else 'none'}"
+                )
+
+                source_is_mp4 = Path(src_name).suffix.lower() == ".mp4" or str(file.get("mimeType", "")).lower() == "video/mp4"
+                web_ready_codecs = codecs_ready_for_web(info)
+
+                if source_is_mp4 and web_ready_codecs and mp4_has_faststart(src_local):
+                    log("Mode: exact-copy (MP4 already H.264/AAC/yuv420p/faststart; no media rewrite)")
+                    uploaded = drive_copy_exact(file_id, ready_parent, out_name)
+                    summary["copied_without_reencode"] += 1
+                elif web_ready_codecs:
+                    log("Mode: remux (compatible codecs; no re-encoding)")
+                    remux_to_mp4(src_local, out_local)
+                    log(f"Remuxed MP4: {out_local.stat().st_size} bytes")
+                    uploaded = upload_resumable(out_local, ready_parent, out_name, file_id, processing="remux")
+                    summary["remuxed"] += 1
+                else:
+                    log("Mode: transcode to H.264/AAC/yuv420p")
+                    convert_to_mp4(src_local, out_local)
+                    log(f"Transcoded MP4: {out_local.stat().st_size} bytes")
+                    uploaded = upload_resumable(out_local, ready_parent, out_name, file_id, processing="transcode")
+                    summary["transcoded"] += 1
+
+                log(f"Ready MP4: {uploaded.get('id')} / {out_name}")
                 summary["converted"] += 1
                 move_file(file_id, old_parent, originals_parent)
                 summary["archived_originals"] += 1
@@ -361,7 +480,10 @@ def main():
     github_summary([
         "## Chronicles-78 video converter",
         f"Обработано: **{summary['processed']}**",
-        f"Сконвертировано в MP4: **{summary['converted']}**",
+        f"Подготовлено MP4: **{summary['converted']}**",
+        f"Без перекодирования, точная копия: **{summary['copied_without_reencode']}**",
+        f"Remux без потери качества: **{summary['remuxed']}**",
+        f"Перекодировано: **{summary['transcoded']}**",
         f"Оригиналов перемещено в архив: **{summary['archived_originals']}**",
         f"Пропущено как уже обработанные: **{summary['skipped']}**",
         f"Ошибок: **{summary['failed']}**",

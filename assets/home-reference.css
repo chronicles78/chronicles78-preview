@@ -151,3 +151,48 @@ body:has(#home.view.active) main{
   body:has(#home.view.active){overflow-x:auto!important}
   .homeReferenceTvLink{font-size:9px!important}
 }
+
+
+/* VERSION 52 — desktop home is exactly one viewport, never scrolls. */
+@media(min-width:761px){
+  html:has(body #home.view.active),
+  body:has(#home.view.active){
+    width:100%!important;
+    height:100%!important;
+    min-height:100%!important;
+    overflow:hidden!important;
+  }
+  body:has(#home.view.active) main{
+    height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  #home.view.active{
+    position:relative!important;
+    display:grid!important;
+    place-items:center!important;
+    width:100vw!important;
+    height:100dvh!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    background:#f7f0e4!important;
+  }
+  .homeReferenceStage{
+    position:relative!important;
+    width:min(100vw,133.333dvh)!important;
+    height:auto!important;
+    max-width:100vw!important;
+    max-height:100dvh!important;
+    aspect-ratio:4/3!important;
+    margin:0 auto!important;
+    flex:none!important;
+    overflow:hidden!important;
+  }
+  .homeReferenceImage{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    object-fit:fill!important;
+  }
+}

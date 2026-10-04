@@ -27,7 +27,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
 <link rel="stylesheet" href="assets/app.css?v=20261004-57">
-<link rel="stylesheet" href="assets/home-reference.css?v=20261004-1">
+<link rel="stylesheet" href="assets/home-reference.css?v=20261004-2">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
 </head>
 <body>
@@ -38,7 +38,7 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">ХРОНИКИ 78-й</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-46</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">ХРОНИКИ 78-й</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="tv" type="button">Телевизор</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-47</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active"><div class="pad homePad"><div class="homeWrap">
   <section class="memoryMosaicHero" id="memoryMosaicHero">
@@ -63,7 +63,10 @@
   </section>
  <div id="homeState" class="homeStateLine">Проверяю общую базу…</div>
   <div id="homeDashboard"></div>
-  <section class="eraTvSection" id="eraTvSection" aria-labelledby="eraTvTitle">
+
+</div></div></section>
+
+<section id="tv" class="view"><div class="pad tvPage"><div class="tvPageHead"><div class="memoryEyebrow">ЭФИР ИЗ НАШЕЙ МОЛОДОСТИ</div><h1>Телевизор</h1><p>Музыка, город, телевидение и приметы времени — короткие фрагменты из отдельной папки «Атмосфера времени».</p></div><section class="eraTvSection" id="eraTvSection" aria-labelledby="eraTvTitle">
     <div class="eraTvCopy">
       <div class="memoryEyebrow">ЭФИР ИЗ НАШЕЙ МОЛОДОСТИ</div>
       <h2 id="eraTvTitle">Включить 1980-й</h2>
@@ -92,9 +95,7 @@
       </div>
       <div class="eraTvCaption"><b id="eraTvClipTitle">Атмосфера времени</b><span id="eraTvClipMeta">Клипы из отдельной папки Google Drive</span></div>
     </div>
-  </section>
- 
-</div></div></section>
+  </section></div></section>
 
 <section id="chat" class="view">
 <div class="chat">
@@ -431,6 +432,7 @@
   <button class="moreNavItem" data-more-view="photos"><b>▧</b><span>Фото</span></button>
   <button class="moreNavItem" data-more-view="city"><b>⌘</b><span>Город</span></button>
   <button class="moreNavItem" data-more-view="questions"><b>?</b><span>Вопросы</span></button>
+  <button class="moreNavItem" data-more-view="tv"><b>▣</b><span>Телевизор</span></button>
   <button class="moreNavItem" data-more-view="profile"><b>○</b><span>Профиль</span></button>
 </div>
 <nav class="bottom"><div class="bottomIn">
@@ -445,13 +447,13 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261004-21"></script>
+<script src="assets/js/core.js?v=20261004-22"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>
 <script src="assets/js/stories.js?v=20261002-2"></script>
 <script src="assets/js/photos.js?v=20261002-2"></script>
-<script src="assets/js/videos.js?v=20261004-10"></script>
+<script src="assets/js/videos.js?v=20261004-11"></script>
 <script src="assets/js/city.js?v=20261002-1"></script>
 <script src="assets/js/traffic.js?v=20260930-2"></script>
 <script src="assets/js/questions-admin.js?v=20261002-3"></script>

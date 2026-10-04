@@ -1,4 +1,5 @@
 name: Chronicles-78 encrypted backup
+# Backup verification trigger: retry after Session pooler update
 
 on:
   push:

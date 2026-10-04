@@ -24,7 +24,7 @@ ROOT_ID = os.environ["ARCHIVE_ROOT_FOLDER_ID"].strip()
 CLIENT_ID = os.environ["GOOGLE_DRIVE_CLIENT_ID"].strip()
 CLIENT_SECRET = os.environ["GOOGLE_DRIVE_CLIENT_SECRET"].strip()
 REFRESH_TOKEN = os.environ["GOOGLE_DRIVE_REFRESH_TOKEN"].strip()
-MAX_FILES = 1 if os.environ.get("GITHUB_EVENT_NAME") == "push" else max(1, min(int(os.environ.get("MAX_FILES", "4")), 20))
+MAX_FILES = max(1, min(int(os.environ.get("MAX_FILES", "4")), 20))
 
 session = requests.Session()
 access_token = ""

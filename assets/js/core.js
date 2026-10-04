@@ -884,11 +884,242 @@ function renderRooms(){
  $("rooms").querySelectorAll(".room").forEach(b=>b.onclick=()=>{currentRoom=b.dataset.id;chatLoadedLimit=80;replyTo=null;pendingFiles=[];renderReply();renderRooms();loadRoom();subscribe()})
 }
 
+
+let homeSearchCache=null;
+
+function homeMondayKey(){
+ const d=new Date();
+ d.setHours(0,0,0,0);
+ const shift=(d.getDay()+6)%7;
+ d.setDate(d.getDate()-shift);
+ return Math.floor(d.getTime()/604800000);
+}
+function homeTextExcerpt(value,max=190){
+ const t=String(value||"").replace(/\s+/g," ").trim();
+ if(t.length<=max)return t;
+ return t.slice(0,max).replace(/\s+\S*$/,"")+"…";
+}
+function homeThemeSync(){
+ const b=$("homeThemeToggle");if(!b)return;
+ const dark=document.documentElement.dataset.theme==="dark";
+ b.textContent=dark?"☀":"☾";
+ b.title=dark?"Светлая тема":"Тёмная тема";
+ b.setAttribute("aria-label",b.title);
+}
+function closeHomeSearch(){
+ const sh=$("homeSearchShade");
+ if(sh){sh.classList.remove("open");sh.setAttribute("aria-hidden","true")}
+}
+async function ensureHomeSearchCache(){
+ if(homeSearchCache)return homeSearchCache;
+ if(!user||!profile?.is_active){homeSearchCache=[];return homeSearchCache}
+ const [p,s,c,m]=await Promise.all([
+  sb.from("archive_people").select("id,canonical_name,aliases,group_name,identification_status").order("group_name").order("number").limit(300),
+  sb.from("archive_stories").select("id,title,period,kind,data,updated_at").order("updated_at",{ascending:false}).limit(220),
+  sb.from("city_essays").select("id,title,period,theme,excerpt,body,location_text,tags").order("updated_at",{ascending:false}).limit(180),
+  sb.from("archive_media").select("id,title,media_type,approx_date_text,location_text,data,current_storage_path,updated_at").order("updated_at",{ascending:false}).limit(240)
+ ]);
+ const rows=[];
+ (p.data||[]).forEach(x=>rows.push({type:"person",id:x.id,title:x.canonical_name||x.id,meta:[x.group_name,x.identification_status].filter(Boolean).join(" · "),search:JSON.stringify([x.canonical_name,x.aliases,x.group_name]).toLowerCase(),group:x.group_name}));
+ (s.data||[]).forEach(x=>rows.push({type:"story",id:x.id,title:x.title||x.id,meta:[x.period,x.kind].filter(Boolean).join(" · "),search:JSON.stringify([x.title,x.period,x.kind,x.data?.editorial_summary,x.data?.story_text,x.data?.keywords]).toLowerCase()}));
+ (c.data||[]).forEach(x=>rows.push({type:"city",id:x.id,title:x.title||x.id,meta:[x.location_text,x.period].filter(Boolean).join(" · "),search:JSON.stringify([x.title,x.period,x.theme,x.excerpt,x.body,x.location_text,x.tags]).toLowerCase()}));
+ (m.data||[]).filter(x=>x.media_type!=="video").forEach(x=>rows.push({type:"photo",id:x.id,title:x.title||x.id,meta:[x.approx_date_text,x.location_text].filter(Boolean).join(" · "),search:JSON.stringify([x.title,x.approx_date_text,x.location_text,x.data]).toLowerCase()}));
+ homeSearchCache=rows;
+ return rows;
+}
+async function openHomeSearch(){
+ let sh=$("homeSearchShade");
+ if(!sh){
+  document.body.insertAdjacentHTML("beforeend",
+   '<div id="homeSearchShade" class="homeSearchShade" aria-hidden="true">'+
+    '<div class="homeSearchPanel">'+
+     '<div class="homeSearchHead"><div><b>Поиск по «Хроникам-78»</b><span>Люди · истории · город · фотоархив</span></div><button id="homeSearchClose" type="button" aria-label="Закрыть">×</button></div>'+
+     '<div class="homeSearchInputWrap"><span>⌕</span><input id="homeSearchInput" type="search" autocomplete="off" placeholder="Имя, место, событие, слово…"></div>'+
+     '<div id="homeSearchResults" class="homeSearchResults"><div class="homeSearchHint">Введите не менее двух букв.</div></div>'+
+    '</div>'+
+   '</div>');
+  sh=$("homeSearchShade");
+  $("homeSearchClose").onclick=closeHomeSearch;
+  sh.onclick=e=>{if(e.target===sh)closeHomeSearch()};
+  $("homeSearchInput").oninput=()=>renderHomeSearch($("homeSearchInput").value);
+ }
+ sh.classList.add("open");sh.setAttribute("aria-hidden","false");
+ const inp=$("homeSearchInput");if(inp){inp.value="";setTimeout(()=>inp.focus(),30)}
+ $("homeSearchResults").innerHTML=user&&profile?.is_active?'<div class="homeSearchHint">Введите не менее двух букв.</div>':'<div class="homeSearchHint">Поиск по внутреннему архиву доступен после входа.</div>';
+ if(user&&profile?.is_active)void ensureHomeSearchCache();
+}
+async function renderHomeSearch(raw){
+ const q=String(raw||"").trim().toLowerCase(),box=$("homeSearchResults");if(!box)return;
+ if(q.length<2){box.innerHTML='<div class="homeSearchHint">Введите не менее двух букв.</div>';return}
+ box.innerHTML='<div class="homeSearchHint">Ищу…</div>';
+ const all=await ensureHomeSearchCache();
+ const typeLabel={person:"ЛЮДИ",story:"ИСТОРИЯ",city:"ГОРОД",photo:"ФОТО"};
+ const hits=all.filter(x=>x.search.includes(q)||String(x.title||"").toLowerCase().includes(q)).slice(0,28);
+ box.innerHTML=hits.length?hits.map(x=>
+   '<button class="homeSearchResult" type="button" data-home-search-type="'+esc(x.type)+'" data-home-search-id="'+esc(x.id)+'" data-home-search-group="'+esc(x.group||"")+'">'+
+    '<small>'+esc(typeLabel[x.type]||x.type)+'</small><b>'+esc(x.title)+'</b>'+(x.meta?'<span>'+esc(x.meta)+'</span>':'')+
+   '</button>'
+ ).join(""):'<div class="homeSearchHint">Ничего не найдено. Попробуйте другое слово.</div>';
+ box.querySelectorAll("[data-home-search-id]").forEach(btn=>btn.onclick=async()=>{
+  const type=btn.dataset.homeSearchType,id=btn.dataset.homeSearchId,group=btn.dataset.homeSearchGroup;
+  closeHomeSearch();
+  if(type==="story"){await showView("stories");if(typeof openStory==="function")await openStory(id);return}
+  if(type==="photo"){mediaFocus=id;await showView("photos");if(typeof openArchivePhoto==="function")await openArchivePhoto(id);return}
+  if(type==="city"){await showView("city");if(typeof openCityEssay==="function")await openCityEssay(id);return}
+  if(type==="person"){
+    if(group)peopleGroup=group;
+    await showView("people");
+    selectedPersonId=id;
+    if(typeof renderPeople==="function")renderPeople();
+    if(typeof openPersonContext==="function")openPersonContext(id);
+  }
+ });
+}
+
 async function loadHome(){
-  document.querySelectorAll("#home [data-home-view]").forEach(b=>{
-    b.onclick=()=>showView(b.dataset.homeView);
-  });
+ const stage=$("homeReferenceStage");
+ if(!stage)return true;
+
+ document.querySelectorAll("#home [data-home-view]").forEach(b=>b.onclick=()=>showView(b.dataset.homeView));
+
+ let layer=$("homeLiveLayer");
+ if(!layer){
+  stage.insertAdjacentHTML("beforeend",
+   '<div id="homeLiveLayer" class="homeLiveLayer">'+
+    '<button id="homeClassPhotoLive" class="homeClassPhotoLive" type="button" title="10Б · школа №78"></button>'+
+    '<section id="homeWeekLive" class="homeWeekLive" hidden></section>'+
+    '<section id="homeFreshLive" class="homeFreshLive" hidden></section>'+
+    '<button id="homeSearchBtn" class="homeSearchBtn" type="button" aria-label="Поиск по архиву" title="Поиск по архиву"></button>'+
+    '<button id="homeThemeToggle" class="homeThemeToggle" type="button" aria-label="Тёмная тема" title="Тёмная тема">☾</button>'+
+   '</div>');
+  layer=$("homeLiveLayer");
+  $("homeSearchBtn").onclick=openHomeSearch;
+  $("homeThemeToggle").onclick=()=>{
+    const dark=document.documentElement.dataset.theme==="dark";
+    const next=dark?"light":"dark";
+    localStorage.setItem(THEME_KEY,next);
+    applyTheme(next);
+    homeThemeSync();
+  };
+ }
+ homeThemeSync();
+
+ if(!user||!profile?.is_active){
+  $("homeClassPhotoLive").hidden=true;
+  $("homeWeekLive").hidden=true;
+  $("homeFreshLive").hidden=true;
   return true;
+ }
+
+ const [cpRes,storiesRes,mediaRes,unknownPeopleRes,regionsRes,cp10aRes]=await Promise.all([
+  sb.from("class_photos").select("id,title,storage_path").eq("id","CLASS-10B").maybeSingle(),
+  sb.from("archive_stories").select("id,title,period,kind,data,updated_at").order("updated_at",{ascending:false}).limit(140),
+  sb.from("archive_media").select("id,title,media_type,linked_story,current_storage_path,updated_at,data,approx_date_text,location_text").not("current_storage_path","is",null).order("updated_at",{ascending:false}).limit(180),
+  sb.from("archive_people").select("id,number,canonical_name,identification_status,group_name").eq("group_name","10А").neq("identification_status","подтверждено").order("number").limit(20),
+  sb.from("class_photo_regions").select("person_id,x,y,w,h").eq("class_photo_id","CLASS-10A"),
+  sb.from("class_photos").select("id,title,storage_path,source_width,source_height").eq("id","CLASS-10A").maybeSingle()
+ ]);
+
+ const cp=cpRes.data||null;
+ const stories=(storiesRes.data||[]).filter(x=>x.data?.catalog_status==="готово к чтению");
+ const media=(mediaRes.data||[]).filter(x=>x.media_type!=="video");
+ const mediaById=new Map(media.map(x=>[x.id,x]));
+ const mediaForStory=st=>{
+  const explicit=st.data?.cover_media_id;
+  if(explicit&&mediaById.get(explicit)?.current_storage_path)return mediaById.get(explicit);
+  return media.find(m=>m.linked_story===st.id&&m.current_storage_path)||null;
+ };
+ const candidates=stories.map(st=>({st,cover:mediaForStory(st)})).filter(x=>x.cover);
+ candidates.sort((a,b)=>(Number(a.st.data?.catalog_order)||999)-(Number(b.st.data?.catalog_order)||999)||String(a.st.id).localeCompare(String(b.st.id)));
+ const weekly=candidates.length?candidates[Math.abs(homeMondayKey())%candidates.length]:null;
+ const weeklyMedia=weekly?.cover||null;
+ const newestStory=[...candidates].filter(x=>x.st.id!==weekly?.st.id).sort((a,b)=>new Date(b.st.updated_at)-new Date(a.st.updated_at))[0]||weekly||null;
+
+ const usedIds=new Set([weeklyMedia?.id,newestStory?.cover?.id].filter(Boolean));
+ const unknownPerson=(unknownPeopleRes.data||[]).find(p=>(regionsRes.data||[]).some(r=>r.person_id===p.id))||null;
+ const unknownRegion=unknownPerson?(regionsRes.data||[]).find(r=>r.person_id===unknownPerson.id):null;
+ const freshPhoto=media.find(m=>!usedIds.has(m.id)&&m.current_storage_path)||media[0]||null;
+
+ const paths=[
+  cp?.storage_path,
+  weeklyMedia?.current_storage_path,
+  newestStory?.cover?.current_storage_path,
+  freshPhoto?.current_storage_path,
+  cp10aRes.data?.storage_path
+ ].filter(Boolean);
+ const signed={};
+ await Promise.all([...new Set(paths)].map(async p=>{signed[p]=await archiveSignedImage(p)}));
+
+ const classBtn=$("homeClassPhotoLive");
+ if(cp?.storage_path&&signed[cp.storage_path]){
+  classBtn.hidden=false;
+  classBtn.innerHTML='<img src="'+esc(signed[cp.storage_path])+'" alt="'+esc(cp.title||"10Б")+'">';
+  classBtn.onclick=async()=>{
+    peopleGroup="10Б";
+    await showView("people");
+    if(typeof renderPeople==="function")renderPeople();
+  };
+ }else classBtn.hidden=true;
+
+ const weekBox=$("homeWeekLive");
+ if(weekly?.st){
+  const st=weekly.st,summary=st.data?.editorial_summary||st.data?.chapter?.subtitle||st.data?.story_text||"";
+  const sourceText=st.data?.original_sources?.[0]?.text||summary;
+  weekBox.hidden=false;
+  weekBox.innerHTML=
+   '<div class="homeLiveSectionHead"><h2>История недели</h2><button type="button" data-home-all-stories>Смотреть все истории →</button></div>'+
+   '<div class="homeWeekLiveGrid">'+
+    '<button class="homeWeekImage" type="button" data-home-week-open>'+(signed[weekly.cover.current_storage_path]?'<img src="'+esc(signed[weekly.cover.current_storage_path])+'" alt="'+esc(st.title)+'">':'')+'</button>'+
+    '<div class="homeWeekText"><h3>'+esc(st.title)+'</h3><p>'+esc(homeTextExcerpt(summary,240))+'</p><button type="button" class="homeWeekRead" data-home-week-open>Читать историю →</button></div>'+
+    '<blockquote><span>“</span><p>'+esc(homeTextExcerpt(sourceText,170))+'</p><cite>'+esc(st.period||st.kind||"Из наших воспоминаний")+'</cite></blockquote>'+
+   '</div>';
+  weekBox.querySelectorAll("[data-home-week-open]").forEach(b=>b.onclick=async()=>{await showView("stories");if(typeof openStory==="function")await openStory(st.id)});
+  weekBox.querySelector("[data-home-all-stories]").onclick=()=>showView("stories");
+ }else weekBox.hidden=true;
+
+ const freshBox=$("homeFreshLive");
+ const unknownPhoto=cp10aRes.data,uw=Number(unknownPhoto?.source_width)||1024,uh=Number(unknownPhoto?.source_height)||650;
+ const ux=Number(unknownRegion?.x)||0,uy=Number(unknownRegion?.y)||0,ucw=Number(unknownRegion?.w)||88,uch=Number(unknownRegion?.h)||116;
+ const bgSizeX=(uw/ucw*100).toFixed(2),bgSizeY=(uh/uch*100).toFixed(2);
+ const bgPosX=((ux/Math.max(1,uw-ucw))*100).toFixed(2),bgPosY=((uy/Math.max(1,uh-uch))*100).toFixed(2);
+ const unknownStyle=unknownPhoto?.storage_path&&signed[unknownPhoto.storage_path]
+  ?' style="background-image:url(\''+esc(signed[unknownPhoto.storage_path])+'\');background-size:'+bgSizeX+'% '+bgSizeY+'%;background-position:'+bgPosX+'% '+bgPosY+'%;"'
+  :"";
+ freshBox.hidden=false;
+ freshBox.innerHTML=
+  '<div class="homeLiveSectionHead"><h2>Что нового в архиве</h2><button type="button" data-home-all-archive>Открыть весь архив →</button></div>'+
+  '<div class="homeFreshLiveGrid">'+
+   '<button class="homeFreshLiveCard" type="button" data-home-latest-photo>'+
+    '<div class="homeFreshLiveImage">'+(freshPhoto&&signed[freshPhoto.current_storage_path]?'<img src="'+esc(signed[freshPhoto.current_storage_path])+'" alt="'+esc(freshPhoto.title||"Новая фотография")+'">':'')+'</div>'+
+    '<div><small>НОВЫЕ ФОТОГРАФИИ</small><b>'+esc(freshPhoto?.title||"Фотоархив пополняется")+'</b><span>'+esc([freshPhoto?.approx_date_text,freshPhoto?.location_text].filter(Boolean).join(" · ")||"Открыть фотографию")+' →</span></div>'+
+   '</button>'+
+   '<button class="homeFreshLiveCard" type="button" data-home-new-story>'+
+    '<div class="homeFreshLiveImage">'+(newestStory?.cover&&signed[newestStory.cover.current_storage_path]?'<img src="'+esc(signed[newestStory.cover.current_storage_path])+'" alt="'+esc(newestStory.st.title)+'">':'')+'</div>'+
+    '<div><small>НОВАЯ ИСТОРИЯ</small><b>'+esc(newestStory?.st.title||"Истории класса")+'</b><span>'+esc(newestStory?.st.period||"Читать историю")+' →</span></div>'+
+   '</button>'+
+   '<button class="homeFreshLiveCard" type="button" data-home-unknown>'+
+    '<div class="homeFreshLiveFace"'+unknownStyle+'>'+(unknownStyle?"":'?')+'</div>'+
+    '<div><small>НЕОПОЗНАННОЕ ЛИЦО</small><b>'+(unknownPerson?'Ученик №'+esc(unknownPerson.number):'Нужна помощь')+'</b><span>Кто это на фото? →</span></div>'+
+   '</button>'+
+  '</div>';
+
+ freshBox.querySelector("[data-home-all-archive]").onclick=()=>showView("photos");
+ freshBox.querySelector("[data-home-latest-photo]").onclick=async()=>{
+  if(!freshPhoto){await showView("photos");return}
+  mediaFocus=freshPhoto.id;await showView("photos");if(typeof openArchivePhoto==="function")await openArchivePhoto(freshPhoto.id);
+ };
+ freshBox.querySelector("[data-home-new-story]").onclick=async()=>{
+  if(!newestStory){await showView("stories");return}
+  await showView("stories");if(typeof openStory==="function")await openStory(newestStory.st.id);
+ };
+ freshBox.querySelector("[data-home-unknown]").onclick=async()=>{
+  if(!unknownPerson){await showView("questions");return}
+  peopleGroup="10А";await showView("people");selectedPersonId=unknownPerson.id;
+  if(typeof renderPeople==="function")renderPeople();
+  if(typeof openPersonContext==="function")openPersonContext(unknownPerson.id);
+ };
+
+ return true;
 }
 
 const PROFILE_DEFAULT_PANES={

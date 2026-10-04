@@ -2784,3 +2784,20 @@ html[data-theme="dark"] .eraTvSection{background:linear-gradient(135deg,rgba(59,
 .mosaicTitleCard h1{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;font-size:clamp(30px,5.2vw,64px)!important;letter-spacing:-.035em}
 header.top .brand{white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important}
 @media(max-width:520px){.mosaicTitleCard h1{font-size:clamp(25px,8.2vw,40px)!important;letter-spacing:-.045em}}
+
+/* Main mosaic title: size against its own card, not viewport. */
+.mosaicTitleCard{container-type:inline-size}
+.mosaicTitleCard h1{
+ display:block!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ max-width:100%!important;
+ margin-left:auto!important;
+ margin-right:auto!important;
+ white-space:nowrap!important;
+ word-break:keep-all!important;
+ overflow-wrap:normal!important;
+ font-size:10cqw!important;
+ line-height:.95!important;
+ letter-spacing:-.045em!important;
+}

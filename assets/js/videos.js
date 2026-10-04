@@ -233,3 +233,26 @@ if($("eraTvPrev"))$("eraTvPrev").onclick=()=>stepEraTv(-1);
 if($("eraTvNext"))$("eraTvNext").onclick=()=>stepEraTv(1);
 if($("eraTvSound"))$("eraTvSound").onclick=()=>{const p=$("eraTvPlayer");if(!p||!eraTvPowered)return;p.muted=!p.muted;$("eraTvSound").textContent=p.muted?"×♪":"♪"};
 if($("eraTvPlayer"))$("eraTvPlayer").onended=()=>{if(eraTvPowered)stepEraTv(1)};
+
+async function initHomeEraTv(){
+ if(!$("eraTvScreen"))return;
+ try{
+  const {data,error}=await sb.from("archive_media")
+   .select("id,title,approx_date_text,location_text,data")
+   .eq("media_type","video")
+   .order("updated_at",{ascending:false});
+  if(error)throw error;
+  videoCache=data||[];
+  videoPosterSigned={};
+  await Promise.all(videoCache.map(async v=>{
+   if(v.data?.poster_storage_path){const u=await archiveSignedImage(v.data.poster_storage_path);if(u)videoPosterSigned[v.id]=u}
+  }));
+  prepareHomeEraTv();
+ }catch(e){
+  const empty=$("eraTvEmpty"),start=$("eraTvStart");
+  if(empty){empty.textContent="Не удалось загрузить эфир.";empty.style.display="flex"}
+  if(start)start.style.display="none";
+  console.error("Home TV init failed",e);
+ }
+}
+void initHomeEraTv();

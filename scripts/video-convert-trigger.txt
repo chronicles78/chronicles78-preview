@@ -1,1 +1,1 @@
-Retry one-file MP4 normalization test after output-path fix
+Recover and retry failed MP4 normalization

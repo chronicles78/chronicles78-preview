@@ -912,7 +912,7 @@ function closeHomeSearch(){
 }
 async function ensureHomeSearchCache(){
  if(homeSearchCache)return homeSearchCache;
- if(!user||!profile?.is_active){homeSearchCache=[];return homeSearchCache}
+ if(!user||!profile?.is_active)return []
  const [p,s,c,m]=await Promise.all([
   sb.from("archive_people").select("id,canonical_name,aliases,group_name,identification_status").order("group_name").order("number").limit(300),
   sb.from("archive_stories").select("id,title,period,kind,data,updated_at").order("updated_at",{ascending:false}).limit(220),

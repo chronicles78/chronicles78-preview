@@ -500,3 +500,26 @@ html[data-theme="dark"] .homeSearchResult:hover{background:#302920!important}
   min-width:22px!important;
   min-height:22px!important;
 }
+
+
+/* VERSION 56 — visible build marker on the fullscreen home. */
+.homeVersionBadge{
+  position:absolute!important;
+  right:.75%!important;
+  bottom:.75%!important;
+  z-index:95!important;
+  padding:4px 7px!important;
+  border:1px solid rgba(23,59,92,.18)!important;
+  border-radius:5px!important;
+  background:rgba(250,246,237,.84)!important;
+  color:#173b5c!important;
+  box-shadow:0 2px 7px rgba(48,34,21,.08)!important;
+  font:700 clamp(9px,.72vw,11px)/1 system-ui,sans-serif!important;
+  letter-spacing:.04em!important;
+  pointer-events:none!important;
+}
+html[data-theme="dark"] .homeVersionBadge{
+  background:rgba(41,35,29,.90)!important;
+  color:#eadcc5!important;
+  border-color:rgba(234,220,198,.20)!important;
+}

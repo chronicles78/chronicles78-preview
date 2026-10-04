@@ -26,7 +26,7 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261003-50">
+<link rel="stylesheet" href="assets/app.css?v=20261004-51">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
 </head>
 <body>
@@ -37,7 +37,7 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">ХРОНИКИ 78-й</div></div><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261003-31</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><div class="brand">ХРОНИКИ 78-й</div></div><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-32</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active"><div class="pad homePad"><div class="homeWrap">
   <section class="memoryMosaicHero" id="memoryMosaicHero">
@@ -58,6 +58,35 @@
         <button class="memoryPrimary" data-home-view="stories">Читать истории <span>→</span></button>
         <button class="memoryGhost" data-home-view="people">Люди нашего класса</button>
       </div>
+    </div>
+  </section>
+  <section class="eraTvSection" id="eraTvSection" aria-labelledby="eraTvTitle">
+    <div class="eraTvCopy">
+      <div class="memoryEyebrow">ЭФИР ИЗ НАШЕЙ МОЛОДОСТИ</div>
+      <h2 id="eraTvTitle">Включить 1980-й</h2>
+      <p>Музыка, город, телевидение и приметы времени — короткие фрагменты, которые возвращают эпоху лучше длинных объяснений.</p>
+    </div>
+    <div class="eraTvSet" id="eraTvSet">
+      <div class="eraTvCabinet">
+        <div class="eraTvScreenFrame">
+          <div class="eraTvScreen" id="eraTvScreen">
+            <video id="eraTvPlayer" playsinline preload="metadata"></video>
+            <div class="eraTvGlass" aria-hidden="true"></div>
+            <div class="eraTvNoise" aria-hidden="true"></div>
+            <button class="eraTvStart" id="eraTvStart" type="button"><span>▶</span><b>Включить телевизор</b></button>
+            <div class="eraTvEmpty" id="eraTvEmpty">Эфир готовится…</div>
+          </div>
+        </div>
+        <div class="eraTvPanel">
+          <div class="eraTvBrand">ХРОНИКИ · 78</div>
+          <div class="eraTvDials" aria-label="Управление телевизором">
+            <button id="eraTvPrev" type="button" title="Предыдущий клип" aria-label="Предыдущий клип">‹</button>
+            <button id="eraTvNext" type="button" title="Следующий клип" aria-label="Следующий клип">›</button>
+            <button id="eraTvSound" type="button" title="Звук" aria-label="Включить или выключить звук">♪</button>
+          </div>
+        </div>
+      </div>
+      <div class="eraTvCaption"><b id="eraTvClipTitle">Атмосфера времени</b><span id="eraTvClipMeta">Клипы из отдельной папки Google Drive</span></div>
     </div>
   </section>
   <div id="homeState" class="homeStateLine">Проверяю общую базу…</div>
@@ -419,7 +448,7 @@
 <script src="assets/js/people.js?v=20261002-1"></script>
 <script src="assets/js/stories.js?v=20261002-2"></script>
 <script src="assets/js/photos.js?v=20261002-2"></script>
-<script src="assets/js/videos.js?v=20260930-3"></script>
+<script src="assets/js/videos.js?v=20261004-4"></script>
 <script src="assets/js/city.js?v=20261002-1"></script>
 <script src="assets/js/traffic.js?v=20260930-2"></script>
 <script src="assets/js/questions-admin.js?v=20261002-3"></script>

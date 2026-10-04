@@ -1,6 +1,10 @@
 name: Chronicles-78 video converter
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/video-convert-trigger.txt"
   workflow_dispatch:
     inputs:
       max_files:
@@ -20,7 +24,7 @@ jobs:
       GOOGLE_DRIVE_CLIENT_ID: ${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}
       GOOGLE_DRIVE_CLIENT_SECRET: ${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
       GOOGLE_DRIVE_REFRESH_TOKEN: ${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}
-      MAX_FILES: ${{ inputs.max_files || '4' }}
+      MAX_FILES: ${{ inputs.max_files || '1' }}
 
     steps:
       - name: Checkout repository

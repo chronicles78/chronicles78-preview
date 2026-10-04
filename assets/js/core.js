@@ -983,7 +983,7 @@ async function loadHome(){
    return "";
  };
  const peopleThumb=uniqueHomeImage(classUrl,featuredUrls[0],albumUrl);
- const storiesThumb=uniqueHomeImage(storyUrl,featuredUrls[1],featuredUrls[0],albumUrl);
+ const storiesThumb=uniqueHomeImage(featuredUrls[1],featuredUrls[0],albumUrl);
  const cityThumb=uniqueHomeImage(featuredUrls[2],featuredUrls[0],albumUrl);
  const editor=profile.role==="editor"||profile.role==="admin";
  const latestPhoto=mr.find(m=>m.current_storage_path&&![
@@ -1015,7 +1015,7 @@ async function loadHome(){
    '<section class="homeStoryWeek">'+
      '<div class="homeSectionHead"><h2>История недели</h2><button class="textLink" data-home-view="stories">Смотреть все истории →</button></div>'+
      '<div class="homeStoryWeekGrid">'+
-       '<div class="homeStoryVisual">'+(storyUrl||storiesThumb?'<img src="'+(storyUrl||storiesThumb)+'" alt="'+esc(lead?.title||"История недели")+'">':'<div class="homeStoryPlaceholder">1983</div>')+'</div>'+
+       '<div class="homeStoryVisual">'+(storyUrl?'<img src="'+storyUrl+'" alt="'+esc(lead?.title||"История недели")+'">':'<div class="homeStoryPlaceholder">1983</div>')+'</div>'+
        '<div class="homeStoryCopy">'+
          '<div class="memoryEyebrow">ИЗ ЖИВОГО АРХИВА</div>'+
          '<h3>'+esc(lead?.title||"История ещё выбирается")+'</h3>'+
@@ -1034,7 +1034,7 @@ async function loadHome(){
          '<div><small>НОВЫЕ ФОТОГРАФИИ</small><b>'+esc(latestPhoto?.title||"Фотоархив пополняется")+'</b><span>Открыть фотоархив →</span></div>'+
        '</button>'+
        (lead?'<button class="homeFreshCard" data-home-story="'+esc(lead.id)+'">'+
-         (storiesThumb?'<img src="'+storiesThumb+'" alt="'+esc(lead.title)+'">':'<div class="homeFreshPlaceholder">✎</div>')+
+         (cityThumb?'<img src="'+cityThumb+'" alt="'+esc(lead.title)+'">':'<div class="homeFreshPlaceholder">✎</div>')+
          '<div><small>ИСТОРИЯ</small><b>'+esc(lead.title)+'</b><span>Читать →</span></div>'+
        '</button>':'')+
        (msgs.length?'<button class="homeFreshCard" data-home-view="chat">'+

@@ -270,3 +270,190 @@ body:has(#home.view.active) main{
   .hsHeroPeople{top:37.84%!important;height:5.12%!important}
   .homeReferenceTvLink{top:1.22%!important}
 }
+
+
+/* VERSION 54 — live project content over the accepted sketch. */
+.homeLiveLayer{position:absolute!important;inset:0!important;z-index:30!important;pointer-events:none!important}
+
+/* Real 10B photo replaces the sketch's upper-left collective photo. */
+.homeClassPhotoLive{
+  position:absolute!important;left:7.7%!important;top:4.1%!important;width:34.3%!important;height:22.0%!important;
+  margin:0!important;padding:.55%!important;box-sizing:border-box!important;
+  border:0!important;border-radius:0!important;background:#f9efdb!important;
+  box-shadow:0 9px 24px rgba(55,36,19,.28)!important;
+  transform:rotate(-5deg)!important;transform-origin:center!important;
+  clip-path:polygon(0 0,100% 0,100% 44%,72% 44%,72% 100%,0 100%)!important;
+  overflow:hidden!important;cursor:pointer!important;pointer-events:auto!important;
+}
+.homeClassPhotoLive img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;filter:sepia(.08) saturate(.82) contrast(.98)!important}
+
+/* Search uses the magnifying-glass position already drawn in the sketch. */
+.homeSearchBtn{
+  position:absolute!important;left:82.0%!important;top:.35%!important;width:2.7%!important;height:4.25%!important;
+  z-index:80!important;margin:0!important;padding:0!important;border:1px solid transparent!important;border-radius:50%!important;
+  background:transparent!important;box-shadow:none!important;opacity:1!important;cursor:pointer!important;pointer-events:auto!important;
+}
+.homeSearchBtn:hover,.homeSearchBtn:focus-visible{border-color:rgba(23,59,92,.35)!important;background:rgba(255,250,240,.22)!important;outline:none!important}
+
+/* Compact light/dark switch in unused upper-right paper space. */
+.homeThemeToggle{
+  position:absolute!important;left:85.35%!important;top:.58%!important;z-index:82!important;
+  display:grid!important;place-items:center!important;width:2.55%!important;aspect-ratio:1/1!important;
+  min-width:24px!important;min-height:24px!important;margin:0!important;padding:0!important;
+  border:1px solid rgba(23,59,92,.25)!important;border-radius:50%!important;
+  background:rgba(250,246,237,.86)!important;color:#173b5c!important;
+  box-shadow:0 2px 8px rgba(48,34,21,.10)!important;
+  font:700 clamp(11px,1vw,16px)/1 system-ui,sans-serif!important;
+  cursor:pointer!important;pointer-events:auto!important;
+}
+
+/* Weekly story: same geometry as the accepted sketch, but live data. */
+.homeWeekLive{
+  position:absolute!important;left:5.55%!important;top:48.15%!important;width:85.9%!important;height:20.65%!important;
+  z-index:48!important;box-sizing:border-box!important;margin:0!important;padding:0!important;
+  background:
+    linear-gradient(90deg,rgba(249,243,231,.99),rgba(249,243,231,.975)),
+    #f8f1e5!important;
+  color:#173b5c!important;pointer-events:auto!important;overflow:hidden!important;
+}
+.homeLiveSectionHead{
+  height:18%!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  box-sizing:border-box!important;border-bottom:1px solid rgba(72,80,73,.16)!important;
+}
+.homeLiveSectionHead h2{margin:0!important;font:700 clamp(15px,1.75vw,25px)/1 Georgia,"Times New Roman",serif!important;color:#173b5c!important}
+.homeLiveSectionHead h2::after{content:""!important;display:inline-block!important;width:40px!important;height:1px!important;margin:0 0 .28em 12px!important;background:#6f8289!important}
+.homeLiveSectionHead button{
+  width:auto!important;min-height:0!important;margin:0!important;padding:3px 0!important;border:0!important;background:none!important;box-shadow:none!important;
+  color:#173b5c!important;font:13px/1.15 Georgia,"Times New Roman",serif!important;cursor:pointer!important;
+}
+.homeWeekLiveGrid{
+  height:82%!important;display:grid!important;grid-template-columns:37% 31% 32%!important;gap:1.8%!important;align-items:stretch!important;
+}
+.homeWeekImage{
+  width:100%!important;height:100%!important;margin:0!important;padding:0!important;border:0!important;border-radius:2px!important;
+  background:#ded1bd!important;box-shadow:none!important;overflow:hidden!important;cursor:pointer!important;
+}
+.homeWeekImage img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.homeWeekText{padding:7% 0 3%!important;overflow:hidden!important}
+.homeWeekText h3{
+  margin:0 0 4%!important;color:#173b5c!important;
+  font:700 clamp(15px,1.75vw,26px)/1.04 Georgia,"Times New Roman",serif!important;
+}
+.homeWeekText p{margin:0 0 5%!important;color:#415b70!important;font:clamp(10px,1.05vw,16px)/1.35 Georgia,"Times New Roman",serif!important}
+.homeWeekRead{
+  width:auto!important;min-height:0!important;margin:0!important;padding:8px 16px!important;border:0!important;border-radius:3px!important;
+  background:#123b5d!important;color:#fff!important;box-shadow:0 4px 9px rgba(18,59,93,.15)!important;
+  font:600 clamp(9px,.9vw,13px)/1 system-ui,sans-serif!important;cursor:pointer!important;
+}
+.homeWeekLive blockquote{
+  margin:0!important;padding:9% 7% 5% 10%!important;box-sizing:border-box!important;
+  border:0!important;border-left:1px solid rgba(74,79,72,.14)!important;
+  background:linear-gradient(90deg,rgba(236,225,206,.75),rgba(249,243,231,.35))!important;color:#536676!important;
+  overflow:hidden!important;
+}
+.homeWeekLive blockquote>span{display:block!important;height:24px!important;color:#c8baa2!important;font:700 clamp(32px,4vw,54px)/.65 Georgia,serif!important}
+.homeWeekLive blockquote p{margin:0!important;color:#536676!important;font:italic clamp(10px,1.1vw,17px)/1.35 Georgia,"Times New Roman",serif!important}
+.homeWeekLive blockquote cite{display:block!important;margin-top:5%!important;color:#82745f!important;font:10px/1.2 Georgia,serif!important}
+
+/* What's new: exactly three functional live cards. */
+.homeFreshLive{
+  position:absolute!important;left:5.55%!important;top:70.25%!important;width:85.9%!important;height:15.5%!important;
+  z-index:49!important;box-sizing:border-box!important;margin:0!important;padding:0!important;
+  background:rgba(249,243,231,.985)!important;color:#173b5c!important;pointer-events:auto!important;overflow:hidden!important;
+}
+.homeFreshLive .homeLiveSectionHead{height:24%!important}
+.homeFreshLiveGrid{height:76%!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1.35%!important}
+.homeFreshLiveCard{
+  display:grid!important;grid-template-columns:42% minmax(0,1fr)!important;width:100%!important;height:100%!important;
+  margin:0!important;padding:0!important;border:1px solid rgba(77,69,56,.13)!important;border-radius:3px!important;
+  background:rgba(255,251,243,.92)!important;box-shadow:0 2px 7px rgba(65,44,24,.045)!important;
+  text-align:left!important;overflow:hidden!important;cursor:pointer!important;
+}
+.homeFreshLiveImage,.homeFreshLiveFace{width:100%!important;height:100%!important;min-height:0!important;background:#d8cbb8 center/cover no-repeat!important;overflow:hidden!important}
+.homeFreshLiveImage img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.homeFreshLiveFace{display:grid!important;place-items:center!important;color:#fff!important;font:700 28px/1 Georgia,serif!important}
+.homeFreshLiveCard>div:last-child{
+  min-width:0!important;padding:8% 7%!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;justify-content:center!important;
+}
+.homeFreshLiveCard small{color:#696b65!important;font:700 clamp(7px,.62vw,9px)/1.1 system-ui,sans-serif!important;letter-spacing:.04em!important}
+.homeFreshLiveCard b{
+  display:block!important;margin:4% 0!important;color:#173b5c!important;font:700 clamp(10px,1vw,16px)/1.08 Georgia,"Times New Roman",serif!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+.homeFreshLiveCard span{
+  color:#5a6b78!important;font:clamp(7px,.68vw,10px)/1.2 system-ui,sans-serif!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+
+/* Search overlay. */
+.homeSearchShade{
+  position:fixed!important;inset:0!important;z-index:5000!important;display:none!important;align-items:flex-start!important;justify-content:center!important;
+  padding:8vh 18px 18px!important;box-sizing:border-box!important;background:rgba(28,24,20,.42)!important;backdrop-filter:blur(4px)!important;
+}
+.homeSearchShade.open{display:flex!important}
+.homeSearchPanel{
+  width:min(760px,94vw)!important;max-height:78vh!important;display:flex!important;flex-direction:column!important;
+  border:1px solid rgba(82,66,48,.18)!important;border-radius:12px!important;background:#fbf6e9!important;
+  box-shadow:0 24px 70px rgba(39,28,18,.25)!important;overflow:hidden!important;color:#173b5c!important;
+}
+.homeSearchHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;padding:18px 20px 12px!important}
+.homeSearchHead>div{display:flex!important;flex-direction:column!important;gap:3px!important}
+.homeSearchHead b{font:700 22px/1.05 Georgia,"Times New Roman",serif!important}
+.homeSearchHead span{color:#6b6a62!important;font-size:11px!important}
+.homeSearchHead button{
+  width:34px!important;height:34px!important;min-height:34px!important;padding:0!important;border:0!important;border-radius:50%!important;
+  background:#efe5d5!important;color:#173b5c!important;box-shadow:none!important;font-size:22px!important;cursor:pointer!important;
+}
+.homeSearchInputWrap{display:grid!important;grid-template-columns:auto 1fr!important;gap:8px!important;align-items:center!important;margin:0 20px 12px!important;padding:0 12px!important;border:1px solid rgba(23,59,92,.20)!important;border-radius:8px!important;background:#fffdf8!important}
+.homeSearchInputWrap span{font-size:22px!important;color:#173b5c!important}
+.homeSearchInputWrap input{height:46px!important;border:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;color:#173b5c!important;font-size:15px!important}
+.homeSearchResults{overflow:auto!important;padding:0 12px 14px!important}
+.homeSearchHint{padding:22px 10px!important;text-align:center!important;color:#777066!important;font-size:13px!important}
+.homeSearchResult{
+  display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;grid-template-rows:auto auto!important;
+  width:100%!important;min-height:58px!important;margin:0!important;padding:10px 12px!important;border:0!important;border-bottom:1px solid rgba(75,70,59,.10)!important;
+  border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:left!important;cursor:pointer!important;
+}
+.homeSearchResult:hover{background:#f1e7d7!important}
+.homeSearchResult small{grid-row:1/3!important;align-self:center!important;color:#8f694e!important;font:700 9px/1 system-ui,sans-serif!important;letter-spacing:.08em!important}
+.homeSearchResult b{color:#173b5c!important;font:700 15px/1.15 Georgia,"Times New Roman",serif!important}
+.homeSearchResult span{margin-top:3px!important;color:#6b6a62!important;font-size:11px!important}
+
+/* Dark version of the same sketch, not a separate layout. */
+html[data-theme="dark"] body:has(#home.view.active){background:#171411!important}
+html[data-theme="dark"] .homeReferenceStage::before,
+html[data-theme="dark"] .homeReferenceStage::after,
+html[data-theme="dark"] .homeReferenceImage{filter:brightness(.42) saturate(.62) contrast(1.08) sepia(.08)!important}
+html[data-theme="dark"] .homeClassPhotoLive{background:#322a22!important;box-shadow:0 9px 24px rgba(0,0,0,.45)!important}
+html[data-theme="dark"] .homeClassPhotoLive img{filter:brightness(.72) saturate(.72) sepia(.08)!important}
+html[data-theme="dark"] .homeThemeToggle{background:rgba(41,35,29,.92)!important;color:#eadcc5!important;border-color:rgba(232,217,193,.25)!important}
+html[data-theme="dark"] .homeSearchBtn:hover{background:rgba(255,255,255,.08)!important;border-color:rgba(234,220,198,.32)!important}
+html[data-theme="dark"] .homeWeekLive,
+html[data-theme="dark"] .homeFreshLive{background:#211d19!important;color:#eadcc5!important}
+html[data-theme="dark"] .homeLiveSectionHead{border-bottom-color:rgba(234,220,198,.13)!important}
+html[data-theme="dark"] .homeLiveSectionHead h2,
+html[data-theme="dark"] .homeLiveSectionHead button,
+html[data-theme="dark"] .homeWeekText h3,
+html[data-theme="dark"] .homeFreshLiveCard b{color:#e7d7bd!important}
+html[data-theme="dark"] .homeWeekText p,
+html[data-theme="dark"] .homeFreshLiveCard span{color:#bdb4a6!important}
+html[data-theme="dark"] .homeWeekLive blockquote{background:linear-gradient(90deg,#2c261f,#211d19)!important;color:#c8beaf!important;border-left-color:rgba(234,220,198,.12)!important}
+html[data-theme="dark"] .homeWeekLive blockquote p{color:#c8beaf!important}
+html[data-theme="dark"] .homeFreshLiveCard{background:#29241e!important;border-color:rgba(234,220,198,.10)!important}
+html[data-theme="dark"] .homeFreshLiveCard small{color:#b79d7d!important}
+html[data-theme="dark"] .homeSearchShade{background:rgba(0,0,0,.62)!important}
+html[data-theme="dark"] .homeSearchPanel{background:#211d19!important;color:#eadcc5!important;border-color:rgba(234,220,198,.12)!important}
+html[data-theme="dark"] .homeSearchHead span,
+html[data-theme="dark"] .homeSearchHint{color:#aaa092!important}
+html[data-theme="dark"] .homeSearchHead button{background:#302920!important;color:#eadcc5!important}
+html[data-theme="dark"] .homeSearchInputWrap{background:#171411!important;border-color:rgba(234,220,198,.18)!important}
+html[data-theme="dark"] .homeSearchInputWrap input,
+html[data-theme="dark"] .homeSearchInputWrap span,
+html[data-theme="dark"] .homeSearchResult b{color:#eadcc5!important}
+html[data-theme="dark"] .homeSearchResult span{color:#aaa092!important}
+html[data-theme="dark"] .homeSearchResult:hover{background:#302920!important}
+
+@media(max-width:900px){
+ .homeWeekText p{font-size:10px!important}
+ .homeFreshLiveCard>div:last-child{padding:6%!important}
+}

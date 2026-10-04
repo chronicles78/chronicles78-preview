@@ -2801,3 +2801,199 @@ header.top .brand{white-space:nowrap!important;word-break:keep-all!important;ove
  line-height:.95!important;
  letter-spacing:-.045em!important;
 }
+
+
+/* 2026-10-04 — Home concept based on the approved archival collage reference */
+#home{
+  --paper:#fbf6ea;
+  --ink:#163858;
+  --muted:#596875;
+  --line:rgba(67,78,77,.17);
+  --soft:#f2e9d8;
+  --soft-2:#f7f0e3;
+  --input:#fffaf0;
+  color:#163858;
+  background:
+    radial-gradient(circle at 12% 14%,rgba(126,92,49,.045) 0 1px,transparent 1.3px),
+    radial-gradient(circle at 82% 68%,rgba(126,92,49,.035) 0 1px,transparent 1.2px),
+    #f8f2e7;
+  background-size:23px 27px,31px 37px,auto;
+}
+#home .homePad{padding:0 0 34px!important}
+#home .homeWrap{max-width:none!important}
+#home .homeStateLine{max-width:1240px;margin:0 auto;padding:7px 24px 0!important;color:#7b725f!important}
+
+/* Reference-like hero */
+#home .memoryMosaicHero{
+  min-height:515px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:
+    linear-gradient(rgba(239,229,211,.38),rgba(239,229,211,.38)),
+    radial-gradient(circle at 18% 22%,rgba(91,61,31,.12) 0 1px,transparent 1.4px),
+    #d8c2a0!important;
+}
+#home .mosaicPaperA{left:-2%;top:6%;width:46%;height:78%;transform:rotate(-3deg);background:#e8d7ba}
+#home .mosaicPaperB{right:-3%;top:4%;width:45%;height:80%;transform:rotate(3deg);background:#ead9bd}
+#home .mosaicPhoto{padding:7px!important;background:#f8efdd!important;border-color:rgba(62,43,25,.24)!important;box-shadow:0 9px 24px rgba(54,37,20,.22)!important}
+#home .mosaicPhotoClass{left:8%;top:7%;width:33%;height:210px;transform:rotate(-5deg)}
+#home .mosaicPhotoA{right:8%;top:5%;width:34%;height:180px;transform:rotate(4deg)}
+#home .mosaicPhotoB{left:10%;bottom:5%;width:31%;height:175px;transform:rotate(3deg)}
+#home .mosaicPhotoC{right:7%;bottom:5%;width:31%;height:175px;transform:rotate(-3deg)}
+#home .mosaicPhoto img{filter:sepia(.12) saturate(.72) contrast(.98)!important}
+#home .mosaicTicket{right:25%;top:27%;z-index:5}
+#home .mosaicNote{right:14%;bottom:7%;z-index:5}
+#home .mosaicTitleCard{
+  container-type:inline-size;
+  width:min(520px,42%)!important;
+  padding:34px 36px 30px!important;
+  top:51%!important;
+  background:rgba(251,245,232,.97)!important;
+  color:#163858!important;
+  border:1px solid rgba(89,64,38,.2)!important;
+  box-shadow:0 14px 34px rgba(59,40,22,.20)!important;
+}
+#home .mosaicTitleCard .memoryKicker{color:#76634b!important;font-size:10px!important}
+#home .mosaicTitleCard h1{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:10px auto 8px!important;
+  white-space:nowrap!important;
+  word-break:keep-all!important;
+  overflow-wrap:normal!important;
+  font-size:10.5cqw!important;
+  line-height:.94!important;
+  letter-spacing:-.045em!important;
+  color:#163858!important;
+}
+#home .mosaicTitleCard p{color:#38536a!important;font-size:16px!important}
+#home .mosaicTitleCard .memoryPrimary{background:#123b5d!important;color:#fffaf0!important}
+#home .mosaicTitleCard .memoryGhost{background:#fffaf0!important;color:#163858!important;border-color:#8d806b!important}
+
+/* Dense editorial sections like the reference */
+#home #homeDashboard{max-width:1240px;margin:0 auto;padding:12px 24px 0}
+#home .homeGatewayGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;margin:0 0 15px!important}
+#home .homeGatewayCard{
+  min-height:128px!important;
+  grid-template-columns:42% minmax(0,1fr)!important;
+  border-radius:5px!important;
+  background:rgba(255,250,241,.88)!important;
+  border:1px solid rgba(84,67,47,.14)!important;
+  box-shadow:0 3px 12px rgba(61,43,24,.06)!important;
+  overflow:hidden;
+}
+#home .homeGatewayImage,#home .homeGatewayArt{min-height:126px!important}
+#home .homeGatewayImage img{width:100%;height:100%;object-fit:cover}
+#home .homeGatewayBody{padding:14px 15px!important}
+#home .homeGatewayBody small{display:none}
+#home .homeGatewayBody h2{font:700 24px/1 Georgia,"Times New Roman",serif!important;color:#163858!important;margin:2px 0 8px!important}
+#home .homeGatewayBody p{font:14px/1.35 Georgia,"Times New Roman",serif!important;color:#536576!important;margin:0!important}
+#home .homeGatewayBody strong{margin-top:8px!important;color:#163858!important}
+
+#home .homeSectionHead{margin:14px 0 8px!important;padding-bottom:5px!important;border-bottom:1px solid rgba(75,72,61,.16)}
+#home .homeSectionHead h2{font:700 25px/1 Georgia,"Times New Roman",serif!important;color:#163858!important}
+#home .homeSectionHead h2::after{background:#7c8b8e!important}
+#home .textLink{color:#163858!important}
+
+#home .homeStoryWeek{margin-top:0!important}
+#home .homeStoryWeekGrid{
+  grid-template-columns:1.18fr .9fr .86fr!important;
+  gap:20px!important;
+  align-items:stretch!important;
+  background:rgba(255,250,241,.48);
+}
+#home .homeStoryVisual{min-height:210px!important;border-radius:4px!important;overflow:hidden}
+#home .homeStoryVisual img{width:100%;height:100%;object-fit:cover}
+#home .homeStoryCopy{padding:10px 0!important}
+#home .homeStoryCopy h3{font:700 27px/1.05 Georgia,"Times New Roman",serif!important;color:#163858!important}
+#home .homeStoryCopy p{font:16px/1.42 Georgia,"Times New Roman",serif!important;color:#435b6f!important}
+#home .homeStoryQuote{
+  margin:0!important;padding:24px 12px 14px 26px!important;
+  border-left:1px solid rgba(76,81,76,.15)!important;
+  background:linear-gradient(90deg,rgba(238,227,207,.6),rgba(251,246,234,.2))!important;
+  color:#4f6170!important;
+}
+#home .homeStoryQuote p{font:italic 18px/1.45 Georgia,"Times New Roman",serif!important}
+
+#home .homeArchiveFresh{margin-top:4px!important}
+#home .homeFreshGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important}
+#home .homeFreshCard{
+  min-height:102px!important;
+  grid-template-columns:42% minmax(0,1fr)!important;
+  border-radius:4px!important;
+  background:rgba(255,250,241,.84)!important;
+  border:1px solid rgba(84,67,47,.13)!important;
+  box-shadow:0 2px 9px rgba(61,43,24,.045)!important;
+}
+#home .homeFreshCard>img,#home .homeFreshPlaceholder{height:100%!important;min-height:100px!important;object-fit:cover}
+#home .homeFreshCard div:last-child{padding:11px 12px!important}
+#home .homeFreshCard b{font-family:Georgia,"Times New Roman",serif!important;color:#163858!important}
+#home .homeFreshCard span{color:#5e6d77!important}
+#home .homeMemoryRibbon{
+  margin:20px -24px 0!important;
+  padding:20px 15%!important;
+  border-radius:0!important;
+  background:linear-gradient(90deg,rgba(208,177,128,.35),rgba(251,246,234,.78),rgba(208,177,128,.35))!important;
+  color:#3e5669!important;
+}
+#home .memoryArchiveNote,#home .memoryEditorStrip{max-width:1080px;margin-left:auto!important;margin-right:auto!important}
+
+/* TV becomes a secondary atmospheric exhibit */
+#home .eraTvSection{
+  max-width:1100px!important;
+  margin:28px auto 12px!important;
+  padding:24px 28px!important;
+  background:rgba(239,228,210,.62)!important;
+  border-color:rgba(91,69,46,.13)!important;
+  box-shadow:none!important;
+}
+#home .eraTvCopy h2{color:#163858!important}
+#home .eraTvCopy p{color:#596875!important}
+
+/* Desktop: top navigation replaces the sidebar */
+.desktopTopNav{display:none}
+.homeBrand{border:0!important;background:transparent!important;padding:0!important;min-height:0!important;width:auto!important;box-shadow:none!important}
+@media(min-width:1024px){
+  body{padding-left:0!important}
+  .top{
+    height:54px!important;
+    padding:0 max(24px,calc((100vw - 1160px)/2))!important;
+    background:rgba(251,246,234,.96)!important;
+    border-bottom:1px solid rgba(87,70,48,.15)!important;
+    color:#163858!important;
+  }
+  .topLeft{flex:0 0 auto}
+  .brand,.homeBrand{font:700 23px/1 Georgia,"Times New Roman",serif!important;color:#163858!important;letter-spacing:.015em!important;white-space:nowrap!important}
+  .desktopTopNav{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;margin:0 20px}
+  .desktopTopNav .nav{
+    width:auto!important;min-height:0!important;height:auto!important;
+    padding:7px 10px!important;border:0!important;border-radius:0!important;
+    background:transparent!important;box-shadow:none!important;
+    color:#29475f!important;font-size:13px!important;font-weight:600!important;
+    display:inline-flex!important;transform:none!important;
+  }
+  .desktopTopNav .nav:hover,.desktopTopNav .nav.active{color:#9b4f3c!important;background:transparent!important}
+  .topRight{flex:0 0 auto}
+  .top .status{display:none!important}
+  .top .buildVersion{font-size:9px!important;opacity:.55}
+  .bottom{display:none!important}
+  main{max-width:none!important;padding:0!important;margin:0!important}
+  main>.view:not(#home){max-width:1180px;margin:0 auto;padding-left:24px;padding-right:24px}
+  .storyDetail{inset:54px 0 0 0!important}
+  .modalPanel{width:min(980px,calc(100vw - 72px))!important}
+}
+@media(max-width:1023px){
+  .desktopTopNav{display:none!important}
+  .homeBrand{font-size:20px!important}
+}
+@media(max-width:820px){
+  #home .memoryMosaicHero{min-height:500px!important}
+  #home .mosaicTitleCard{width:72%!important;padding:28px 24px!important}
+  #home .homeGatewayGrid,#home .homeFreshGrid{grid-template-columns:1fr!important}
+  #home .homeStoryWeekGrid{grid-template-columns:1fr!important}
+  #home #homeDashboard{padding-left:12px;padding-right:12px}
+  #home .eraTvSection{margin-left:12px!important;margin-right:12px!important}
+}

@@ -572,3 +572,54 @@ body:has(#home.view.active) .notifyBtn{display:none!important}
   #tv .tvPage{padding:20px 10px 38px}
   #tv .eraTvSection{padding:16px!important}
 }
+
+
+/* ---------- HOME EDIT MODE ---------- */
+#home .homeEditToggle{
+  position:fixed!important;
+  right:22px!important;
+  bottom:22px!important;
+  z-index:1300!important;
+  width:auto!important;
+  min-height:42px!important;
+  padding:10px 14px!important;
+  border:1px solid rgba(23,59,92,.25)!important;
+  border-radius:999px!important;
+  background:#fffaf0!important;
+  color:#173b5c!important;
+  box-shadow:0 8px 24px rgba(50,37,23,.16)!important;
+  font:700 12px/1 system-ui,sans-serif!important;
+}
+#home .homeEditToggle.active{background:#173b5c!important;color:#fffaf0!important}
+#home.homeEditMode [data-home-key]{
+  position:relative!important;
+  outline:2px dashed rgba(155,79,60,.72)!important;
+  outline-offset:-3px!important;
+  cursor:pointer!important;
+}
+#home.homeEditMode [data-home-key]::after{
+  content:"✎"!important;
+  position:absolute!important;
+  z-index:1200!important;
+  top:6px!important;
+  right:6px!important;
+  display:grid!important;
+  place-items:center!important;
+  width:25px!important;
+  height:25px!important;
+  border-radius:50%!important;
+  background:#fffaf0!important;
+  color:#9b4f3c!important;
+  border:1px solid rgba(155,79,60,.35)!important;
+  box-shadow:0 3px 10px rgba(49,34,20,.13)!important;
+  font:700 14px/1 system-ui,sans-serif!important;
+  pointer-events:none!important;
+}
+.homeElementEditorPanel{width:min(680px,100%)!important}
+.homeEditorMeta{
+  display:flex;gap:8px;align-items:center;margin:0 0 10px;padding:9px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--soft);
+}
+.homeEditorMeta span{font-size:11px;color:var(--muted)}
+.homeEnabledRow{display:flex!important;align-items:center;gap:8px;margin-top:12px!important}
+.homeEnabledRow input{width:auto!important}

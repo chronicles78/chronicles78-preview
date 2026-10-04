@@ -170,18 +170,6 @@ function eraTvMeta(v){
  const bits=[v?.approx_date_text,v?.location_text,v?.data?.duration_ms?videoDuration(v.data.duration_ms):null].filter(Boolean);
  return bits.join(" · ")||"Эфир из нашей молодости";
 }
-function setEraTvPower(on){
- eraTvPowered=!!on;
- const p=$("eraTvPlayer"),screen=$("eraTvScreen"),start=$("eraTvStart"),power=$("eraTvPower"),empty=$("eraTvEmpty");
- if(power){power.classList.toggle("active",eraTvPowered);power.setAttribute("aria-pressed",String(eraTvPowered));power.title=eraTvPowered?"Выключить телевизор":"Включить телевизор"}
- if(!eraTvPowered){
-  eraTvBusy=false;eraTvUrl=null;
-  if(p){p.pause();p.removeAttribute("src");p.load()}
-  if(screen)screen.classList.remove("on");
-  if(start){start.style.display=eraTvItems.length?"":"none";const b=start.querySelector("b");if(b)b.textContent="Включить телевизор"}
-  if(empty&&eraTvItems.length){empty.textContent="Телевизор выключен.";empty.style.display="flex"}
- }
-}
 function prepareHomeEraTv(){
  const screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart");if(!screen)return;
  const atmosphere=(videoCache||[]).filter(v=>{
@@ -190,20 +178,20 @@ function prepareHomeEraTv(){
   return topic==="атмосфера времени"||path.split(" / ").includes("атмосфера времени");
  });
  eraTvItems=atmosphere.filter(isEraTvVideo);
+ eraTvPowered=false;
  if(!eraTvItems.length){
-  eraTvPowered=false;screen.classList.remove("ready","on");
+  screen.classList.remove("ready","on");
   if(empty){
-   if(atmosphere.length){
-    const waiting=atmosphere.filter(videoNeedsConversion).length;
-    empty.textContent=waiting
-      ? "Ролик найден. Формат MOV пока не воспроизводится телевизором — нужен MP4/WebM."
-      : "Ролики «Атмосферы времени» найдены, но пока не готовы к показу.";
-   }else empty.textContent="В папке «Атмосфера времени» пока нет импортированных роликов.";
+   const waiting=atmosphere.filter(videoNeedsConversion).length;
+   empty.textContent=waiting?"Ролик найден. Формат MOV пока не воспроизводится телевизором — нужен MP4/WebM.":"В папке «Атмосфера времени» пока нет готовых роликов.";
+   empty.style.display="flex";
   }
   if(start)start.style.display="none";return;
  }
- screen.classList.add("ready");eraTvIndex=Math.floor(Math.random()*eraTvItems.length);
- showEraTvCard(false);setEraTvPower(false);
+ screen.classList.add("ready");if(start)start.style.display="";
+ eraTvIndex=Math.floor(Math.random()*eraTvItems.length);
+ showEraTvCard(false);
+ if(empty){empty.textContent="Телевизор выключен.";empty.style.display="flex"}
 }
 function showEraTvCard(play){
  if(!eraTvItems.length)return;
@@ -212,32 +200,35 @@ function showEraTvCard(play){
  if(title)title.textContent=v.title||"Атмосфера времени";if(meta)meta.textContent=eraTvMeta(v);
  const poster=videoPosterSigned[v.id]||"";if(player){player.pause();player.removeAttribute("src");player.load();if(poster)player.poster=poster;else player.removeAttribute("poster")}
  if(screen)screen.classList.remove("on");
- if(play&&eraTvPowered)void playEraTv();
+ if(play)void playEraTv();
 }
 async function playEraTv(){
  if(eraTvBusy||!eraTvItems.length)return;
- eraTvPowered=true;
- const v=eraTvItems[eraTvIndex],player=$("eraTvPlayer"),screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart"),power=$("eraTvPower");if(!player||!screen)return;
- if(power){power.classList.add("active");power.setAttribute("aria-pressed","true");power.title="Выключить телевизор"}
- eraTvBusy=true;if(empty){empty.textContent="Настраиваю канал…";empty.style.display="flex"};if(start)start.style.display="none";
+ const v=eraTvItems[eraTvIndex],player=$("eraTvPlayer"),screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart");if(!player||!screen)return;
+ eraTvBusy=true;if(empty){empty.textContent="Настраиваю канал…";empty.style.display="flex"}
  try{
   const {data,error}=await sb.functions.invoke("drive-video-import",{body:{action:"playback_url",mediaId:v.id}});
   if(error||!data?.ok)throw new Error(await driveVideoError(error,data));
-  if(!eraTvPowered)return;
-  eraTvUrl=data.url;player.src=eraTvUrl;player.controls=false;player.muted=false;screen.classList.add("ready","on");
-  if(empty)empty.style.display="none";
+  eraTvUrl=data.url;player.src=eraTvUrl;player.controls=false;player.muted=false;screen.classList.add("ready","on");eraTvPowered=true;
+  if(start)start.style.display="none";if(empty)empty.style.display="none";
   await player.play();
- }catch(e){screen.classList.remove("on");if(empty){empty.textContent=e?.message||"Не удалось включить эфир.";empty.style.display="flex"}}
+ }catch(e){eraTvPowered=false;screen.classList.remove("on");if(start)start.style.display="";if(empty){empty.textContent=e?.message||"Не удалось включить эфир.";empty.style.display="flex"}}
  finally{eraTvBusy=false}
+}
+function powerOffEraTv(){
+ eraTvPowered=false;eraTvBusy=false;eraTvUrl=null;
+ const p=$("eraTvPlayer"),screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart");
+ if(p){p.pause();p.removeAttribute("src");p.load()}
+ if(screen)screen.classList.remove("on");
+ if(empty){empty.textContent="Телевизор выключен.";empty.style.display="flex"}
+ if(start)start.style.display=eraTvItems.length?"":"none";
 }
 function stepEraTv(delta){
  if(!eraTvItems.length)return;
- eraTvIndex=(eraTvIndex+delta+eraTvItems.length)%eraTvItems.length;
- showEraTvCard(eraTvPowered);
+ const wasOn=eraTvPowered;eraTvIndex=(eraTvIndex+delta+eraTvItems.length)%eraTvItems.length;showEraTvCard(wasOn);
 }
-function toggleEraTvPower(){if(eraTvPowered)setEraTvPower(false);else void playEraTv()}
-if($("eraTvStart"))$("eraTvStart").onclick=()=>{if(!eraTvPowered)void playEraTv()};
-if($("eraTvPower"))$("eraTvPower").onclick=toggleEraTvPower;
+if($("eraTvStart"))$("eraTvStart").onclick=playEraTv;
+if($("eraTvPower"))$("eraTvPower").onclick=()=>{if(eraTvPowered)powerOffEraTv();else playEraTv()};
 if($("eraTvPrev"))$("eraTvPrev").onclick=()=>stepEraTv(-1);
 if($("eraTvNext"))$("eraTvNext").onclick=()=>stepEraTv(1);
 if($("eraTvSound"))$("eraTvSound").onclick=()=>{const p=$("eraTvPlayer");if(!p||!eraTvPowered)return;p.muted=!p.muted;$("eraTvSound").textContent=p.muted?"×♪":"♪"};

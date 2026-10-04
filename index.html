@@ -27,7 +27,7 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
 <link rel="stylesheet" href="assets/app.css?v=20261004-57">
-<link rel="stylesheet" href="assets/home-reference.css?v=20261004-4">
+<link rel="stylesheet" href="assets/home-reference.css?v=20261004-5">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
 </head>
 <body>
@@ -38,33 +38,38 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">ХРОНИКИ 78-й</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="tv" type="button">Телевизор</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-49</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">ХРОНИКИ 78-й</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="tv" type="button">Телевизор</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261004-50</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
-<section id="home" class="view active"><div class="pad homePad"><div class="homeWrap">
-  <section class="memoryMosaicHero" id="memoryMosaicHero">
-    <div class="mosaicLayer mosaicPaperA" aria-hidden="true"></div>
-    <div class="mosaicLayer mosaicPaperB" aria-hidden="true"></div>
-    <figure class="mosaicPhoto mosaicPhotoClass homeEditable" id="mosaicPhotoClass" data-home-key="hero.class_photo"><img id="homeMosaicClass" alt="" hidden></figure>
-    <figure class="mosaicPhoto mosaicPhotoA homeEditable" id="mosaicPhotoA" data-home-key="hero.top_right"><img id="homeMosaicPhotoA" alt="" hidden></figure>
-    <figure class="mosaicPhoto mosaicPhotoB homeEditable" id="mosaicPhotoB" data-home-key="hero.bottom_left"><img id="homeMosaicPhotoB" alt="" hidden></figure>
-    <figure class="mosaicPhoto mosaicPhotoC homeEditable" id="mosaicPhotoC" data-home-key="hero.bottom_right"><img id="homeMosaicPhotoC" alt="" hidden></figure>
-    <div class="mosaicTicket homeEditable" data-home-key="hero.ticket"><b id="homeTicket1">КУЙБЫШЕВ</b><span id="homeTicket2">ТРАМВАЙ</span><strong id="homeTicket3">3 коп.</strong><small id="homeTicket4">551723</small></div>
-    <div class="mosaicNote homeEditable" data-home-key="hero.note"><span id="homeNoteYear">1983</span><b id="homeNoteText">Всё только<br>начинается…</b></div>
-    <div class="mosaicTitleCard homeEditable" data-home-key="hero.title">
-      <div class="memoryKicker" id="homeHeroKicker">ШКОЛА №78 · КУЙБЫШЕВ · ВЫПУСК 1983</div>
-      <h1 id="homeHeroTitle">ХРОНИКИ 78-й</h1>
-      <div class="mosaicRule"></div>
-      <p><b id="homeHeroLine1">Люди. Истории. Город.</b><br><em id="homeHeroLine2">Одна эпоха — много голосов.</em></p>
-      <div class="memoryHeroActions">
-        <button class="memoryPrimary" id="homeHeroPrimary" data-home-view="stories">Читать истории <span>→</span></button>
-        <button class="memoryGhost" id="homeHeroSecondary" data-home-view="people">Люди нашего класса</button>
-      </div>
-    </div>
-  </section>
- <div id="homeState" class="homeStateLine">Проверяю общую базу…</div>
-  <div id="homeDashboard"></div>
+<section id="home" class="view active">
+  <div class="homeReferenceStage" id="homeReferenceStage">
+    <img class="homeReferenceImage" id="homeReferenceImage"
+      src="https://fnwpkmjjdhflnqghnogj.supabase.co/functions/v1/home-reference-image?v=1"
+      alt="Хроники 78-й — главная страница">
+    <button class="homeHotspot hsPeopleTop" type="button" data-home-view="people" aria-label="Люди"></button>
+    <button class="homeHotspot hsStoriesTop" type="button" data-home-view="stories" aria-label="Истории"></button>
+    <button class="homeHotspot hsCityTop" type="button" data-home-view="city" aria-label="Город и время"></button>
+    <button class="homeHotspot hsArchiveTop" type="button" data-home-view="photos" aria-label="Архив"></button>
+    <button class="homeHotspot hsChatTop" type="button" data-home-view="chat" aria-label="Чат"></button>
+    <button class="homeReferenceTvLink" type="button" data-home-view="tv">Телевизор</button>
+    <button class="homeHotspot hsProfileTop" type="button" data-home-view="profile" aria-label="Профиль"></button>
 
-</div></div></section>
+    <button class="homeHotspot hsHeroStories" type="button" data-home-view="stories" aria-label="Читать истории"></button>
+    <button class="homeHotspot hsHeroPeople" type="button" data-home-view="people" aria-label="Люди нашего класса"></button>
+
+    <button class="homeHotspot hsRubricPeople" type="button" data-home-view="people" aria-label="Люди"></button>
+    <button class="homeHotspot hsRubricStories" type="button" data-home-view="stories" aria-label="Истории"></button>
+    <button class="homeHotspot hsRubricCity" type="button" data-home-view="city" aria-label="Город и время"></button>
+
+    <button class="homeHotspot hsAllStories" type="button" data-home-view="stories" aria-label="Смотреть все истории"></button>
+    <button class="homeHotspot hsStoryWeek" type="button" data-home-view="stories" aria-label="История недели"></button>
+    <button class="homeHotspot hsReadStory" type="button" data-home-view="stories" aria-label="Читать историю"></button>
+
+    <button class="homeHotspot hsAllArchive" type="button" data-home-view="photos" aria-label="Открыть весь архив"></button>
+    <button class="homeHotspot hsFreshPhotos" type="button" data-home-view="photos" aria-label="Новые фотографии"></button>
+    <button class="homeHotspot hsFreshStory" type="button" data-home-view="stories" aria-label="Новая история"></button>
+    <button class="homeHotspot hsFreshQuestion" type="button" data-home-view="questions" aria-label="Неопознанное лицо"></button>
+  </div>
+</section>
 
 <section id="tv" class="view"><div class="pad tvPage"><div class="tvPageHead"><div class="memoryEyebrow">ЭФИР ИЗ НАШЕЙ МОЛОДОСТИ</div><h1>Телевизор</h1><p>Музыка, город, телевидение и приметы времени — короткие фрагменты из отдельной папки «Атмосфера времени».</p></div><section class="eraTvSection" id="eraTvSection" aria-labelledby="eraTvTitle">
     <div class="eraTvCopy">
@@ -459,7 +464,7 @@
 <button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false" aria-controls="moreNavMenu"><b>☰</b>Ещё</button>
 </div></nav>
 
-<script src="assets/js/core.js?v=20261004-24"></script>
+<script src="assets/js/core.js?v=20261004-25"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261002-1"></script>

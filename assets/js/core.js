@@ -1000,7 +1000,7 @@ async function loadHome(){
  homeThemeSync();
 
  if(!user||!profile?.is_active){
-  stopHomeCollage();
+  if(typeof stopHomeCollage==="function")stopHomeCollage();
   $("homeClassPhotoLive").hidden=true;
   $("homeClassPhotoLive").replaceChildren();
   $("homeWeekLive").hidden=true;
@@ -1048,7 +1048,7 @@ async function loadHome(){
  const signed={};
  await Promise.all([...new Set(paths)].map(async p=>{signed[p]=await archiveSignedImage(p)}));
 
- await loadHomeCollage();
+ if(typeof loadHomeCollage==="function")await loadHomeCollage();
 
  const weekBox=$("homeWeekLive");
  if(weekly?.st){
@@ -1224,7 +1224,7 @@ function bindProfileSectionNavigation(){
 function renderProfile(){
  bindProfileSectionNavigation();
  if(!profile){
-  stopHomeCollage();
+  if(typeof stopHomeCollage==="function")stopHomeCollage();
   const collage=$("homeClassPhotoLive");
   if(collage){collage.hidden=true;collage.replaceChildren()}
  }

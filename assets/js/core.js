@@ -28,6 +28,7 @@ function applyTheme(mode){
  }
  const select=document.getElementById("themeSelect");
  if(select&&select.value!==mode)select.value=mode;
+ homeThemeSync();
 }
 applyTheme(getTheme());
 const mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
@@ -995,13 +996,7 @@ async function loadHome(){
   layer=$("homeLiveLayer");
  }
  if($("homeSearchBtn"))$("homeSearchBtn").onclick=openHomeSearch;
- if($("homeThemeToggle"))$("homeThemeToggle").onclick=()=>{
-   const dark=document.documentElement.dataset.theme==="dark";
-   const next=dark?"light":"dark";
-   localStorage.setItem(THEME_KEY,next);
-   applyTheme(next);
-   homeThemeSync();
- };
+ // The static homeControlBridge owns theme clicks, even before data loads.
  homeThemeSync();
 
  if(!user||!profile?.is_active){

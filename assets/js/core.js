@@ -903,7 +903,7 @@ function homeTextExcerpt(value,max=190){
  return t.slice(0,max).replace(/\s+\S*$/,"")+"…";
 }
 function homeThemeSync(){
- const b=$("homeThemeToggle");if(!b)return;
+ const b=document.getElementById("homeThemeToggle");if(!b)return;
  const dark=document.documentElement.dataset.theme==="dark";
  b.textContent=dark?"☀":"☾";
  b.title=dark?"Светлая тема":"Тёмная тема";

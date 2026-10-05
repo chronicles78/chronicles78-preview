@@ -19,9 +19,15 @@
 .collageSlot2{left:50%!important;top:0!important;transform:rotate(-3deg)}
 .collageSlot3{left:4%!important;top:49%!important;transform:rotate(4deg)}
 .collageSlot4{left:28%!important;top:48%!important;transform:rotate(-4deg)}
-.collageSlot5{left:76%!important;top:0!important;transform:rotate(3deg)}
+.collageSlot5{left:76%!important;top:7%!important;width:14%!important;transform:rotate(3deg)}
 .homeCollagePortrait:focus-visible{outline:2px solid #173b5c!important;outline-offset:2px}
 .homeWeekLiveGrid{min-height:0!important;grid-template-columns:36.2fr 27.3fr 32.2fr!important}
+.homeWeekLive{left:5.8%!important;top:47.91%!important;width:88.4%!important;height:25.08%!important}
+.homeWeekLive .homeLiveSectionHead{height:25.64%!important}
+.homeWeekLiveGrid{height:74.36%!important}
+.homeFreshLive{left:5.8%!important;top:72.99%!important;width:88.4%!important;height:15.11%!important}
+.homeFreshLive .homeLiveSectionHead{height:28.37%!important}
+.homeFreshLiveGrid{height:71.63%!important}
 .homeWeekImage,.homeFreshLiveImage{min-width:0!important;min-height:0!important;display:grid!important;place-items:center!important}
 .homeWeekImage img,.homeFreshLiveImage img{object-fit:contain!important;object-position:center!important}
 .homeFreshPortraitWrap{display:grid;place-items:center;min-width:0;min-height:0;overflow:hidden;background:#d8cbb8}
@@ -30,8 +36,8 @@
 html[data-theme="dark"] .homeCollagePortrait{background:#e6d4b6!important;color:#173b5c!important}
 @media(max-width:760px){
  .homeClassPhotoLive{top:4.51%!important;height:21.05%!important}
- .homeWeekLive{top:55.25%!important;height:18.92%!important}
- .homeFreshLive{top:74.34%!important;height:13.16%!important}
+ .homeWeekLive{top:55.25%!important;height:21.55%!important}
+ .homeFreshLive{top:76.8%!important;height:12.98%!important}
  .homeCollagePortrait span{font-size:6px}
  .homeCollagePortrait small{font-size:5px}
 }

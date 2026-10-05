@@ -702,7 +702,8 @@ function showView(v,{track=true}={}){
  else if(v==="city")ready=Promise.resolve(loadCityEssays());
  else if(v==="questions")ready=Promise.resolve(loadQuestions());
  else if(v==="tv"){if(typeof initHomeEraTv==="function")ready=Promise.resolve(initHomeEraTv());}
- else if(v==="profile"&&user&&profile?.is_active){
+ else if(v==="profile"){
+   renderProfile();
    ready=Promise.resolve(true);
  }
  if(typeof trackSiteView==="function")trackSiteView(v);
@@ -983,24 +984,25 @@ async function loadHome(){
  const stage=$("homeReferenceStage");
  if(!stage)return true;
 
- document.querySelectorAll("#home [data-home-view]").forEach(b=>b.onclick=()=>showView(b.dataset.homeView));
+ // Static homeControlBridge owns the home navigation and search clicks.
 
  let layer=$("homeLiveLayer");
  if(!layer){
   stage.insertAdjacentHTML("beforeend",
    '<div id="homeLiveLayer" class="homeLiveLayer">'+
-    '<button id="homeClassPhotoLive" class="homeClassPhotoLive" type="button" title="10Б · школа №78"></button>'+
+    '<div id="homeClassPhotoLive" class="homeClassPhotoLive" aria-label="Портреты учеников 10А и 10Б"></div>'+
     '<section id="homeWeekLive" class="homeWeekLive" hidden></section>'+
     '<section id="homeFreshLive" class="homeFreshLive" hidden></section>'+
    '</div>');
   layer=$("homeLiveLayer");
  }
- if($("homeSearchBtn"))$("homeSearchBtn").onclick=openHomeSearch;
  // The static homeControlBridge owns theme clicks, even before data loads.
  homeThemeSync();
 
  if(!user||!profile?.is_active){
+  stopHomeCollage();
   $("homeClassPhotoLive").hidden=true;
+  $("homeClassPhotoLive").replaceChildren();
   $("homeWeekLive").hidden=true;
   $("homeFreshLive").hidden=true;
   return true;
@@ -1046,16 +1048,7 @@ async function loadHome(){
  const signed={};
  await Promise.all([...new Set(paths)].map(async p=>{signed[p]=await archiveSignedImage(p)}));
 
- const classBtn=$("homeClassPhotoLive");
- if(cp?.storage_path&&signed[cp.storage_path]){
-  classBtn.hidden=false;
-  classBtn.innerHTML='<img src="'+esc(signed[cp.storage_path])+'" alt="'+esc(cp.title||"10Б")+'">';
-  classBtn.onclick=async()=>{
-    peopleGroup="10Б";
-    await showView("people");
-    if(typeof renderPeople==="function")renderPeople();
-  };
- }else classBtn.hidden=true;
+ await loadHomeCollage();
 
  const weekBox=$("homeWeekLive");
  if(weekly?.st){
@@ -1074,12 +1067,9 @@ async function loadHome(){
  }else weekBox.hidden=true;
 
  const freshBox=$("homeFreshLive");
- const unknownPhoto=cp10aRes.data,uw=Number(unknownPhoto?.source_width)||1024,uh=Number(unknownPhoto?.source_height)||650;
- const ux=Number(unknownRegion?.x)||0,uy=Number(unknownRegion?.y)||0,ucw=Number(unknownRegion?.w)||88,uch=Number(unknownRegion?.h)||116;
- const bgSizeX=(uw/ucw*100).toFixed(2),bgSizeY=(uh/uch*100).toFixed(2);
- const bgPosX=((ux/Math.max(1,uw-ucw))*100).toFixed(2),bgPosY=((uy/Math.max(1,uh-uch))*100).toFixed(2);
- const unknownStyle=unknownPhoto?.storage_path&&signed[unknownPhoto.storage_path]
-  ?' style="background-image:url(\''+esc(signed[unknownPhoto.storage_path])+'\');background-size:'+bgSizeX+'% '+bgSizeY+'%;background-position:'+bgPosX+'% '+bgPosY+'%;"'
+ const unknownPhoto=cp10aRes.data;
+ const unknownPortrait=unknownPhoto?.storage_path&&signed[unknownPhoto.storage_path]
+  ?cropImageHtml(signed[unknownPhoto.storage_path],unknownPhoto,unknownRegion,"homeFreshLiveFace",4/5,0,0,"","Неопознанное лицо")
   :"";
  freshBox.hidden=false;
  freshBox.innerHTML=
@@ -1094,7 +1084,7 @@ async function loadHome(){
     '<div><small>НОВАЯ ИСТОРИЯ</small><b>'+esc(newestStory?.st.title||"Истории класса")+'</b><span>'+esc(newestStory?.st.period||"Читать историю")+' →</span></div>'+
    '</button>'+
    '<button class="homeFreshLiveCard" type="button" data-home-unknown>'+
-    '<div class="homeFreshLiveFace"'+unknownStyle+'>'+(unknownStyle?"":'?')+'</div>'+
+    '<div class="homeFreshPortraitWrap">'+(unknownPortrait||'<div class="homeFreshLiveFace">?</div>')+'</div>'+
     '<div><small>НЕОПОЗНАННОЕ ЛИЦО</small><b>'+(unknownPerson?'Ученик №'+esc(unknownPerson.number):'Нужна помощь')+'</b><span>Кто это на фото? →</span></div>'+
    '</button>'+
   '</div>';
@@ -1233,6 +1223,11 @@ function bindProfileSectionNavigation(){
 
 function renderProfile(){
  bindProfileSectionNavigation();
+ if(!profile){
+  stopHomeCollage();
+  const collage=$("homeClassPhotoLive");
+  if(collage){collage.hidden=true;collage.replaceChildren()}
+ }
  if(user&&pendingProfile&&!profile){
    if($("adminLoginBox"))$("adminLoginBox").style.display="none";
    const alreadyAdmitted=!!pendingProfile.is_active&&!pendingProfile.access_blocked;
@@ -1294,7 +1289,8 @@ function renderProfile(){
    $("loginBox").style.display="none";$("consentGateBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
    $("privacyBox").style.display="block";
    $("privacyConsentState").textContent="Согласие принято "+(profile.consentAcceptedAt?new Date(profile.consentAcceptedAt).toLocaleString("ru-RU"):"ранее")+". Действует только для закрытого архива.";
-   $("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";loadHome();$("composerWrap").style.display="block";
+   if($("homeState"))$("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";
+   void loadHome();$("composerWrap").style.display="block";
    if($("photoContributeBox"))$("photoContributeBox").style.display="block";
     if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
@@ -1325,7 +1321,7 @@ function renderProfile(){
    if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
    if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
    setProfileSections();
-   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("trafficStatsBox"))$("trafficStatsBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
+   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("trafficStatsBox"))$("trafficStatsBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";if($("homeState"))$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
  }
 }
 async function init(){

@@ -46,7 +46,8 @@ function personIdentityUnknown(p){
  return !p || (p.identification_status||"")!=="подтверждено" || !name || name==="не установлено" || name==="имя не установлено";
 }
 function personDisplayName(p){
- return personIdentityUnknown(p)?"Имя не установлено · № "+(p?.number??""):p.canonical_name;
+ const name=String(p?.canonical_name||"").trim();
+ return name&&!/^(не установлено|имя не установлено)$/i.test(name)?name:"Имя не установлено · № "+(p?.number??"");
 }
 function personThumbHtml(p,className="personPortrait"){
  const r=classPhotoState?.regions?.[p.id],cp=classPhotoState?.photo,url=classPhotoState?.url;

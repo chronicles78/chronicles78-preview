@@ -1,0 +1,21 @@
+/* Home 2.0, 20261006-1. Scoped until the other chapters are approved. */
+body.home2App #home.home2,.home2Search {
+  --desk:#d9c7a8; --paper:#f8f1e2; --paper-deep:#e9dcc3; --paper-light:#fffbf0;
+  --ink:#122f46; --ink-muted:#546371; --accent:#92543d; --line:#93846c40;
+  --photo-frame:#fff9ed; --shadow-photo:0 .55cqw 1.2cqw #3c281d50;
+  --shadow-paper:0 .45cqw .7cqw #3c281d3d,0 .1cqw .15cqw #3c281d33;
+  --font-editorial:Georgia,"Times New Roman",serif;
+  --font-interface:"Segoe UI",Arial,sans-serif;
+  --font-handwritten:"Segoe Print","Comic Sans MS",cursive;
+  --title-size:3.65cqw; --heading-size:1.85cqw; --body-size:1.18cqw; --label-size:.8cqw;
+  --space-1:.35cqw; --space-2:.7cqw; --space-3:1.1cqw; --space-4:1.9cqw; --space-5:3.4cqw;
+  --photo-border:.65cqw; --button-radius:3px; --button-bg:#07334e; --button-ink:#fffaf0;
+  --focus-ring:#b27835; --grain-opacity:.14;
+}
+html[data-theme="dark"] body.home2App #home.home2,html[data-theme="dark"] .home2Search {
+  --desk:#171815; --paper:#292a23; --paper-deep:#37362b; --paper-light:#34352c;
+  --ink:#f0e4cb; --ink-muted:#c0b69f; --accent:#d1a081; --line:#e0c9a534;
+  --photo-frame:#d6c8ad; --shadow-photo:0 .55cqw 1.4cqw #0009;
+  --shadow-paper:0 .45cqw .8cqw #0009,0 .1cqw .2cqw #0006;
+  --button-bg:#dcc397; --button-ink:#1c292e; --focus-ring:#e2bb77; --grain-opacity:.08;
+}

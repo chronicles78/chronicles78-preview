@@ -1,7 +1,7 @@
 /* Home 2.0, 20261006-1. Scoped until the other chapters are approved. */
 body.home2App #home.home2,.home2Search {
-  --desk:#d9c7a8; --paper:#f8f1e2; --paper-deep:#e9dcc3; --paper-light:#fffbf0;
-  --ink:#122f46; --ink-muted:#546371; --accent:#92543d; --line:#93846c40;
+  --desk:#ede1c9; --paper:#fff9eb; --paper-deep:#f0e2c5; --paper-light:#fffdf6;
+  --ink:#082e4b; --ink-muted:#354f65; --accent:#b76b28; --line:#93846c40;
   --photo-frame:#fff9ed; --shadow-photo:0 .55cqw 1.2cqw #3c281d50;
   --shadow-paper:0 .45cqw .7cqw #3c281d3d,0 .1cqw .15cqw #3c281d33;
   --font-editorial:Georgia,"Times New Roman",serif;

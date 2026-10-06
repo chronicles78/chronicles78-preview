@@ -29,9 +29,9 @@
 <link rel="stylesheet" href="assets/app.css?v=20261004-57">
 <link rel="stylesheet" href="assets/mobile-archive.css?v=20261005-63-2">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
-<link rel="stylesheet" href="assets/design-tokens.css?v=20261006-7">
-<link rel="stylesheet" href="assets/home-2.css?v=20261006-7">
-<link rel="stylesheet" href="assets/community.css?v=20261006-7">
+<link rel="stylesheet" href="assets/design-tokens.css?v=20261006-8">
+<link rel="stylesheet" href="assets/home-2.css?v=20261006-8">
+<link rel="stylesheet" href="assets/community.css?v=20261006-8">
 </head>
 <body class="home2App">
 <svg class="archiveSvgDefs" width="0" height="0" aria-hidden="true" focusable="false">
@@ -78,11 +78,7 @@
       </article>
       <div class="h2Paper h2Note" aria-hidden="true"><b>1983</b><p>Всё только<br>начинается…</p></div>
     </div>
-    <div class="h2Rubrics" aria-label="Главы хроник">
-      <button type="button" class="h2Rubric" data-home-view="people"><div class="h2Thumb" id="h2PeopleThumb"><span class="h2ImagePlaceholder">Имена и лица</span></div><div class="h2RubricText"><h2>Люди</h2><p><span id="h2PeopleCount">Наш класс.</span><br>Имена, лица, связи.</p><span class="h2Arrow" aria-hidden="true">→</span></div></button>
-      <button type="button" class="h2Rubric" data-home-view="stories"><div class="h2Thumb" id="h2StoriesThumb"><span class="h2ImagePlaceholder">Голоса памяти</span></div><div class="h2RubricText"><h2>Истории</h2><p><span id="h2StoriesCount">Истории класса.</span><br>Маленькие и большие.</p><span class="h2Arrow" aria-hidden="true">→</span></div></button>
-      <button type="button" class="h2Rubric" data-home-view="city"><div class="h2Thumb" id="h2CityThumb"><span class="h2ImagePlaceholder">Куйбышев</span></div><div class="h2RubricText"><h2>Город и время</h2><p>Места, события,<br>хроника нашей юности.</p><span class="h2Arrow" aria-hidden="true">→</span></div></button>
-    </div>
+    <section id="communityHome" class="communityHome" aria-label="Жизнь архива"><article class="communityPanel"><h3>Кто сейчас на сайте</h3><div id="communityOnline" aria-live="polite">Войдите, чтобы увидеть одноклассников онлайн.</div><button class="secondary" type="button" data-community-view="chat">Перейти в чат</button></article><article class="communityPanel"><h3>В этот день</h3><div id="communityDay">События и фотографии из закрытого архива.</div></article><article class="communityPanel"><h3>Кого мы ищем</h3><div id="communityWanted">Помогите восстановить имена и потерянные связи.</div><button class="secondary" type="button" data-community-view="people">Открыть классный альбом</button></article></section>
     <section class="h2Week" aria-labelledby="h2WeekHeading">
       <div class="h2SectionHead"><h2 id="h2WeekHeading">История недели</h2><button type="button" data-home-view="stories">Смотреть все истории&nbsp; →</button></div>
       <div class="h2WeekGrid"><button type="button" class="h2WeekPhoto" id="h2WeekPhoto" data-home-view="profile"><span class="h2ImagePlaceholder">Внутри нашего архива</span></button><div class="h2WeekText"><h3 id="h2WeekTitle">У каждого — своя история</h3><p id="h2WeekSummary">Войдите в архив, чтобы читать воспоминания одноклассников и увидеть историю этой недели.</p><button class="h2Button primaryButton" id="h2WeekRead" data-home-view="profile" type="button">Войти в архив&nbsp; →</button></div><blockquote class="h2Quote"><p id="h2WeekQuote">Книга, которую можно читать. Память, по которой можно ходить.</p><cite id="h2WeekSource">Хроники-78</cite></blockquote></div>
@@ -97,9 +93,9 @@
     </section>
     <footer class="h2Final" id="h2Final"><img class="h2Panorama" src="assets/home2/embankment-1966-color.png" alt="Куйбышев с Волги, художественная колоризация снимка 1966 года"><div class="h2FooterPhoto" aria-hidden="true"><img src="assets/home2/river-terminal-postcard.jpg" alt=""></div><div class="h2FooterLetter" aria-hidden="true">Наш город.<br>Наша школа.<br>Наши люди.</div><blockquote>«Куйбышев — это не просто город.<br>Это фон, на котором мы стали собой.»<cite>— Из наших воспоминаний</cite></blockquote></footer>
     <a class="h2Credits" href="home-2-sources.html" target="_blank" rel="noopener">Источники изображений</a>
-    <img class="h2Leaves" src="assets/home2/botanical.png?v=20261006-7" alt="" aria-hidden="true">
-    <img class="h2Leaves h2LeavesTop" src="assets/home2/botanical.png?v=20261006-7" alt="" aria-hidden="true">
-    <small class="h2Version">Home 2.0 · 20261006-7</small>
+    <img class="h2Leaves" src="assets/home2/botanical.png?v=20261006-8" alt="" aria-hidden="true">
+    <img class="h2Leaves h2LeavesTop" src="assets/home2/botanical.png?v=20261006-8" alt="" aria-hidden="true">
+    <small class="h2Version">Home 2.0 · 20261006-8</small>
   </div>
 </section>
 
@@ -507,9 +503,9 @@
 <script src="assets/js/city.js?v=20261002-1"></script>
 <script src="assets/js/traffic.js?v=20260930-2"></script>
 <script src="assets/js/questions-admin.js?v=20261002-3"></script>
-<script src="assets/js/home-2-rotation.js?v=20261006-7"></script>
-<script src="assets/js/home-2.js?v=20261006-7"></script>
-<script src="assets/js/community.js?v=20261006-7"></script>
+<script src="assets/js/home-2-rotation.js?v=20261006-8"></script>
+<script src="assets/js/home-2.js?v=20261006-8"></script>
+<script src="assets/js/community.js?v=20261006-8"></script>
 </body>
 </html>
 

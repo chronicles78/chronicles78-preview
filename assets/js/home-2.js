@@ -78,10 +78,7 @@
         const region=person&&regions.find(r=>r.person_id===person.id&&r.class_photo_id==="CLASS-10A");
         const cityPhoto=byId.get("MEDIA-065");
         const postcard=byId.get("MEDIA-062");
-        const editorPhoto=key=>byId.get(cfg.get(key)?.source_id);
-        const rubricStory=editorPhoto("rubric.stories")||newCover;
-        const rubricCity=postcard||editorPhoto("rubric.city");
-        const paths=[cp?.storage_path,cpA?.storage_path,...[cover,newCover,fresh,cityPhoto,postcard,rubricStory,rubricCity].map(m=>m?.current_storage_path)].filter(Boolean);
+        const paths=[cp?.storage_path,cpA?.storage_path,...[cover,newCover,fresh,cityPhoto,postcard].map(m=>m?.current_storage_path)].filter(Boolean);
         const signed=new Map(await Promise.all([...new Set(paths)].map(async path=>[path,await archiveSignedImage(path)])));
         if(!valid())return false;
         const url=m=>m?signed.get(m.current_storage_path):null;
@@ -92,11 +89,6 @@
         el("h2ClassPhoto").innerHTML=picture(signed.get(cp?.storage_path),"10Б · школа №78 · 1982–1983")+'<figcaption>10Б · школа №78 · 1982–1983</figcaption>';
         if(url(cityPhoto))putPhoto("h2CityPhoto",cityPhoto,cityPhoto.title);
         // Public historical city views form the cover scenery; private archive photos stay authenticated.
-        el("h2PeopleThumb").innerHTML=picture(signed.get(cp?.storage_path),"Наш класс");
-        el("h2StoriesThumb").innerHTML=picture(url(rubricStory),rubricStory?.title||"Истории класса");
-        el("h2CityThumb").innerHTML=picture(url(rubricCity),rubricCity?.title||"Город и время");
-        el("h2PeopleCount").textContent=people.length+" человек.";
-        el("h2StoriesCount").textContent=stories.length+" "+photoPlural(stories.length,"история","истории","историй")+".";
         el("h2WeekPhoto").innerHTML=picture(url(cover),cover?.title||"Архивный лист");
         setObject(el("h2WeekPhoto"),"story",week?.id);
         setObject(el("h2WeekRead"),"story",week?.id);

@@ -1,6 +1,8 @@
 /* The desktop reference stays intact; phones use live, readable content. */
 .homeMobileIntro{display:none}
 @media(max-width:760px){
+ html[data-theme="dark"] #home{--paper:#211e1a;--ink:#eee5d8;--muted:#b2a595;--line:#423a32;--soft:#2e2923;--soft-2:#29251f;color:var(--ink)!important}
+ #tv{background:var(--bg)!important}
  html{scroll-padding-top:72px}
  html,body{max-width:100%;width:100%;overflow-x:clip}
  body,body:has(#home.view.active){padding-left:0!important;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))!important;background:var(--bg)!important}
@@ -109,3 +111,4 @@
  :focus-visible{outline:2px solid var(--focus);outline-offset:3px}
 }
 @media(max-width:380px){.top .buildVersion{display:none!important}}
+

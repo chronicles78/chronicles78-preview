@@ -113,6 +113,68 @@ html[data-theme="dark"] .h2Ticket{background:#9b7649;color:#161e22}
 .h2SearchResult small{color:var(--accent);font:700 10px/1.2 var(--font-interface);letter-spacing:.1em}
 .h2SearchResult b{font:700 19px/1.2 var(--font-editorial)}
 .h2SearchResult span,.h2SearchHint{color:var(--ink-muted);font:13px/1.5 var(--font-interface)}
+/* Reference refinement: independent edge scenery, aged paper and photographic depth. */
+.home2Stage{background-image:linear-gradient(#fff8eea6,#fff8eec9),url("home2/paper-texture.png");background-size:100% 100%;background-position:center}
+.home2Stage::before{background:url("home2/paper-grain.svg");opacity:.1}
+.h2Paper{background-image:linear-gradient(#fffaf073,#fffaf073),url("home2/paper-texture.png");background-size:100% 100%}
+.h2Paper::after{opacity:.09}
+.h2Hero{background:linear-gradient(12deg,#93744835,#dac2a030),url("home2/paper-texture.png") center/cover}
+.h2Nav{left:0;right:0;padding-left:13.3%;padding-right:10%;gap:1.65cqw;background:linear-gradient(#fffaf3ed,#f8f2e5ed),url("home2/paper-texture.png") center/cover;box-shadow:0 .12cqw .3cqw #55432b25}
+.h2Nav .h2Brand{font-family:"Times New Roman",Georgia,serif;font-size:1.9cqw}
+.h2CornerCity{position:absolute;left:-2%;top:-7%;width:19%;height:40%;object-fit:cover;object-position:20% 70%;filter:sepia(.6) saturate(.5) contrast(.95);transform:rotate(5deg);box-shadow:var(--shadow-photo)}
+.h2Photo{padding:.8cqw .8cqw 1.2cqw;background:linear-gradient(#fffbf4b0,#f5eadab0),url("home2/paper-texture.png") center/cover;box-shadow:0 .2cqw .3cqw #38271650,0 .75cqw 1.3cqw #38271665}
+.h2Photo img{filter:sepia(.25) saturate(.75) contrast(.96)}
+.h2River img{object-position:center 65%}
+.h2Postcard img{object-position:50% 70%;filter:sepia(.42) contrast(.93)}
+.h2City img{object-position:center 70%}
+.h2Class{padding-bottom:.85cqw}
+.h2Class figcaption{font-size:.65cqw}
+.h2Title{filter:drop-shadow(0 .24cqw .18cqw #3f2a1940);padding-top:2cqw;transform:rotate(.6deg)}
+.h2Title h1{font-family:"Times New Roman",Georgia,serif;font-size:4cqw;letter-spacing:-.025em}
+.h2Title .h2Kicker{text-transform:none;font-size:1.13cqw;letter-spacing:-.018em}
+.h2Title .h2Rule{margin:.7cqw auto .85cqw;width:2.8cqw}
+.h2Title .h2Motto{font-size:1.55cqw;margin-bottom:1.3cqw}
+.home2 .h2Button{font-size:.97cqw;padding:.95cqw 1.1cqw;box-shadow:0 .12cqw .2cqw #42271918}
+.h2Letter{color:#635944;font-size:1.1cqw;left:-2%;top:26%;width:23%;padding:2.3cqw 1.6cqw}
+.h2RightSheet{right:0;top:0;width:18%;height:80%;padding-top:2.8cqw;color:#253d4a;box-shadow:.25cqw .5cqw .6cqw #30271955}
+.h2BackSheet{background-image:repeating-linear-gradient(0deg,transparent 0,transparent 1.4cqw,#8b715b30 1.41cqw,#8b715b30 1.43cqw),url("home2/paper-texture.png")}
+.h2Ticket{background-image:linear-gradient(#d4a16966,#d4a16966),url("home2/paper-texture.png");background-size:cover;border-style:dotted;box-shadow:.2cqw .25cqw .45cqw #36241260}
+.h2Pen{position:absolute;right:-2%;bottom:2%;width:19%;height:3.1%;z-index:6;transform:rotate(19deg);border-radius:40% 8% 8% 40%;background:linear-gradient(0deg,#050d13,#27323b 40%,#08121b 72%,#5a6061);box-shadow:.1cqw .35cqw .4cqw #22190f88}
+.h2Pen::before{content:"";position:absolute;left:-12%;width:13%;height:100%;background:linear-gradient(0deg,#817553,#eadfbe,#a68d53);clip-path:polygon(0 50%,100% 0,100% 100%)}
+.h2Pen::after{content:"";position:absolute;right:18%;top:0;bottom:0;width:2%;background:#d7c69c;box-shadow:-1.3cqw 0 0 #bdaa74}
+.h2Rubric,.h2FreshCard{background:linear-gradient(#fffcf4a8,#f8efdfb8);border-color:#b79c7140;box-shadow:inset 0 0 .6cqw #b79c7114}
+.h2Rubric .h2Thumb{box-shadow:0 .15cqw .2cqw #4e382522}
+.h2Quote{background:linear-gradient(90deg,#eddbc238,transparent),url("home2/river-1960.jpg") right bottom/cover; background-blend-mode:screen;color:var(--ink)}
+.h2Quote p,.h2Quote cite{position:relative;z-index:1}
+.h2Quote::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#faf3e5f7,#faf3e5df);z-index:0}
+.h2Final{background:#dbc29f}
+.h2Final .h2Panorama{opacity:.9;filter:sepia(.4) saturate(.6);object-position:center 52%}
+.h2Final::after{background:linear-gradient(90deg,#dba45a20,#faf0dccf 38%,#faf0dcec 63%,#ead4ad11);opacity:1}
+.h2FooterPhoto{position:absolute;right:5%;top:18%;width:14%;height:125%;padding:.55cqw;background:#fcf3e2;transform:rotate(8deg);z-index:3;box-shadow:var(--shadow-photo)}
+.h2Final .h2FooterPhoto img{position:relative;opacity:1;object-position:center 70%;filter:sepia(.45)}
+.h2FooterLetter{position:absolute;right:-2%;top:5%;width:14%;height:140%;padding:1.2cqw;background:url("home2/paper-texture.png") center/cover;color:#314556;font:italic 1.2cqw/1.4 var(--font-handwritten);transform:rotate(-8deg);z-index:4;box-shadow:var(--shadow-paper)}
+.h2Final .h2FooterLeaves{inset:auto auto -63% -6%;width:19%;height:190%;object-fit:contain;transform:rotate(-35deg);opacity:.9;z-index:3;filter:sepia(.2) drop-shadow(.1cqw .2cqw .2cqw #0004)}
+.h2Credits{position:absolute;left:.65%;bottom:.25%;z-index:20;font:.62cqw/1 var(--font-interface);color:var(--ink-muted);text-decoration:none;background:var(--paper);padding:.2cqw}
+.h2Version{font-size:.6cqw;bottom:.25%}
+html[data-theme="dark"] .home2Stage{background-image:linear-gradient(#292a23eb,#292a23eb),url("home2/paper-texture.png")}
+html[data-theme="dark"] .h2Paper{background-image:linear-gradient(#292a23de,#292a23de),url("home2/paper-texture.png")}
+html[data-theme="dark"] .h2Hero{background-image:linear-gradient(#25261dbb,#25261dbb),url("home2/paper-texture.png")}
+html[data-theme="dark"] .h2Nav{background-image:linear-gradient(#34352cf2,#34352cf2),url("home2/paper-texture.png")}
+html[data-theme="dark"] .h2Rubric,html[data-theme="dark"] .h2FreshCard{background:#34352cb0;border-color:var(--line)}
+html[data-theme="dark"] .h2Quote::after{background:linear-gradient(90deg,#292a23f7,#292a23dd)}
+html[data-theme="dark"] .h2Final::after{background:linear-gradient(90deg,#17181566,#292a23ee 38%,#292a23f5 63%,#17181588)}
+html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:var(--ink-muted)}
+@media(max-width:760px){
+ .h2Nav{padding:8px 14px;gap:10px}.h2Nav .h2Brand{font-size:22px}
+ .h2Title{padding:24px 14px}.h2Title h1{font-size:clamp(32px,9.5vw,50px)}
+ .h2Title .h2Kicker{font-size:11px}.h2Title .h2Motto{font-size:18px;margin-bottom:20px}
+ .h2Title .h2Rule{width:30px;margin:13px auto}.home2 .h2Button{font-size:12px;padding:12px 9px}
+ .h2Photo{padding:6px 6px 9px}.h2Class figcaption{font-size:9px}
+ .h2Letter{padding:24px 12px;font-size:13px;width:45%}.h2RightSheet{font-size:18px;padding-top:24px;width:25%}
+ .h2Credits{font-size:9px;padding:3px}.h2Version{font-size:9px;padding:3px}
+ .h2FooterLetter{font-size:13px;width:28%;right:-8%;top:30%}.h2FooterPhoto{width:25%;right:8%;top:45%}
+ .h2Final .h2FooterLeaves{width:28%;height:130%;bottom:-35%}.h2Final blockquote{z-index:5}
+}
 @media(min-width:761px){
  html:has(body.home2App #home.active),body.home2App:has(#home.active){height:100%;overflow:hidden!important}
  body.home2App:has(#home.active) main{height:100dvh;display:grid;place-items:center;overflow:hidden!important}

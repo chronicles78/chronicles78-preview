@@ -29,8 +29,8 @@
 <link rel="stylesheet" href="assets/app.css?v=20261004-57">
 <link rel="stylesheet" href="assets/mobile-archive.css?v=20261005-63-2">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
-<link rel="stylesheet" href="assets/design-tokens.css?v=20261006-1">
-<link rel="stylesheet" href="assets/home-2.css?v=20261006-1">
+<link rel="stylesheet" href="assets/design-tokens.css?v=20261006-2">
+<link rel="stylesheet" href="assets/home-2.css?v=20261006-2">
 </head>
 <body class="home2App">
 <svg class="archiveSvgDefs" width="0" height="0" aria-hidden="true" focusable="false">
@@ -57,13 +57,15 @@
       <button type="button" class="h2Icon" id="homeThemeToggle" aria-label="Тёмная тема">☾</button>
     </nav>
     <div class="h2Hero">
+      <img class="h2CornerCity" src="assets/home2/embankment-1966.jpg" alt="" aria-hidden="true">
       <div class="h2Paper h2Letter" aria-hidden="true"><p>Дорогие друзья…</p><p>Наш город. Наша школа.<br>Наши люди.</p><p>Как быстро летят годы,<br>как долго живут<br>наши воспоминания…</p></div>
       <div class="h2Paper h2BackSheet" aria-hidden="true"></div>
       <div class="h2Paper h2RightSheet" aria-hidden="true">Куйбышев<br>1983</div>
       <button class="h2Photo h2Class" id="h2ClassPhoto" data-home-view="people" type="button" aria-label="10Б · школа №78 · 1982–1983"><span class="h2ImagePlaceholder">10Б · школа №78</span><figcaption>10Б · школа №78 · 1982–1983</figcaption></button>
-      <button class="h2Photo h2River" id="h2RiverPhoto" data-home-view="city" type="button" aria-label="Волга и город"><span class="h2ImagePlaceholder">Волга. Куйбышев.</span></button>
-      <button class="h2Photo h2City" id="h2CityPhoto" data-home-view="city" type="button" aria-label="Школа и город"><span class="h2ImagePlaceholder">Школа и город</span></button>
-      <button class="h2Photo h2Postcard" id="h2Postcard" data-home-view="city" type="button" aria-label="Городская открытка"><span class="h2ImagePlaceholder">Куйбышев · 1983</span></button>
+      <button class="h2Photo h2River" id="h2RiverPhoto" data-home-view="city" type="button" aria-label="Волга у Куйбышева"><img src="assets/home2/volga-1966.jpg" alt="Метеор-19 у набережной Куйбышева, 1966"></button>
+      <button class="h2Photo h2City" id="h2CityPhoto" data-home-view="city" type="button" aria-label="Школа и город"><img src="assets/home2/embankment-1966.jpg" alt="Куйбышев с Волги, 1966"></button>
+      <button class="h2Photo h2Postcard" id="h2Postcard" data-home-view="city" type="button" aria-label="Городская открытка"><img src="assets/home2/river-1960.jpg" alt="Набережная Куйбышева, 1960"></button>
+      <div class="h2Pen" aria-hidden="true"></div>
       <div class="h2Ticket" aria-hidden="true"><span>КУЙБЫШЕВ</span><span>ТРАМВАЙ</span><strong>3 <small style="display:inline;border:0;font-size:.8em">коп.</small></strong><b>551723</b><small>БИЛЕТ</small></div>
       <div class="h2Tape" aria-hidden="true"></div>
       <article class="h2Paper h2Title">
@@ -74,8 +76,8 @@
         <div class="h2Actions"><button type="button" class="h2Button primaryButton" data-home-view="stories">Читать истории&nbsp; →</button><button type="button" class="h2Button" data-home-view="people">Люди нашего класса</button></div>
       </article>
       <div class="h2Paper h2Note" aria-hidden="true"><b>1983</b><p>Всё только<br>начинается…</p></div>
-      <img class="h2Leaves" src="assets/home2/botanical.png?v=20261006-1" alt="" aria-hidden="true">
-      <img class="h2Leaves h2LeavesTop" src="assets/home2/botanical.png?v=20261006-1" alt="" aria-hidden="true">
+      <img class="h2Leaves" src="assets/home2/botanical.png?v=20261006-2" alt="" aria-hidden="true">
+      <img class="h2Leaves h2LeavesTop" src="assets/home2/botanical.png?v=20261006-2" alt="" aria-hidden="true">
     </div>
     <div class="h2Rubrics" aria-label="Главы хроник">
       <button type="button" class="h2Rubric" data-home-view="people"><div class="h2Thumb" id="h2PeopleThumb"><span class="h2ImagePlaceholder">Имена и лица</span></div><div class="h2RubricText"><h2>Люди</h2><p><span id="h2PeopleCount">Наш класс.</span><br>Имена, лица, связи.</p><span class="h2Arrow" aria-hidden="true">→</span></div></button>
@@ -94,8 +96,9 @@
         <button class="h2FreshCard" id="h2FreshFace" type="button" data-home-view="profile"><div class="h2FreshImage"><span class="h2ImagePlaceholder">?</span></div><div><h3>Неопознанное лицо</h3><p>Нужна помощь.<br>Кто это на фото?</p><small>После входа</small></div><span class="h2Arrow" aria-hidden="true">→</span></button>
       </div>
     </section>
-    <footer class="h2Final" id="h2Final"><blockquote>«Куйбышев — это не просто город.<br>Это фон, на котором мы стали собой.»<cite>— Из наших воспоминаний</cite></blockquote></footer>
-    <small class="h2Version">Home 2.0 · 20261006-1</small>
+    <footer class="h2Final" id="h2Final"><img class="h2Panorama" src="assets/home2/city-panorama-2008.jpg" alt="Самара с Волги, атмосферный снимок 2008 года"><div class="h2FooterPhoto" aria-hidden="true"><img src="assets/home2/river-1960.jpg" alt=""></div><div class="h2FooterLetter" aria-hidden="true">Наш город.<br>Наша школа.<br>Наши люди.</div><img class="h2FooterLeaves" src="assets/home2/botanical.png" alt="" aria-hidden="true"><blockquote>«Куйбышев — это не просто город.<br>Это фон, на котором мы стали собой.»<cite>— Из наших воспоминаний</cite></blockquote></footer>
+    <a class="h2Credits" href="home-2-sources.html" target="_blank" rel="noopener">Источники изображений</a>
+    <small class="h2Version">Home 2.0 · 20261006-2</small>
   </div>
 </section>
 
@@ -503,8 +506,8 @@
 <script src="assets/js/city.js?v=20261002-1"></script>
 <script src="assets/js/traffic.js?v=20260930-2"></script>
 <script src="assets/js/questions-admin.js?v=20261002-3"></script>
-<script src="assets/js/home-2-rotation.js?v=20261006-1"></script>
-<script src="assets/js/home-2.js?v=20261006-1"></script>
+<script src="assets/js/home-2-rotation.js?v=20261006-2"></script>
+<script src="assets/js/home-2.js?v=20261006-2"></script>
 </body>
 </html>
 

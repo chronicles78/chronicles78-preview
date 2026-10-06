@@ -78,12 +78,10 @@
         const region=person&&regions.find(r=>r.person_id===person.id&&r.class_photo_id==="CLASS-10A");
         const cityPhoto=byId.get("MEDIA-065");
         const postcard=byId.get("MEDIA-062");
-        // Do not label arbitrary school photos as Volga. A real city/river selection is required.
-        const river=media.find(m=>/волг|набережн|куйбышев|самара/i.test([m.title,m.location_text].join(" "))&&m.category!=="иллюстрация к этюду")||null;
         const editorPhoto=key=>byId.get(cfg.get(key)?.source_id);
         const rubricStory=editorPhoto("rubric.stories")||newCover;
         const rubricCity=postcard||editorPhoto("rubric.city");
-        const paths=[cp?.storage_path,cpA?.storage_path,...[cover,newCover,fresh,cityPhoto,postcard,river,rubricStory,rubricCity].map(m=>m?.current_storage_path)].filter(Boolean);
+        const paths=[cp?.storage_path,cpA?.storage_path,...[cover,newCover,fresh,cityPhoto,postcard,rubricStory,rubricCity].map(m=>m?.current_storage_path)].filter(Boolean);
         const signed=new Map(await Promise.all([...new Set(paths)].map(async path=>[path,await archiveSignedImage(path)])));
         if(!valid())return false;
         const url=m=>m?signed.get(m.current_storage_path):null;
@@ -92,9 +90,8 @@
           if(m)setObject(node,"photo",m.id);
         };
         el("h2ClassPhoto").innerHTML=picture(signed.get(cp?.storage_path),"10Б · школа №78 · 1982–1983")+'<figcaption>10Б · школа №78 · 1982–1983</figcaption>';
-        putPhoto("h2RiverPhoto",river,river?.title||"Волга · кадр для обложки ещё выбирается");
-        putPhoto("h2CityPhoto",cityPhoto,cityPhoto?.title||"Школа №78");
-        putPhoto("h2Postcard",postcard,postcard?.title||"Городская открытка");
+        if(url(cityPhoto))putPhoto("h2CityPhoto",cityPhoto,cityPhoto.title);
+        // Public historical city views form the cover scenery; private archive photos stay authenticated.
         el("h2PeopleThumb").innerHTML=picture(signed.get(cp?.storage_path),"Наш класс");
         el("h2StoriesThumb").innerHTML=picture(url(rubricStory),rubricStory?.title||"Истории класса");
         el("h2CityThumb").innerHTML=picture(url(rubricCity),rubricCity?.title||"Город и время");
@@ -120,7 +117,6 @@
         const crop=region&&cpA&&cropImageHtml(signed.get(cpA.storage_path),cpA,region,"h2Face",4/5,0,0,"","Неопознанный ученик 10А №"+person.number);
         setObject(face,"person",crop?person.id:null,"10А");
         face.innerHTML='<div class="h2FreshImage">'+(crop||placeholder("Лицо этой недели опознано"))+'</div><div><h3>Неопознанное лицо</h3><p>'+(crop?'Ученик №'+esc(person.number)+'. Кто это на фото?':'Спасибо за помощь архиву.')+'</p><small>10А · 1982–1983</small></div><span class="h2Arrow" aria-hidden="true">→</span>';
-        if(river&&url(river)){el("h2Final").querySelector("img")?.remove();el("h2Final").insertAdjacentHTML("afterbegin",picture(url(river),river.title))}
         // No fake quotation: the static project motto is used unless there is an actual original source.
         const title=cfg.get("hero.title");
         if(title){

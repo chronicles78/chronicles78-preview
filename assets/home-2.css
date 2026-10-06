@@ -183,6 +183,20 @@ html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:va
  body.home2App:has(#home.active) main{height:100dvh;display:grid;place-items:center;overflow:hidden!important}
  body.home2App #home.home2.active{height:100dvh;display:grid!important;place-items:center;overflow:hidden!important}
 }
+/* A quiet full-width printed band, with three botanical foreground layers. */
+.h2Week{isolation:isolate;z-index:2}
+.h2Week::before,.h2Week::after{content:"";position:absolute;inset:-.3cqw -6.818182% -.8cqw;pointer-events:none;z-index:-1}
+.h2Week::before{background:url("home2/embankment-1966-color.png") center 65%/cover no-repeat;opacity:.075;filter:sepia(.2)}
+.h2Week::after{z-index:-2;background:linear-gradient(90deg,#d7bf9314,#e0cba023,#d7bf9314);border-top:1px solid #b7986530;border-bottom:1px solid #b7986530}
+.h2Quote{background:transparent}
+.h2Quote::after{display:none}
+.home2Stage>.h2Leaves,.home2Stage>.h2FooterLeaves{position:absolute;pointer-events:none;z-index:35;object-fit:contain;opacity:1;filter:contrast(1.12) saturate(1.22) drop-shadow(.3cqw .4cqw .22cqw #37291265)}
+.home2Stage>.h2Leaves{left:-3%;top:10%;width:22%;height:34%;transform:rotate(-23deg)}
+.home2Stage>.h2LeavesTop{left:auto;right:-3%;top:-5%;width:22%;height:27%;transform:rotate(146deg)}
+.home2Stage>.h2FooterLeaves{left:-4%;bottom:-6%;width:24%;height:24%;transform:rotate(-35deg)}
+html[data-theme="dark"] .h2Week::before{opacity:.1;filter:saturate(.65) brightness(1.2)}
+html[data-theme="dark"] .h2Week::after{background:#ceb88c08;border-color:#d4be9620}
+html[data-theme="dark"] .home2Stage>.h2Leaves,html[data-theme="dark"] .home2Stage>.h2FooterLeaves{filter:contrast(1.12) saturate(1.15) drop-shadow(.3cqw .4cqw .25cqw #0009)}
 @media(max-width:760px){
  body.home2App #home.home2{overflow:visible!important}
  .home2Stage{width:100%;aspect-ratio:auto;overflow:hidden;padding-bottom:0}
@@ -233,4 +247,9 @@ html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:va
  .h2Final{position:relative;top:auto;height:150px}.h2Final blockquote{width:84%;font-size:17px;margin:30px auto 0}.h2Final cite{font-size:12px;margin-top:12px}
  .h2Version{font-size:10px;padding:4px;bottom:4px;right:8px}
  .h2SearchPanel{padding:18px}.h2SearchHead h2{font-size:22px}
+ .h2Week::before,.h2Week::after{inset:-10px -16px}
+ .h2Week::before{background-size:auto 100%;background-position:center}
+ .home2Stage>.h2Leaves{left:-32px;top:250px;width:108px;height:300px}
+ .home2Stage>.h2LeavesTop{left:auto;right:-14px;top:125px;width:108px;height:250px}
+ .home2Stage>.h2FooterLeaves{left:-35px;bottom:-35px;width:150px;height:210px}
 }

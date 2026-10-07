@@ -278,3 +278,9 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
 .h2HomeTv h2{flex-shrink:0}.h2HomeTv .eraTvPanel{min-width:0}.h2HomeTv .eraTvNameplate{padding:.2cqw .8cqw;margin:.1cqw auto 0}
 @media(min-width:761px){#h2HomeTvHost{justify-content:center}.h2HomeTv .eraTvSet{max-width:21cqw}.h2HomeTv .eraTvCabinet{padding:.6cqw;gap:.4cqw;grid-template-columns:minmax(0,1fr) 2.7cqw}.h2HomeTv .eraTvDials{gap:.3cqw}.h2HomeTv .eraTvDials button{width:2.2cqw;height:2.2cqw;font-size:1.3cqw}.h2HomeTv .eraTvDials button:last-child{font-size:1cqw}.h2HomeTv .eraTvCaption{padding:.5cqw 0 0}.h2HomeTv .eraTvCaption span{display:none}.h2HomeTv .eraTvCaption b{font-size:1cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 @media(max-width:760px){.h2HomeTv .eraTvNameplate{padding:3px 12px;margin:2px auto 0}}
+
+/* The TV uses its complete area, with no heading, navigation link or clip caption. */
+.h2HomeTv{padding:.8cqw;gap:0;justify-content:center}
+.h2HomeTv .eraTvCaption{display:none}
+@media(min-width:761px){.h2HomeTv .eraTvSet{max-width:26cqw}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) 3.1cqw;padding:.8cqw;gap:.5cqw}.h2HomeTv .eraTvDials{gap:.4cqw}.h2HomeTv .eraTvDials button{width:2.6cqw;height:2.6cqw;font-size:1.5cqw}.h2HomeTv .eraTvDials button:last-child{font-size:1.2cqw}}
+@media(max-width:760px){.h2HomeTv{padding:16px;gap:0}}

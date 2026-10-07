@@ -2,16 +2,18 @@
 (()=>{
   const stage=document.getElementById("home2Stage");
   if(!stage)return;
+  const tvSet=document.getElementById('eraTvSet'),tvPage=document.createElement('div');
+  tvPage.hidden=true;document.body.append(tvPage);
+  if(tvSet)tvPage.append(tvSet);
   const initial=stage.innerHTML;
-  const tvSet=document.getElementById('eraTvSet'),tvPage=document.getElementById('eraTvSection');
   let tvOwner=null;
   function mountHomeTv(view='home'){
     const host=el('h2HomeTvHost');
     if(tvSet&&(view==='home'?host:tvPage))(view==='home'?host:tvPage).append(tvSet);
-    if(view!=='home'&&view!=='tv')powerOffEraTv();
+    if(view!=='home')powerOffEraTv();
   }
   const previousShowView=showView;
-  window.showView=(view,options)=>{mountHomeTv(view);return previousShowView(view,options)};
+  window.showView=(view,options)=>{if(view==='tv')view='home';mountHomeTv(view);return previousShowView(view,options)};
   let generation=0,pending=null,loadedOwner=null,loadedWeek=null,loadedAt=0;
   let searchCache=null,searchPending=null,searchOwner=null,searchSequence=0,focusBeforeSearch=null;
   const el=id=>document.getElementById(id);

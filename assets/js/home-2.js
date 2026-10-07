@@ -17,10 +17,27 @@
     return '<span class="h2ImagePlaceholder">'+esc(label)+'</span>';
   }
   function picture(url,alt){return url?'<img src="'+esc(url)+'" alt="'+esc(alt)+'" decoding="async">':placeholder(alt)}
+  let weekPhotoObserver;
+  function sizeWeekPhoto(){
+    weekPhotoObserver?.disconnect();
+    const grid=stage.querySelector('.h2WeekGrid'),photo=el('h2WeekPhoto'),img=photo?.querySelector('img');
+    if(!grid)return;
+    const fit=()=>{
+      if(!grid.isConnected)return;
+      if(!img?.naturalWidth||!img.naturalHeight){grid.style.removeProperty('--week-photo-width');return}
+      const ratio=img.naturalWidth/img.naturalHeight;
+      photo.style.setProperty('--week-photo-ratio',String(ratio));
+      const width=Math.min(grid.clientHeight*ratio,grid.clientWidth*.45);
+      grid.style.setProperty('--week-photo-width',width+'px');
+      photo.style.setProperty('--week-photo-height',Math.min(grid.clientHeight,width/ratio)+'px');
+    };
+    if(img){img.addEventListener('load',fit,{once:true});img.addEventListener('error',()=>grid.style.removeProperty('--week-photo-width'),{once:true})}
+    weekPhotoObserver=new ResizeObserver(fit);weekPhotoObserver.observe(grid);fit();
+  }
   function reset(){
     generation++;pending=null;loadedOwner=null;loadedWeek=null;loadedAt=0;
     searchCache=null;searchPending=null;searchOwner=null;searchSequence++;
-    stage.innerHTML=initial;
+    stage.innerHTML=initial;sizeWeekPhoto();
     closeSearch();homeThemeSync();
   }
   function setObject(node,type,id,group){
@@ -91,6 +108,7 @@
         if(url(cityPhoto))putPhoto("h2CityPhoto",cityPhoto,cityPhoto.title);
         // Public historical city views form the cover scenery; private archive photos stay authenticated.
         el("h2WeekPhoto").innerHTML=picture(url(cover),cover?.title||"Архивный лист");
+        sizeWeekPhoto();
         setObject(el("h2WeekPhoto"),"story",week?.id);
         setObject(el("h2WeekRead"),"story",week?.id);
         const summary=week?.data?.editorial_summary||week?.data?.chapter?.subtitle||week?.data?.story_text||"";
@@ -228,5 +246,5 @@
   const refresh=()=>{if(active()&&document.visibilityState==="visible"&&el("home").classList.contains("active"))void loadHome2()};
   document.addEventListener("visibilitychange",refresh);
   setInterval(refresh,60000);
-  homeThemeSync();void loadHome2();
+  sizeWeekPhoto();homeThemeSync();void loadHome2();
 })();

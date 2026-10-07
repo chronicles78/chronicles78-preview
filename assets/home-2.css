@@ -253,3 +253,8 @@ html[data-theme="dark"] .home2Stage>.h2Leaves,html[data-theme="dark"] .home2Stag
  .home2Stage>.h2LeavesTop{left:auto;right:-14px;top:125px;width:108px;height:250px}
  .home2Stage>.h2FooterLeaves{left:-35px;bottom:-35px;width:150px;height:210px}
 }
+
+/* The weekly photo takes only the width required by its original proportions. */
+.h2WeekGrid{grid-template-columns:var(--week-photo-width,24%) minmax(0,1.25fr) minmax(0,1fr)}
+.h2WeekPhoto{min-width:0;width:100%;height:var(--week-photo-height,100%);justify-self:start;align-self:start;background:transparent}
+@media(max-width:760px){.h2WeekGrid{grid-template-columns:1fr}.h2WeekPhoto:has(img){width:auto;max-width:100%;height:auto;max-height:320px;aspect-ratio:var(--week-photo-ratio,auto)}.h2WeekPhoto img{width:auto;max-width:100%;height:auto;max-height:320px;object-fit:contain}.h2WeekPhoto:has(.h2ImagePlaceholder){width:100%;height:200px}}

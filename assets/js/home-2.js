@@ -36,6 +36,7 @@
     else if(type==="city"){await showView("city");await openCityEssay(id)}
     else if(type==="person"){
       if(group)peopleGroup=group;
+      if(el("peopleSearch"))el("peopleSearch").value="";
       selectedPersonId=id;
       document.querySelectorAll("[data-pgroup]").forEach(b=>b.classList.toggle("on",b.dataset.pgroup===peopleGroup));
       await showView("people");await openPersonContext(id);
@@ -44,8 +45,8 @@
   async function rows(query){const result=await query;if(result.error)throw result.error;return result.data||[]}
   function latest(list){return [...list].sort((a,b)=>String(b.updated_at||"").localeCompare(String(a.updated_at||""))||String(a.id).localeCompare(String(b.id)))[0]||null}
   function mediaCover(st,media){
-    if(!st)return null;
-    return media.find(m=>m.id===st.data?.cover_media_id)||[...media].filter(m=>m.linked_story===st.id).sort((a,b)=>String(a.id).localeCompare(String(b.id)))[0]||null;
+    if(!st||st.data?.cover_mode==="none")return null;
+    return media.find(m=>m.id===st.data?.cover_media_id)||media.find(m=>(st.data?.media_ids||[]).includes(m.id))||[...media].filter(m=>m.linked_story===st.id).sort((a,b)=>String(a.id).localeCompare(String(b.id)))[0]||null;
   }
   async function loadHome2(force=false){
     if(!active()){reset();return true}
@@ -58,7 +59,7 @@
       try{
         const [photos,stories,allMedia,people,regions,config]=await Promise.all([
           rows(sb.from("class_photos").select("id,title,group_name,storage_path,source_width,source_height")),
-          rows(sb.from("archive_stories").select("id,title,period,kind,data,updated_at").order("id")),
+          rows(sb.from("archive_stories").select("id,title,period,kind,data,updated_at,full_chapter").order("id")),
           rows(sb.from("archive_media").select("id,title,media_type,linked_story,current_storage_path,updated_at,data,approx_date_text,location_text,category").order("updated_at",{ascending:false})),
           rows(sb.from("archive_people").select("id,number,group_name,canonical_name,identification_status")),
           rows(sb.from("class_photo_regions").select("class_photo_id,person_id,x,y,w,h")),
@@ -69,7 +70,7 @@
         const media=allMedia.filter(m=>m.media_type!=="video"&&m.current_storage_path);
         const byId=new Map(media.map(m=>[m.id,m]));
         const cp=photos.find(p=>p.id==="CLASS-10B"),cpA=photos.find(p=>p.id==="CLASS-10A");
-        const ready=stories.filter(s=>s.data?.catalog_status==="готово к чтению");
+        const ready=stories.filter(s=>storyState(s)==="готовая история");
         // A withdrawn scheduled story is omitted, never replaced midweek.
         const week=ready.find(s=>s.id===rotation.storyId)||null;
         const newest=latest(ready),fresh=latest(media);
@@ -200,7 +201,16 @@
     if(button.dataset.homeObject){
       closeSearch();try{await openObject(button.dataset.homeObject,button.dataset.homeId,button.dataset.homeGroup)}catch(error){console.warn("Home destination failed",error)}return;
     }
-    if(button.dataset.homeView)await showView(button.dataset.homeView);
+    if(button.dataset.homeView){
+      const view=button.dataset.homeView;
+      if(!active()&&!["home","profile","tv"].includes(view)){await showView("profile");return}
+      if(view==="people"&&button.dataset.homeGroup){
+        peopleGroup=button.dataset.homeGroup;selectedPersonId=null;
+        if(el("peopleSearch"))el("peopleSearch").value="";
+        document.querySelectorAll("[data-pgroup]").forEach(b=>b.classList.toggle("on",b.dataset.pgroup===peopleGroup));
+      }
+      await showView(view);
+    }
   });
   document.addEventListener("keydown",e=>{
     const shade=el("h2Search");if(!shade||shade.hidden)return;

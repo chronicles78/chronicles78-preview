@@ -265,7 +265,7 @@
  async function homeWidgets(){
    const uid=owner(),epoch=generation;if(!uid)return;
    try{
-     const [media,people]=await Promise.all([sb.from('archive_media').select('id,title,approx_date_text,data,current_storage_path').eq('media_type','photo'),sb.from('archive_people').select('id,canonical_name,identification_status,data')]);
+     const [media,people]=await Promise.all([sb.from('archive_media').select('id,title,approx_date_text,data,current_storage_path').eq('media_type','photo'),sb.from('archive_people').select('id,canonical_name,identification_status,data,group_name')]);
      check(media);check(people);if(!current(uid,epoch))return;
      const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Samara',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),date=Object.fromEntries(parts.map(p=>[p.type,p.value]));
      const today=date.month+'-'+date.day;
@@ -273,7 +273,7 @@
      const url=anniversary?.current_storage_path?await archiveSignedImage(anniversary.current_storage_path):null;if(!current(uid,epoch))return;
      node('communityDay').innerHTML=anniversary?(url?'<img src="'+esc(url)+'" alt="'+esc(anniversary.title)+'">':'')+'<p><b>'+esc(Number(date.year)-Number(anniversary.data.event_date.slice(0,4)))+' лет назад</b> · '+esc(anniversary.title)+'</p><button class="secondary" type="button" data-community-photo="'+esc(anniversary.id)+'">Открыть снимок</button>':'На '+date.day+'.'+date.month+' пока нет снимка с подтверждённой датой. При описании фото редактор может указать точный день.';
      const wanted=(people.data||[]).filter(p=>p.data?.contact_status==='missing'||p.identification_status!=='подтверждено').slice(0,5);
-     node('communityWanted').innerHTML=wanted.length?wanted.map(p=>'<button type="button" class="secondary" data-community-person="'+esc(p.id)+'">'+esc(p.canonical_name||p.id)+(p.data?.contact_status==='missing'?' · ищем контакт':' · уточняем имя')+'</button>').join(''):'Пока нет открытых поисков. Потерянный контакт можно отметить в редакторе карточки человека.';
+     node('communityWanted').innerHTML=wanted.length?wanted.map(p=>'<button type="button" class="secondary" data-community-person="'+esc(p.id)+'" data-community-group="'+esc(p.group_name||'')+'">'+esc(p.canonical_name||p.id)+(p.data?.contact_status==='missing'?' · ищем контакт':' · уточняем имя')+'</button>').join(''):'Пока нет открытых поисков. Потерянный контакт можно отметить в редакторе карточки человека.';
    }catch(e){if(current(uid,epoch)){node('communityDay').textContent='Не удалось получить архивные даты.';node('communityWanted').textContent='Не удалось загрузить список поисков.'}}
  }
  async function openRestoration(file){
@@ -304,9 +304,9 @@
      else if(b.dataset.communityStory){await openStory(b.dataset.communityStory)}
      else if(b.dataset.communityTopicEdit){await editTopics(b.dataset.communityTopicEdit)}
      else if(b.dataset.communityYear){timeline=b.dataset.communityYear;mediaFocus=null;renderPhotosSection()}
-     else if(b.dataset.communityView){await showView(b.dataset.communityView)}
+     else if(b.dataset.communityView){await showView(!active()&&!['home','profile','tv'].includes(b.dataset.communityView)?'profile':b.dataset.communityView)}
      else if(b.dataset.communityPhoto){await showView('photos');await openArchivePhoto(b.dataset.communityPhoto)}
-     else if(b.dataset.communityPerson){await showView('people');openPersonContext(b.dataset.communityPerson)}
+     else if(b.dataset.communityPerson){if(!active()){await showView('profile');return}if(b.dataset.communityGroup)peopleGroup=b.dataset.communityGroup;selectedPersonId=b.dataset.communityPerson;if(node('peopleSearch'))node('peopleSearch').value='';document.querySelectorAll('[data-pgroup]').forEach(x=>x.classList.toggle('on',x.dataset.pgroup===peopleGroup));await showView('people');openPersonContext(b.dataset.communityPerson)}
      else if(b.id==='communityEditMemory'){await editMemory()}
    }catch(ex){alert(err(ex))}
  });
@@ -337,5 +337,5 @@
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets();void heartbeat()}
- window.CommunityPreview={version:'20261006-7',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261007-9',storyTopics,yearsFor,loadLibrary};
 })();

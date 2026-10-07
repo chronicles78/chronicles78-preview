@@ -3,6 +3,15 @@
   const stage=document.getElementById("home2Stage");
   if(!stage)return;
   const initial=stage.innerHTML;
+  const tvSet=document.getElementById('eraTvSet'),tvPage=document.getElementById('eraTvSection');
+  let tvOwner=null;
+  function mountHomeTv(view='home'){
+    const host=el('h2HomeTvHost');
+    if(tvSet&&(view==='home'?host:tvPage))(view==='home'?host:tvPage).append(tvSet);
+    if(view!=='home'&&view!=='tv')powerOffEraTv();
+  }
+  const previousShowView=showView;
+  window.showView=(view,options)=>{mountHomeTv(view);return previousShowView(view,options)};
   let generation=0,pending=null,loadedOwner=null,loadedWeek=null,loadedAt=0;
   let searchCache=null,searchPending=null,searchOwner=null,searchSequence=0,focusBeforeSearch=null;
   const el=id=>document.getElementById(id);
@@ -37,7 +46,8 @@
   function reset(){
     generation++;pending=null;loadedOwner=null;loadedWeek=null;loadedAt=0;
     searchCache=null;searchPending=null;searchOwner=null;searchSequence++;
-    stage.innerHTML=initial;sizeWeekPhoto();
+    if(tvSet&&tvPage)tvPage.append(tvSet);
+    stage.innerHTML=initial;sizeWeekPhoto();mountHomeTv();tvOwner=null;powerOffEraTv();
     closeSearch();homeThemeSync();
   }
   function setObject(node,type,id,group){
@@ -67,6 +77,8 @@
   }
   async function loadHome2(force=false){
     if(!active()){reset();return true}
+    mountHomeTv();
+    if(tvOwner!==owner()){tvOwner=owner();void initHomeEraTv()}
     const who=owner(),rotation=ChroniclesHome2Rotation.select();
     if(pending?.owner===who)return pending.promise;
     if(!force&&loadedOwner===who&&loadedWeek===rotation.week&&Date.now()-loadedAt<60000)return true;
@@ -115,9 +127,6 @@
         el("h2WeekTitle").textContent=week?.title||"История недели готовится";
         el("h2WeekSummary").textContent=week?excerpt(summary,240):"Выбранная история временно недоступна. Другие готовые истории можно найти в оглавлении.";
         el("h2WeekRead").textContent="Читать историю →";
-        const source=week?.data?.original_sources?.find(s=>s.text);
-        el("h2WeekQuote").textContent=source?excerpt(source.text,170):"Книга, которую можно читать. Память, по которой можно ходить.";
-        el("h2WeekSource").textContent=source?(source.author||source.author_name||week.period||"Из наших воспоминаний"):"Хроники-78";
         function card(id,heading,item,imgUrl,kind,description){
           const node=el(id);setObject(node,kind,item?.id);
           node.innerHTML='<div class="h2FreshImage">'+picture(imgUrl,item?.title||heading)+'</div><div><h3>'+esc(heading)+'</h3><p>'+esc(description||item?.title||"Материал пока не добавлен")+'</p><small>'+esc(item?.approx_date_text||item?.period||"")+'</small></div><span class="h2Arrow" aria-hidden="true">→</span>';
@@ -230,6 +239,9 @@
       await showView(view);
     }
   });
+  document.addEventListener('click',e=>{
+    if(!active()&&e.target.closest?.('#h2HomeTvHost button')){e.preventDefault();e.stopImmediatePropagation();void showView('profile')}
+  },true);
   document.addEventListener("keydown",e=>{
     const shade=el("h2Search");if(!shade||shade.hidden)return;
     if(e.key==="Escape"){e.preventDefault();closeSearch();return}
@@ -246,5 +258,5 @@
   const refresh=()=>{if(active()&&document.visibilityState==="visible"&&el("home").classList.contains("active"))void loadHome2()};
   document.addEventListener("visibilitychange",refresh);
   setInterval(refresh,60000);
-  sizeWeekPhoto();homeThemeSync();void loadHome2();
+  mountHomeTv();sizeWeekPhoto();homeThemeSync();void loadHome2();
 })();

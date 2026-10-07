@@ -258,3 +258,23 @@ html[data-theme="dark"] .home2Stage>.h2Leaves,html[data-theme="dark"] .home2Stag
 .h2WeekGrid{grid-template-columns:var(--week-photo-width,24%) minmax(0,1.25fr) minmax(0,1fr)}
 .h2WeekPhoto{min-width:0;width:100%;height:var(--week-photo-height,100%);justify-self:start;align-self:start;background:transparent}
 @media(max-width:760px){.h2WeekGrid{grid-template-columns:1fr}.h2WeekPhoto:has(img){width:auto;max-width:100%;height:auto;max-height:320px;aspect-ratio:var(--week-photo-ratio,auto)}.h2WeekPhoto img{width:auto;max-width:100%;height:auto;max-height:320px;object-fit:contain}.h2WeekPhoto:has(.h2ImagePlaceholder){width:100%;height:200px}}
+
+/* Compact activity, taller new materials, and the working TV in the right column. */
+.h2HomeTv{position:absolute;top:43.6%;right:6%;width:28.33%;height:28.7%;padding:.7cqw 1cqw;border:1px solid #b79c7155;background:linear-gradient(#fffcf4c9,#f8efdfce);z-index:4;display:flex;flex-direction:column;gap:.6cqw;overflow:hidden}
+.h2HomeTv h2{font:700 1.7cqw/1.1 var(--font-editorial);margin:0}
+#h2HomeTvHost{flex:1;min-height:0;display:flex;align-items:center}
+.h2HomeTv .eraTvSet{width:100%;max-width:none}
+.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) 3.5cqw;gap:.6cqw;padding:1cqw .8cqw;border-radius:1.5cqw;box-shadow:inset 0 0 0 2px #ffe8b81c,0 .7cqw 1cqw #2c1f1430}
+.h2HomeTv .eraTvCabinet:before,.h2HomeTv .eraTvCabinet:after{width:2.4cqw;height:.8cqw;bottom:-.5cqw}.h2HomeTv .eraTvCabinet:before{left:3cqw}.h2HomeTv .eraTvCabinet:after{right:3cqw}
+.h2HomeTv .eraTvScreenFrame{padding:.45cqw;border-radius:1.5cqw}.h2HomeTv .eraTvPanel{padding:.2cqw 0}.h2HomeTv .eraTvDials{gap:.45cqw}
+.h2HomeTv .eraTvDials button{width:2.8cqw;height:2.8cqw;font-size:1.5cqw;border-width:2px!important}.h2HomeTv .eraTvDials button:last-child{font-size:1.2cqw}
+.h2HomeTv .eraTvStart{width:12cqw;height:5cqw}.h2HomeTv .eraTvStart span{font-size:1.8cqw}.h2HomeTv .eraTvStart b{font-size:.9cqw}.h2HomeTv .eraTvEmpty{font-size:.9cqw;padding:.7cqw}
+.h2HomeTv .eraTvNameplate{font-size:.65cqw}.h2HomeTv .eraTvCaption{padding:.8cqw 0 0}.h2HomeTv .eraTvCaption b{font-size:1.1cqw}.h2HomeTv .eraTvCaption span{font-size:.8cqw;margin-top:.2cqw;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.h2HomeTv .h2TvOpen{font:1cqw/1.2 var(--font-editorial);align-self:start;border:0;background:transparent;padding:0;flex-shrink:0}
+@media(min-width:761px){.h2Week{top:53.5%;right:35.83%;height:18.8%}.h2WeekGrid{grid-template-columns:var(--week-photo-width,24%) minmax(0,1fr)}.h2Week::before,.h2Week::after{left:-10.32%;right:-61.6%}.h2Fresh{top:73.7%;height:15.7%}.h2Fresh .h2SectionHead{height:17%}.h2FreshGrid{height:77%}.h2FreshCard h3{font-size:1.4cqw}.h2FreshCard p{font-size:1cqw;-webkit-line-clamp:3}.h2FreshCard small{font-size:.8cqw}}
+html[data-theme=dark] .h2HomeTv{background:#34352cdd}
+@media(max-width:760px){.h2HomeTv{position:relative;top:auto;right:auto;width:auto;height:auto;margin:20px 16px;padding:16px;gap:16px}.h2HomeTv h2{font-size:23px}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) 48px;gap:10px;padding:14px 12px;border-radius:18px}.h2HomeTv .eraTvScreenFrame{padding:7px;border-radius:16px}.h2HomeTv .eraTvDials{gap:9px}.h2HomeTv .eraTvDials button{width:38px;height:38px;font-size:22px}.h2HomeTv .eraTvDials button:last-child{font-size:17px}.h2HomeTv .eraTvStart{width:145px;height:65px}.h2HomeTv .eraTvStart span{font-size:24px}.h2HomeTv .eraTvStart b{font-size:11px}.h2HomeTv .eraTvEmpty{font-size:12px;padding:12px}.h2HomeTv .eraTvCaption{padding:14px 0 0}.h2HomeTv .eraTvCaption b{font-size:17px}.h2HomeTv .eraTvCaption span{font-size:12px}.h2HomeTv .h2TvOpen{font-size:15px}.h2HomeTv .eraTvNameplate{font-size:9px}.h2FreshCard{height:150px}}
+
+.h2HomeTv h2{flex-shrink:0}.h2HomeTv .eraTvPanel{min-width:0}.h2HomeTv .eraTvNameplate{padding:.2cqw .8cqw;margin:.1cqw auto 0}
+@media(min-width:761px){#h2HomeTvHost{justify-content:center}.h2HomeTv .eraTvSet{max-width:21cqw}.h2HomeTv .eraTvCabinet{padding:.6cqw;gap:.4cqw;grid-template-columns:minmax(0,1fr) 2.7cqw}.h2HomeTv .eraTvDials{gap:.3cqw}.h2HomeTv .eraTvDials button{width:2.2cqw;height:2.2cqw;font-size:1.3cqw}.h2HomeTv .eraTvDials button:last-child{font-size:1cqw}.h2HomeTv .eraTvCaption{padding:.5cqw 0 0}.h2HomeTv .eraTvCaption span{display:none}.h2HomeTv .eraTvCaption b{font-size:1cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media(max-width:760px){.h2HomeTv .eraTvNameplate{padding:3px 12px;margin:2px auto 0}}

@@ -265,16 +265,14 @@
  async function homeWidgets(){
    const uid=owner(),epoch=generation;if(!uid)return;
    try{
-     const [media,people]=await Promise.all([sb.from('archive_media').select('id,title,approx_date_text,data,current_storage_path').eq('media_type','photo'),sb.from('archive_people').select('id,canonical_name,identification_status,data,group_name')]);
-     check(media);check(people);if(!current(uid,epoch))return;
+     const media=await sb.from('archive_media').select('id,title,approx_date_text,data,current_storage_path').eq('media_type','photo');
+     check(media);if(!current(uid,epoch))return;
      const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Samara',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),date=Object.fromEntries(parts.map(p=>[p.type,p.value]));
      const today=date.month+'-'+date.day;
      const anniversary=(media.data||[]).find(m=>/^\d{4}-\d{2}-\d{2}$/.test(m.data?.event_date||'')&&m.data.event_date.slice(5)===today&&Number(m.data.event_date.slice(0,4))<Number(date.year));
      const url=anniversary?.current_storage_path?await archiveSignedImage(anniversary.current_storage_path):null;if(!current(uid,epoch))return;
      node('communityDay').innerHTML=anniversary?(url?'<img src="'+esc(url)+'" alt="'+esc(anniversary.title)+'">':'')+'<p><b>'+esc(Number(date.year)-Number(anniversary.data.event_date.slice(0,4)))+' лет назад</b> · '+esc(anniversary.title)+'</p><button class="secondary" type="button" data-community-photo="'+esc(anniversary.id)+'">Открыть снимок</button>':'На '+date.day+'.'+date.month+' пока нет снимка с подтверждённой датой. При описании фото редактор может указать точный день.';
-     const wanted=(people.data||[]).filter(p=>p.data?.contact_status==='missing'||p.identification_status!=='подтверждено').slice(0,5);
-     node('communityWanted').innerHTML=wanted.length?wanted.map(p=>'<button type="button" class="secondary" data-community-person="'+esc(p.id)+'" data-community-group="'+esc(p.group_name||'')+'">'+esc(p.canonical_name||p.id)+(p.data?.contact_status==='missing'?' · ищем контакт':' · уточняем имя')+'</button>').join(''):'Пока нет открытых поисков. Потерянный контакт можно отметить в редакторе карточки человека.';
-   }catch(e){if(current(uid,epoch)){node('communityDay').textContent='Не удалось получить архивные даты.';node('communityWanted').textContent='Не удалось загрузить список поисков.'}}
+   }catch(e){if(current(uid,epoch)){node('communityDay').textContent='Не удалось получить архивные даты.'}}
  }
  async function openRestoration(file){
    if(!active())return;const uid=owner(),epoch=generation;
@@ -331,11 +329,11 @@
  };
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void heartbeat()});
  sb.auth.onAuthStateChange(event=>{
-   if(event==='SIGNED_OUT'){generation++;librarySeq++;memory=null;libraryItems=[];libraryImages?.disconnect();node('communityProfile').hidden=true;node('communityProfilePreview').innerHTML='';node('storiesList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('photosList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('communityTimeline').innerHTML='';node('communityLibraryItems').innerHTML='';notice('communityLibraryStatus','Войдите, чтобы открыть материалы диалога.');node('communityOnline').textContent='Войдите, чтобы увидеть одноклассников онлайн.';node('communityDay').textContent='События и фотографии из закрытого архива.';node('communityWanted').textContent='Помогите восстановить имена и потерянные связи.';node('storyDetailBody').querySelector('#communityStoryMedia')?.remove();closePhotoModal()}
+   if(event==='SIGNED_OUT'){generation++;librarySeq++;memory=null;libraryItems=[];libraryImages?.disconnect();node('communityProfile').hidden=true;node('communityProfilePreview').innerHTML='';node('storiesList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('photosList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('communityTimeline').innerHTML='';node('communityLibraryItems').innerHTML='';notice('communityLibraryStatus','Войдите, чтобы открыть материалы диалога.');node('communityOnline').textContent='Войдите, чтобы увидеть одноклассников онлайн.';node('communityDay').textContent='События и фотографии из закрытого архива.';node('storyDetailBody').querySelector('#communityStoryMedia')?.remove();closePhotoModal()}
  });
  setup();
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets();void heartbeat()}
- window.CommunityPreview={version:'20261007-9',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261007-11',storyTopics,yearsFor,loadLibrary};
 })();

@@ -711,12 +711,12 @@ function showView(v,{track=true}={}){
  return Promise.resolve(ready).then(()=>true).catch(e=>{console.warn("view load failed",v,e);return false});
 }
 document.querySelectorAll(".nav[data-view]").forEach(b=>b.onclick=()=>{if(b.dataset.view==="chat")enableBrowserChatNotifications();showView(b.dataset.view)});
-$("mobileMoreBtn").onclick=()=>{
+if($("mobileMoreBtn"))$("mobileMoreBtn").onclick=()=>{
  const isOpen=$("moreNavMenu").classList.contains("open");
  isOpen?closeMoreNav():openMoreNav();
 };
-$("moreNavClose").onclick=closeMoreNav;
-$("moreNavShade").onclick=closeMoreNav;
+if($("moreNavClose"))$("moreNavClose").onclick=closeMoreNav;
+if($("moreNavShade"))$("moreNavShade").onclick=closeMoreNav;
 document.querySelectorAll("[data-more-view]").forEach(b=>b.onclick=()=>showView(b.dataset.moreView));
 $("contextBackBtn").onclick=async()=>{
  if($("storyDetail")?.classList.contains("open")){

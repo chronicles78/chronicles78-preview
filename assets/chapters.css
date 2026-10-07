@@ -1,0 +1,37 @@
+/* Archive chapters continue the approved cover: warm paper, blue ink, gold rules. */
+body.home2App{--bg:#ede1c9;--paper:#fff9ed;--paper-2:#fffdf6;--ink:#12374f;--muted:#526270;--line:#b79c7155;--soft:#efe2c9;--soft-2:#f7efdf;--mine:#e3e9df;--image-bg:#ece0c7;--header:#fff9edf5;--nav-bg:#fff9edf5;--input:#fffdf7;--primary-bg:#103b52;--primary-ink:#fffaf0;--selected-bg:#143e55;--selected-ink:#fffaf0;--focus:#ac762e;--card:#fffdf6;--text:#12374f}
+html[data-theme=dark] body.home2App{--bg:#171815;--paper:#292a23;--paper-2:#32342c;--ink:#f0e4cb;--muted:#c0b69f;--line:#d1b98c44;--soft:#37392f;--soft-2:#303229;--mine:#354139;--image-bg:#20241e;--header:#292a23f5;--nav-bg:#292a23f5;--input:#22271f;--primary-bg:#dcc397;--primary-ink:#18333e;--selected-bg:#dcc397;--selected-ink:#18333e;--focus:#e2bb77;--card:#292a23;--text:#f0e4cb}
+body.home2App:has(.view.active:not(#home)){background:linear-gradient(#fff9ebc9,#ede1c9dc),url('home2/paper-texture.png') center/650px auto;background-attachment:fixed;color:var(--ink)}
+body.home2App:has(.view.active:not(#home))::before,body.home2App:has(.view.active:not(#home))::after{content:'';position:fixed;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:contain}
+body.home2App:has(.view.active:not(#home))::before{left:-65px;top:95px;width:250px;height:240px;background-image:url('home2/opera-postcard.jpg');opacity:.12;transform:rotate(-8deg)}
+body.home2App:has(.view.active:not(#home))::after{right:-65px;bottom:80px;width:220px;height:300px;background-image:url('home2/botanical.png');opacity:.24;transform:rotate(12deg)}
+body.home2App:has(.view.active:not(#home)) main{position:relative;z-index:1;padding:22px 30px 30px}
+body.home2App main>.view:not(#home){max-width:1120px}
+body.home2App main>#profile{max-width:900px}
+body.home2App .top{background:var(--header);border-bottom:1px solid var(--line);box-shadow:0 2px 12px #4c35230b}
+body.home2App .top .brand{color:var(--ink)}
+body.home2App .desktopTopNav .topNavLink{font-family:Georgia,'Times New Roman',serif}
+body.home2App .view:not(#home) .memoryEyebrow{color:#a36c2d;letter-spacing:.15em}
+body.home2App .view:not(#home) :is(.archiveList>h2,.archivePageHead h2,.profilePage h2,.profilePaneIntro h2){font-family:Georgia,'Times New Roman',serif;color:var(--ink)}
+body.home2App .view:not(#home) :is(.archivePageHead,.profilePaneIntro){border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
+body.home2App .view:not(#home) :is(.card,.personCard,.communityStoryCard,.cityCard,.photoTile,.communityPanel,.profileIdentityCard){background:var(--paper);border:1px solid var(--line);border-radius:5px;box-shadow:0 3px 10px #3c281d0b}
+body.home2App .view:not(#home) :is(.personCard h3,.cityCard h3,.photoTile h3,.communityPanel h3){font-family:Georgia,'Times New Roman',serif;color:var(--ink)}
+body.home2App .view:not(#home) :is(input,textarea,select){background:var(--input);border-color:var(--line);border-radius:5px}
+body.home2App .view:not(#home) :is(.primary,.primaryBtn){background:var(--primary-bg);color:var(--primary-ink);border-radius:4px}
+body.home2App .communityStorySidebar #storyToc{background:var(--paper);border-radius:4px;box-shadow:0 3px 10px #3c281d0b}
+body.home2App .communityStoryCard blockquote{border-left-color:#b89055}
+body.home2App #chat .rooms,body.home2App .communityLibrary{background:var(--paper)}
+body.home2App #chat .messages{background:linear-gradient(#fff9edec,#fff9edec),url('home2/paper-grain.svg')}
+body.home2App .bottom{background:var(--nav-bg)}
+body.home2App .bottomIn{max-width:1120px;grid-template-columns:repeat(8,minmax(0,1fr))}
+body.home2App .bottom .mobileSecondary{display:flex!important}
+html[data-theme=dark] body.home2App:has(.view.active:not(#home)){background:linear-gradient(#171815e8,#292a23ed),url('home2/paper-texture.png') center/650px auto}
+html[data-theme=dark] body.home2App:has(.view.active:not(#home))::before{opacity:.05}
+html[data-theme=dark] body.home2App:has(.view.active:not(#home))::after{opacity:.13}
+html[data-theme=dark] body.home2App #chat .messages{background:var(--paper-2)}
+html[data-theme=dark] body.home2App .view:not(#home) .memoryEyebrow{color:#d1ad79}
+@media(max-width:760px){body.home2App:has(.view.active:not(#home))::before,body.home2App:has(.view.active:not(#home))::after{display:none}body.home2App:has(.view.active:not(#home)) main{padding:12px 0 20px}body.home2App .bottomIn{display:flex;overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}body.home2App .bottomIn .nav{display:flex!important;flex:0 0 70px;min-width:70px;font-size:11px}body.home2App .view:not(#home) .archiveList{padding-inline:16px}}
+body.home2App main>.view:not(#home){max-width:1120px!important}
+body.home2App main>#profile{max-width:900px!important}
+body.home2App .desktopTopNav .topNavLink.active{color:var(--primary-bg);border-color:#b89055}
+@media(max-width:760px){body.home2App .bottomIn{display:flex!important;flex-wrap:nowrap!important;grid-template-columns:none!important;overflow-x:auto!important;gap:0;width:100%;height:var(--nav);max-width:none}body.home2App .bottom{height:calc(var(--nav) + env(safe-area-inset-bottom))!important}body.home2App .bottomIn .nav{flex:0 0 70px!important;min-width:70px!important}}

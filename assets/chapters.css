@@ -35,3 +35,49 @@ body.home2App main>.view:not(#home){max-width:1120px!important}
 body.home2App main>#profile{max-width:900px!important}
 body.home2App .desktopTopNav .topNavLink.active{color:var(--primary-bg);border-color:#b89055}
 @media(max-width:760px){body.home2App .bottomIn{display:flex!important;flex-wrap:nowrap!important;grid-template-columns:none!important;overflow-x:auto!important;gap:0;width:100%;height:var(--nav);max-width:none}body.home2App .bottom{height:calc(var(--nav) + env(safe-area-inset-bottom))!important}body.home2App .bottomIn .nav{flex:0 0 70px!important;min-width:70px!important}}
+/* Shared type scale: editorial titles and readable interface text. Home keeps its cover scale. */
+body.home2App .view:not(#home){font-family:'Segoe UI',Arial,sans-serif;font-size:16px;line-height:1.5}
+body.home2App .view:not(#home) :is(h1,h2,h3){font-family:Georgia,'Times New Roman',serif;line-height:1.2;letter-spacing:0}
+body.home2App .view:not(#home) :is(.peopleArchiveIntro,.storyArchiveIntro,.photoArchiveIntro,.cityArchiveIntro) h2{font:700 44px/1.12 Georgia,'Times New Roman',serif!important;letter-spacing:-.015em;margin:8px 0 14px}
+body.home2App .view:not(#home) :is(.peopleArchiveIntro,.storyArchiveIntro,.photoArchiveIntro,.cityArchiveIntro) p{font:400 16px/1.6 'Segoe UI',Arial,sans-serif!important;max-width:850px}
+body.home2App .view:not(#home) .memoryEyebrow{font:600 11px/1.4 'Segoe UI',Arial,sans-serif;letter-spacing:.12em}
+body.home2App .view:not(#home) h2{font-size:28px}
+body.home2App .view:not(#home) h3{font-size:22px}
+body.home2App .view:not(#home) :is(input,select,textarea){font:400 16px/1.45 'Segoe UI',Arial,sans-serif!important}
+body.home2App .view:not(#home) :is(.secondary,.primary,.mini,.filterRail button,.communityTabs button,.communityTimeline button,.photoEditorBar button,.communityStorySidebar button){font:500 14px/1.35 'Segoe UI',Arial,sans-serif!important;letter-spacing:0}
+body.home2App .view:not(#home) :is(.badge,.small,.communityMuted,.photoArchiveStats,.storyArchiveStats,.cityArchiveStats,.photoTileMeta,.photoTileEyebrow,.personAlbumSub,.profileIdentityMeta){font-family:'Segoe UI',Arial,sans-serif!important;font-size:13px!important;line-height:1.45!important;letter-spacing:0}
+body.home2App #photos .photoAlbumHead b{font:700 26px/1.2 Georgia,'Times New Roman',serif!important}
+body.home2App #photos .photoAlbumHead :is(small,span){font:400 14px/1.45 'Segoe UI',Arial,sans-serif!important;letter-spacing:0}
+body.home2App #photos .photoAlbumHead small{font-weight:600!important;font-size:11px!important;letter-spacing:.1em}
+body.home2App #photos .photoAlbumChooser button span{font:600 18px/1.3 Georgia,'Times New Roman',serif!important}
+body.home2App #photos .photoAlbumChooser button :is(b,small){font:500 12px/1.4 'Segoe UI',Arial,sans-serif!important;letter-spacing:0}
+body.home2App #photos .photoTileBody h3{font:700 18px/1.3 Georgia,'Times New Roman',serif!important;margin:6px 0 10px;overflow-wrap:anywhere}
+body.home2App #photos :is(.photoTileDesc,.photoTilePeople){font:400 14px/1.5 'Segoe UI',Arial,sans-serif!important}
+body.home2App #photos .photoTileEyebrow{font-size:12px!important;font-weight:400!important}
+body.home2App #people .personMeta h3{font:700 17px/1.3 Georgia,'Times New Roman',serif!important}
+body.home2App #people .personTech{font:400 12px/1.4 'Segoe UI',Arial,sans-serif!important}
+body.home2App #people .personAlbumSub{font-size:13px!important}
+body.home2App #stories .communityStoryCard h3{font:700 27px/1.2 Georgia,'Times New Roman',serif;margin:8px 0 12px}
+body.home2App #stories .communityStoryCard blockquote{font:italic 18px/1.6 Georgia,'Times New Roman',serif}
+body.home2App #stories .communityStoryAuthor{font:400 14px/1.4 'Segoe UI',Arial,sans-serif}
+body.home2App .storyDetail .storyHero h2{font:700 36px/1.15 Georgia,'Times New Roman',serif!important}
+body.home2App .storyDetail :is(.prose,.storyIntro){font:400 18px/1.65 Georgia,'Times New Roman',serif}
+body.home2App #city .cityCard h3{font:700 24px/1.25 Georgia,'Times New Roman',serif!important}
+body.home2App #profile h2{font:700 32px/1.2 Georgia,'Times New Roman',serif!important}
+body.home2App #profile :is(label,.profilePaneIntro p){font:400 15px/1.5 'Segoe UI',Arial,sans-serif}
+body.home2App #chat :is(.bubble,#composer){font:400 16px/1.5 'Segoe UI',Arial,sans-serif!important}
+body.home2App #chat .communityLibrary h3{font:700 23px/1.2 Georgia,'Times New Roman',serif}
+body.home2App #chat .communityLibraryItem{font:400 14px/1.45 'Segoe UI',Arial,sans-serif}
+body.home2App #chat .communityLibraryItem small{font:400 12px/1.4 'Segoe UI',Arial,sans-serif}
+body.home2App .modalPanel :is(h2,h3){font-family:Georgia,'Times New Roman',serif;line-height:1.25}
+body.home2App .modalPanel :is(p,label,input,textarea,select){font-family:'Segoe UI',Arial,sans-serif;line-height:1.5}
+@media(max-width:760px){body.home2App .view:not(#home) :is(.peopleArchiveIntro,.storyArchiveIntro,.photoArchiveIntro,.cityArchiveIntro) h2{font-size:32px!important}body.home2App .view:not(#home) :is(.peopleArchiveIntro,.storyArchiveIntro,.photoArchiveIntro,.cityArchiveIntro) p{font-size:15px!important}body.home2App #photos .photoAlbumHead b{font-size:23px!important}body.home2App #stories .communityStoryCard h3{font-size:24px}body.home2App #city .cityCard h3{font-size:22px!important}body.home2App #profile h2{font-size:28px!important}body.home2App .storyDetail .storyHero h2{font-size:28px!important}body.home2App .storyDetail :is(.prose,.storyIntro){font-size:17px}}
+body.home2App #photos .photoTileCaption{font:400 13px/1.45 'Segoe UI',Arial,sans-serif!important;letter-spacing:0!important;color:var(--muted)}
+body.home2App #photos .photoBrowseTitle b{font:700 23px/1.25 Georgia,'Times New Roman',serif!important}
+body.home2App #photos .photoBrowseTitle span{font:400 14px/1.5 'Segoe UI',Arial,sans-serif!important}
+body.home2App #photos .photoEditorBar :is(b,strong){font:600 14px/1.35 'Segoe UI',Arial,sans-serif!important}
+body.home2App #photos .photoEditorBar span{font:400 12px/1.4 'Segoe UI',Arial,sans-serif!important}
+body.home2App #profile :is(.profileSectionText small,.profileSubsection summary small){font:400 13px/1.45 'Segoe UI',Arial,sans-serif!important}
+body.home2App .view:not(#home) :is(.videoTopicHead small,.communityStoryCard>div>small){font:400 12px/1.4 'Segoe UI',Arial,sans-serif!important;letter-spacing:0}
+body.home2App #questions .archiveList>h2,body.home2App #profile .profilePage>h2{font:700 44px/1.12 Georgia,'Times New Roman',serif!important;letter-spacing:-.015em}
+@media(max-width:760px){body.home2App #questions .archiveList>h2,body.home2App #profile .profilePage>h2{font-size:32px!important}}

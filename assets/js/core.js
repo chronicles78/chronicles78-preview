@@ -1172,11 +1172,13 @@ function initAccountUi(){
    if(login&&login.parentElement!==host)host.appendChild(login);
    if(consent&&consent.parentElement!==host)host.appendChild(consent);
  }
- document.querySelectorAll(".accountEntryBtn").forEach(btn=>{
-   if(btn.dataset.accountBound==="1")return;
-   btn.dataset.accountBound="1";
-   btn.addEventListener("click",()=>openAccountModal());
- });
+ if(!document.documentElement.dataset.accountClickBound){
+   document.documentElement.dataset.accountClickBound="1";
+   document.addEventListener("click",e=>{
+     const btn=e.target.closest?.(".accountEntryBtn");
+     if(btn){e.preventDefault();openAccountModal()}
+   });
+ }
  if($("accountModalClose"))$("accountModalClose").onclick=closeAccountModal;
  if($("accountShade"))$("accountShade").onclick=e=>{if(e.target===$("accountShade"))closeAccountModal()};
  syncAccountNavigation();

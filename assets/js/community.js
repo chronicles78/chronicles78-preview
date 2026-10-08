@@ -56,9 +56,8 @@
    node('storiesList').innerHTML=rows.map(s=>{
      const cover=storyCoverFor(s),ids=s.data?.people||[],author=ids[0]?storyPersonName(ids[0]):'Автор уточняется';
      const raw=String(s.data?.story_text||''),quotation=String(s.data?.quote||raw.split(/\n+/).find(t=>t.trim())||'').trim();
-     const summary=String(s.data?.editorial_summary||s.data?.chapter?.subtitle||'');
      const person=peopleCache.find(p=>p.id===ids[0]),portrait=person?personThumbHtml(person,'communityAuthorPortrait'):'';
-     return '<article class="communityStoryCard '+(cover?.url?'':'noCover')+'">'+(cover?.url?'<img src="'+esc(cover.url)+'" alt="'+esc(cover.title||s.title)+'" loading="lazy">':'')+'<div><div class="communityMuted">'+esc([s.period,storyState(s)].filter(Boolean).join(' · '))+'</div><h3>'+esc(s.title)+'</h3>'+(quotation?'<blockquote>'+esc(quotation.slice(0,220))+(quotation.length>220?'…':'')+'</blockquote>':summary?'<p>'+esc(summary.slice(0,320))+'</p>':'')+'<div class="communityStoryAuthor">'+(portrait||'<span class="communityInitial" aria-hidden="true">'+esc(author.charAt(0))+'</span>')+'<span>'+esc(author)+'</span></div><button type="button" class="secondary" data-community-story="'+esc(s.id)+'">Читать историю</button>'+(editor()?' <button type="button" class="secondary" data-community-topic-edit="'+esc(s.id)+'">Темы</button>':'')+'</div></article>';
+     return '<article class="communityStoryCard '+(cover?.url?'':'noCover')+'">'+(cover?.url?'<img src="'+esc(cover.url)+'" alt="'+esc(cover.title||s.title)+'" loading="lazy">':'')+'<div><div class="communityMuted">'+esc([s.period,storyState(s)].filter(Boolean).join(' · '))+'</div><h3>'+esc(s.title)+'</h3>'+(quotation?'<blockquote>'+esc(quotation.slice(0,220))+(quotation.length>220?'…':'')+'</blockquote>':'')+'<div class="communityStoryAuthor">'+(portrait||'<span class="communityInitial" aria-hidden="true">'+esc(author.charAt(0))+'</span>')+'<span>'+esc(author)+'</span></div><button type="button" class="secondary" data-community-story="'+esc(s.id)+'">Читать историю</button>'+(editor()?' <button type="button" class="secondary" data-community-topic-edit="'+esc(s.id)+'">Темы</button>':'')+'</div></article>';
    }).join('')||'<div class="notice">В этой теме пока нет историй. Выберите другую тему или добавьте её в редакторе.</div>';
  };
  async function editTopics(id){
@@ -429,5 +428,5 @@
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets();void heartbeat()}
- window.CommunityPreview={version:'20261008-13',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261008-14',storyTopics,yearsFor,loadLibrary};
 })();

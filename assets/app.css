@@ -2997,3 +2997,85 @@ header.top .brand{white-space:nowrap!important;word-break:keep-all!important;ove
   #home #homeDashboard{padding-left:12px;padding-right:12px}
   #home .eraTvSection{margin-left:12px!important;margin-right:12px!important}
 }
+
+
+/* v65 — account popup + admin-only service area */
+.serviceNavBtn[hidden]{display:none!important}
+.accountEntryBtn{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  cursor:pointer;
+}
+.desktopTopNav .accountEntryBtn{
+  padding:7px 9px;
+  border-radius:7px;
+  color:var(--ink,#173b5c);
+}
+.desktopTopNav .accountEntryBtn:hover{background:rgba(23,59,92,.07)}
+.accountEntryBtn.signedIn [data-account-label]{font-weight:700}
+.h2Nav .accountEntryBtn{
+  color:inherit!important;
+  background:transparent!important;
+}
+.bottom .accountEntryBtn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+}
+.accountPanel{
+  width:min(520px,calc(100vw - 28px))!important;
+  max-height:min(86vh,760px);
+  overflow:auto;
+}
+.accountModalBody{padding:2px 0 4px}
+.accountModalBody #loginBox,
+.accountModalBody #consentGateBox{
+  display:block;
+  margin:0!important;
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  padding:2px 0 0!important;
+}
+.accountIdentity{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:8px 0 16px;
+  border-bottom:1px solid rgba(23,59,92,.12);
+}
+.accountIdentity .accountAvatar{
+  width:46px;height:46px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--paper-deep,#efe5d5);
+  color:var(--ink,#173b5c);
+  font:700 20px/1 Georgia,"Times New Roman",serif;
+}
+.accountIdentity b{display:block;color:var(--ink,#173b5c);font:700 20px/1.15 Georgia,"Times New Roman",serif}
+.accountIdentity span{display:block;margin-top:3px;color:var(--ink-muted,#6b6a62);font-size:12px}
+.accountMenuActions{display:grid;gap:9px;padding-top:15px}
+.accountMenuActions button,.accountLinkButton{
+  width:100%;
+  box-sizing:border-box;
+  text-align:left;
+  justify-content:flex-start;
+}
+.accountLinkButton{
+  display:flex!important;
+  align-items:center;
+  text-decoration:none!important;
+}
+html[data-theme="dark"] .accountIdentity{border-bottom-color:rgba(234,220,198,.14)}
+html[data-theme="dark"] .accountIdentity .accountAvatar{background:#302920;color:#eadcc5}
+html[data-theme="dark"] .accountIdentity b{color:#eadcc5}
+html[data-theme="dark"] .accountIdentity span{color:#aaa092}
+
+@media(max-width:760px){
+  .desktopTopNav .accountEntryBtn{display:none}
+  .accountPanel{width:min(94vw,520px)!important}
+}

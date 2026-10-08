@@ -474,20 +474,36 @@ async function loadPhotoSubmissionReview(){
    $("photoModalSave").textContent="Отклонить";
  });
 }
-$("submitArchivePhotoBtn").onclick=()=>{$("submitArchivePhotoInput").value="";$("submitArchivePhotoInput").click()};
+function openParticipantPhotoPicker(mode="archive"){
+ const input=$("submitArchivePhotoInput");
+ if(!input)return;
+ input.dataset.submissionMode=mode;
+ input.value="";
+ input.click();
+}
+window.openParticipantPhotoPicker=openParticipantPhotoPicker;
+$("submitArchivePhotoBtn").onclick=()=>openParticipantPhotoPicker("archive");
 $("submitArchivePhotoInput").onchange=()=>{
- const file=$("submitArchivePhotoInput").files?.[0];if(!file)return;
- try{ensureImageFile(file)}catch(e){alert(e.message||e);$("submitArchivePhotoInput").value="";return}
- if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES){alert("Фото больше 25 МБ.");$("submitArchivePhotoInput").value="";return}
- const defaultTitle=String(file.name||"Фотография").replace(/\.[^.]+$/,"");
- openPhotoModal("Предложить фотографию",
-   '<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>'+
+ const input=$("submitArchivePhotoInput");
+ const file=input.files?.[0];if(!file)return;
+ const thenNow=input.dataset.submissionMode==="then-now";
+ delete input.dataset.submissionMode;
+ try{ensureImageFile(file)}catch(e){alert(e.message||e);input.value="";return}
+ if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES){alert("Фото больше 25 МБ.");input.value="";return}
+ const fileTitle=String(file.name||"Фотография").replace(/\.[^.]+$/,"");
+ const defaultTitle=thenNow?("Тогда и сейчас — "+String(profile?.display_name||fileTitle)):fileTitle;
+ const modalTitle=thenNow?'Фото «Тогда и сейчас»':"Предложить фотографию";
+ const lead=thenNow
+   ?'<div class="notice"><b>Современная фотография для рубрики «Тогда и сейчас».</b><br>Файл: '+esc(file.name)+' · '+esc(fmtFileSize(file.size))+'. Старое школьное фото редакция свяжет с вашей карточкой при проверке.</div>'
+   :'<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>';
+ openPhotoModal(modalTitle,
+   lead+
    '<label>Короткое название *</label><input id="pfSubmissionTitle" value="'+esc(defaultTitle)+'" placeholder="Например: 8 класс, поход на Волгу">'+
-   '<label>Что изображено</label><textarea id="pfSubmissionDescription" placeholder="Что происходит на снимке, при каких обстоятельствах…"></textarea>'+
-   '<label>Примерный год / период</label><input id="pfSubmissionDate" placeholder="Например: лето 1981">'+
-   '<label>Место</label><input id="pfSubmissionLocation" placeholder="Школа №78, двор, Волга…">'+
-   '<label>Кто на фотографии</label><textarea id="pfSubmissionPeople" placeholder="Кого узнаёте — можно писать свободным текстом"></textarea>'+
-   '<label>Источник / комментарий</label><input id="pfSubmissionSource" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
+   '<label>Что изображено</label><textarea id="pfSubmissionDescription" placeholder="'+(thenNow?'Можно коротко: где и когда сделано современное фото…':'Что происходит на снимке, при каких обстоятельствах…')+'"></textarea>'+
+   '<label>Примерный год / период</label><input id="pfSubmissionDate" value="'+(thenNow?new Date().getFullYear():'')+'" placeholder="Например: лето 1981">'+
+   '<label>Место</label><input id="pfSubmissionLocation" placeholder="Самара, Волга, дома…">'+
+   '<label>Кто на фотографии</label><textarea id="pfSubmissionPeople" placeholder="Кого узнаёте — можно писать свободным текстом">'+(thenNow?esc(profile?.display_name||""):"")+'</textarea>'+
+   '<label>Источник / комментарий</label><input id="pfSubmissionSource" value="'+(thenNow?'Рубрика «Тогда и сейчас»':'')+'" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
    '<label class="checkItem" style="margin-top:12px"><input id="pfSubmissionPermission" type="checkbox"> <span>Я разрешаю использовать эту фотографию внутри архива «Хроники-78».</span></label>',
    async()=>{
      const title=$("pfSubmissionTitle").value.trim();
@@ -500,8 +516,8 @@ $("submitArchivePhotoInput").onchange=()=>{
      };
      $("photoModalMsg").textContent="Сохраняю оригинал и готовлю копию для редакции…";
      await submitParticipantPhoto(file,meta);
-     $("submitArchivePhotoInput").value="";
-     $("photoSubmitMsg").innerHTML='<span class="ok">Фотография отправлена редакции. Она появится в альбоме после проверки.</span>';
+     input.value="";
+     $("photoSubmitMsg").innerHTML='<span class="ok">'+(thenNow?'Фото «Тогда и сейчас» отправлено редакции.':'Фотография отправлена редакции.')+' Оно появится в архиве после проверки.</span>';
      await loadMyPhotoSubmissions();
    }
  );

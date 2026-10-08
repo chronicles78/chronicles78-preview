@@ -42,7 +42,7 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-66</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-67</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active home2">
   <div class="home2Stage" id="home2Stage">
@@ -429,10 +429,11 @@
   </div>
 
   <div id="otpLoginBox" style="display:none;margin-top:14px">
-    <div class="notice"><b>Код отправлен.</b><br>Введите 8 цифр из последнего письма.</div>
+    <div class="notice"><b>Код отправлен.</b><br>Введите 8 цифр из <b>последнего</b> письма. Код действует <b>10 минут</b>.<br><span class="small">Если письма нет во «Входящих», проверьте «Спам / Нежелательную почту».</span></div>
     <label>8-значный код</label>
     <input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">
     <button class="primary" id="otpVerifyBtn" type="button" onclick="verifyLoginOtp(event)">Войти</button>
+    <button class="secondary" id="otpResendBtn" type="button">Отправить новый код</button>
   </div>
   <div id="loginError"></div>
 
@@ -500,7 +501,7 @@
 
 </div></nav>
 
-<script src="assets/js/core.js?v=20261008-19"></script>
+<script src="assets/js/core.js?v=20261008-20"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261005-62"></script>

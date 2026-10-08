@@ -1453,7 +1453,7 @@ async function login(){
   $("otpCode").value="";
   $("otpCode").focus();
   $("loginError").className="ok";
-  $("loginError").innerHTML="<b>Код отправлен.</b> Введите 8 цифр из последнего письма.";
+  $("loginError").innerHTML="<b>Код отправлен.</b> Введите 8 цифр из последнего письма. Код действует 10 минут.";
  }catch(e){
   const msg=e.message||String(e);
   if(msg.includes("Signups not allowed")||msg.toLowerCase().includes("signup")){
@@ -1495,7 +1495,7 @@ async function registerAndSendOtp(){
    $("otpCode").value="";
    $("otpCode").focus();
    $("loginError").className="ok";
-   $("loginError").innerHTML="<b>Регистрация начата.</b> Код отправлен на "+esc(email)+". Введите 8 цифр — после этого откроется главная.";
+   $("loginError").innerHTML="<b>Регистрация начата.</b> Код отправлен на "+esc(email)+". Введите 8 цифр из последнего письма. Код действует 10 минут.";
  }catch(e){
    $("loginError").className="err";
    $("loginError").textContent=e.message||String(e);
@@ -1523,8 +1523,14 @@ async function verifyLoginOtp(event){
        ?"Код подтверждён. Осталось принять действующее согласие."
        :"Код подтверждён. Регистрация ещё не завершена.");
  }catch(e){
+   const msg=String(e?.message||e||"");
+   const code=String(e?.code||"");
    $("loginError").className="err";
-   $("loginError").textContent=e.message||String(e);
+   if(code==="otp_expired"||/expired|invalid/i.test(msg)){
+     $("loginError").innerHTML="<b>Код недействителен или уже истёк.</b><br>Код действует 10 минут. Нажмите «Отправить новый код» и используйте код только из самого последнего письма.";
+   }else{
+     $("loginError").textContent=msg;
+   }
  }finally{
    btn.disabled=false;
    btn.textContent=oldText;
@@ -1595,6 +1601,22 @@ function openAdminPasswordReset(){
 async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();await showView("home");openAccountModal()}
 $("loginBtn").onclick=login;
 if($("registerOtpBtn"))$("registerOtpBtn").onclick=registerAndSendOtp;
+if($("otpResendBtn"))$("otpResendBtn").onclick=async()=>{
+ const btn=$("otpResendBtn");
+ const email=(localStorage.getItem(OTP_EMAIL_KEY)||$("email")?.value||"").trim().toLowerCase();
+ if(!email){
+   $("loginError").className="err";$("loginError").textContent="Введите e-mail и запросите код.";return;
+ }
+ if($("email"))$("email").value=email;
+ btn.disabled=true;btn.textContent="Отправляю…";
+ try{
+   await login();
+   $("loginError").className="ok";
+   $("loginError").innerHTML="<b>Новый код отправлен.</b> Он действует 10 минут. Используйте код только из самого последнего письма.";
+ }finally{
+   btn.disabled=false;btn.textContent="Отправить новый код";
+ }
+};
 $("otpCode").onkeydown=e=>{if(e.key==="Enter"){verifyLoginOtp(e)} };
 $("passwordLoginToggle").onclick=()=>{
  const box=$("passwordLoginBox");

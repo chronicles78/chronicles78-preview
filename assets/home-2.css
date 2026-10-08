@@ -311,3 +311,57 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
   background:rgba(41,58,71,.065);
 }
 .h2Nav svg{width:1.55cqw;height:1.55cqw;stroke-width:1.8}
+
+
+/* v73 — desktop Home 2 uses the full browser width */
+@media(min-width:761px){
+  body.home2App:has(#home.active){
+    width:100%!important;
+    max-width:none!important;
+    padding-left:0!important;
+    margin:0!important;
+  }
+  body.home2App:has(#home.active) main,
+  body.home2App #home.home2{
+    width:100vw!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .home2Stage{
+    width:100vw!important;
+    max-width:none!important;
+    margin:0!important;
+    aspect-ratio:4/3;
+  }
+
+  /* Navigation must remain readable on wide desktop screens. */
+  .h2Nav{
+    left:0!important;
+    right:0!important;
+    padding-left:9.5%!important;
+    padding-right:2.25%!important;
+    gap:1.55cqw!important;
+  }
+  .h2Nav button:not(.h2Icon){
+    font-size:clamp(16px,1.12cqw,23px)!important;
+    font-weight:700!important;
+    line-height:1.1!important;
+    padding:.42cqw .08cqw!important;
+  }
+  .h2Nav .h2Profile{
+    font-size:clamp(15px,1.02cqw,21px)!important;
+  }
+  #homeSearchBtn{
+    margin-left:auto!important;
+  }
+  .h2Nav .h2Icon{
+    width:clamp(34px,2.45cqw,48px)!important;
+    height:clamp(34px,2.45cqw,48px)!important;
+    font-size:clamp(22px,1.55cqw,30px)!important;
+  }
+  .h2Nav svg{
+    width:clamp(20px,1.5cqw,29px)!important;
+    height:clamp(20px,1.5cqw,29px)!important;
+  }
+}

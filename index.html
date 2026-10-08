@@ -26,7 +26,7 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261004-57">
+<link rel="stylesheet" href="assets/app.css?v=20261008-58">
 <link rel="stylesheet" href="assets/mobile-archive.css?v=20261005-63-2">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
 <link rel="stylesheet" href="assets/design-tokens.css?v=20261007-15">
@@ -42,7 +42,7 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-64</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-65</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active home2">
   <div class="home2Stage" id="home2Stage">
@@ -53,7 +53,7 @@
       <button type="button" data-home-view="city">Город и время</button>
       <button type="button" data-home-view="photos">Архив</button>
       <button type="button" data-home-view="chat">Чат</button>
-      <button type="button" class="h2Profile" data-home-view="profile">Профиль</button>
+      <button type="button" class="h2Profile serviceNavBtn" data-home-view="profile" hidden>Служебный</button><button type="button" class="h2Profile accountEntryBtn" id="accountBtnHome"><span data-account-label>Войти</span></button>
       <button type="button" class="h2Icon" id="homeSearchBtn" aria-label="Поиск по архиву"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/></svg></button>
       <button type="button" class="h2Icon" id="homeThemeToggle" aria-label="Тёмная тема">☾</button>
     </nav>
@@ -272,8 +272,8 @@
 <div class="card profileIdentityCard">
   <div class="profileIdentityTop">
     <div>
-      <div class="memoryEyebrow">ЛИЧНЫЙ КАБИНЕТ · ХРОНИКИ-78</div>
-      <h2>Профиль</h2>
+      <div class="memoryEyebrow">СЛУЖЕБНЫЙ РАЗДЕЛ · ХРОНИКИ-78</div>
+      <h2>Служебный</h2>
     </div>
     <span class="profileCabinetMark">●</span>
   </div>
@@ -297,7 +297,7 @@
 </div>
 
 <div class="profileWorkspace" id="profileWorkspace" style="display:none">
-  <nav class="profilePrimaryNav" aria-label="Разделы профиля">
+  <nav class="profilePrimaryNav" aria-label="Служебные разделы">
     <button class="profilePrimaryTab" type="button" data-profile-section-tab="personal" style="display:none" title="Мой профиль" aria-label="Мой профиль"><span>○</span><b>Мой профиль</b><small>Имя · приватность · оформление</small></button>
     <button class="profilePrimaryTab" type="button" data-profile-section-tab="my" style="display:none" title="Мои материалы" aria-label="Мои материалы"><span>▧</span><b>Мои материалы</b><small>Фотографии и отправки</small></button>
     <button class="profilePrimaryTab" type="button" data-profile-section-tab="editorial" style="display:none" title="Редакция" aria-label="Редакция"><span>✎</span><b>Редакция</b><small>Проверка и модерация</small></button>
@@ -458,6 +458,12 @@
     <div id="contextActions" class="contextActions"></div>
   </div>
 </div>
+<div id="accountShade" class="modalShade accountShade" aria-hidden="true">
+  <div class="modalPanel accountPanel" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
+    <div class="modalHead"><h3 id="accountModalTitle">Вход в «Хроники-78»</h3><button id="accountModalClose" class="modalClose" type="button" aria-label="Закрыть">×</button></div>
+    <div id="accountModalBody" class="accountModalBody"></div>
+  </div>
+</div>
 <div id="photoModal" class="modalShade" aria-hidden="true">
   <div class="modalPanel">
     <div class="modalHead"><h3 id="photoModalTitle">Фото</h3><button id="photoModalClose" class="modalClose">×</button></div>
@@ -489,11 +495,12 @@
 <button class="nav mobileSecondary" data-view="photos"><b>▧</b>Фото</button>
 <button class="nav mobileSecondary" data-view="city"><b>⌘</b>Город</button>
 <button class="nav mobileSecondary" data-view="questions"><b>?</b>Вопросы</button>
-<button class="nav mobileSecondary" data-view="profile"><b>○</b>Профиль</button>
+<button class="nav mobileSecondary serviceNavBtn" data-view="profile" hidden><b>⚙</b>Служебный</button>
+<button class="nav mobileSecondary accountEntryBtn" id="accountBtnBottom" type="button"><b>○</b><span data-account-label>Войти</span></button>
 
 </div></nav>
 
-<script src="assets/js/core.js?v=20261008-17"></script>
+<script src="assets/js/core.js?v=20261008-18"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261005-62"></script>

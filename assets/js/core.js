@@ -1210,6 +1210,8 @@ function renderAccountModal(){
      $("accountAddPhotoBtn").onclick=async()=>{
        closeAccountModal();
        await showView("photos");
+       const input=$("submitArchivePhotoInput");
+       if(input)input.dataset.submissionMode="then-now";
        setTimeout(()=>$("submitArchivePhotoBtn")?.click(),60);
      };
      $("accountPrivacyBtn").onclick=()=>{closeAccountModal();openPrivacyRequest()};

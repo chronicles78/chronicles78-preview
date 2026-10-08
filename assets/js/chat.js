@@ -116,9 +116,9 @@ async function loadRoom(){
 
    const liveAttachments=(m.attachments||[]).filter(a=>!a.is_removed);
    const photos=liveAttachments.map(a=>
-     '<div class="attachmentWrap">'+
-       '<div class="notice" data-chat-photo-wait="'+a.id+'">Фото загружается…</div>'+
-       '<img class="attachment" data-chat-photo="'+a.id+'" alt="'+esc(a.current_file_name||"Фото")+'" style="display:none">'+
+     '<div class="attachmentWrap" data-chat-photo-wrap="'+a.id+'">'+
+       '<div class="chatPhotoState" data-chat-photo-wait="'+a.id+'">Фото загружается…</div>'+
+       '<img class="attachment" data-chat-photo="'+a.id+'" alt="Фотография в чате" loading="lazy" decoding="async" style="display:none">'+
        (a.caption?'<div class="caption">'+esc(a.caption)+'</div>':'')+
      '</div>'
    ).join("");
@@ -231,18 +231,51 @@ async function loadRoom(){
      const img=$("messages").querySelector('[data-chat-photo="'+CSS.escape(String(a.id))+'"]');
      const wait=$("messages").querySelector('[data-chat-photo-wait="'+CSS.escape(String(a.id))+'"]');
      const url=signedByPath[a.current_storage_path]||null;
-     if(url&&img){
-       img.src=url;
-       img.style.display="";
-       wait?.remove();
-     }else if(wait){
-       wait.textContent="Фото недоступно.";
-     }
+     if(!img||!wait)return;
+     const showError=()=>{
+       img.style.display="none";
+       img.removeAttribute("src");
+       wait.innerHTML='<span>Фото не удалось открыть.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
+     };
+     if(!url){showError();return}
+     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom)return;img.style.display="";wait.style.display="none"};
+     img.onerror=showError;
+     img.src=url;
    });
- }).catch(()=>{});
+ }).catch(()=>{
+   if(seq!==chatLoadSeq||room!==currentRoom)return;
+   allAttachments.forEach(a=>{
+     const wait=$("messages").querySelector('[data-chat-photo-wait="'+CSS.escape(String(a.id))+'"]');
+     if(wait)wait.innerHTML='<span>Фото не удалось открыть.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
+   });
+ });
 
  requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);
 }
+async function retryChatPhoto(attachmentId){
+ const a=lastMessages.flatMap(m=>m.attachments||[]).find(x=>String(x.id)===String(attachmentId));
+ if(!a)return;
+ const img=$("messages")?.querySelector('[data-chat-photo="'+CSS.escape(String(a.id))+'"]');
+ const wait=$("messages")?.querySelector('[data-chat-photo-wait="'+CSS.escape(String(a.id))+'"]');
+ if(!img||!wait)return;
+ wait.style.display="";
+ wait.textContent="Повторная загрузка…";
+ img.style.display="none";
+ chatSignedCache.delete(a.current_storage_path);
+ try{
+   const url=await signedImage(a.current_storage_path);
+   if(!url)throw new Error("signed url unavailable");
+   img.onload=()=>{img.style.display="";wait.style.display="none"};
+   img.onerror=()=>{img.style.display="none";wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>'};
+   img.src=url;
+ }catch{
+   wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
+ }
+}
+$("messages").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-chat-photo-retry]");
+ if(btn)retryChatPhoto(btn.dataset.chatPhotoRetry);
+});
 function renderReply(){
  if(replyTo){const m=lastMessages.find(x=>x.id===replyTo);$("replying").textContent="Ответ: "+(m?.author?.display_name||"сообщение")+" — "+((m?.body||"Фото").slice(0,55));$("cancelReply").style.display="inline-block"}
  else {
@@ -345,11 +378,14 @@ async function compressArchiveImageFallback(file){
  }finally{URL.revokeObjectURL(url)}
 }
 async function uploadChatFile(file){
- const mime=ensureImageFile(file);
- const path=user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+safeName(file.name);
- const {error}=await sb.storage.from("chat-media").upload(path,file,{contentType:mime,upsert:false});
+ ensureImageFile(file);
+ const prepared=await compressArchiveImageFallback(file);
+ const stem=String(file.name||"photo").replace(/\.[^.]+$/,"");
+ const outName=safeName(stem+"."+prepared.ext);
+ const path=user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"-"+outName;
+ const {error}=await sb.storage.from("chat-media").upload(path,prepared.blob,{contentType:prepared.outMime,upsert:false});
  if(error)throw error;
- return {path,name:file.name};
+ return {path,name:outName};
 }
 async function addAttachmentToMessage(messageId,file){
  const up=await uploadChatFile(file);

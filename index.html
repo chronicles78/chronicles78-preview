@@ -42,7 +42,7 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-69</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button"><span>Хроники-78</span><small id="mobileSectionTitle">Главная</small></button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-69</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active home2">
   <div class="home2Stage" id="home2Stage">
@@ -488,11 +488,22 @@
     </div>
   </div>
 </div>
+<div id="moreNavShade" class="moreNavShade" aria-hidden="true"></div>
+<section id="moreNavMenu" class="moreNavMenu" aria-hidden="true" aria-label="Другие разделы">
+  <div class="moreNavHead"><b>Разделы</b><button id="moreNavClose" type="button" aria-label="Закрыть">×</button></div>
+  <button class="moreNavItem" type="button" data-more-view="photos"><b>▧</b><span>Фото и видео</span></button>
+  <button class="moreNavItem" type="button" data-more-view="city"><b>⌘</b><span>Город и время</span></button>
+  <button class="moreNavItem" type="button" data-more-view="questions"><b>?</b><span>Открытые вопросы</span></button>
+  <button class="moreNavItem" type="button" data-more-view="tv"><b>▣</b><span>Телевизор</span></button>
+  <button class="moreNavItem accountEntryBtn" type="button"><b>○</b><span data-account-label>Войти</span></button>
+  <button class="moreNavItem serviceNavBtn" type="button" data-more-view="profile" hidden><b>⚙</b><span>Служебный</span></button>
+</section>
 <nav class="bottom"><div class="bottomIn">
 <button class="nav active" data-view="home"><b>⌂</b>Главная</button>
 <button class="nav" data-view="chat"><b>◌</b>Чат</button>
 <button class="nav" data-view="people"><b>◎</b>Люди</button>
 <button class="nav" data-view="stories"><b>▤</b>Истории</button>
+<button class="nav mobileMore" id="mobileMoreBtn" type="button" aria-expanded="false"><b>•••</b>Ещё</button>
 <button class="nav mobileSecondary" data-view="photos"><b>▧</b>Фото</button>
 <button class="nav mobileSecondary" data-view="city"><b>⌘</b>Город</button>
 <button class="nav mobileSecondary" data-view="questions"><b>?</b>Вопросы</button>

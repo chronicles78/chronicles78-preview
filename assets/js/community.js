@@ -369,19 +369,57 @@
  node('photoModalClose').onclick=closePhotoModal;node('photoModalCancel').onclick=closePhotoModal;
  new MutationObserver(()=>{if(!node('storyDetail').classList.contains('open'))node('storyDetailBody').querySelectorAll('audio').forEach(a=>a.pause())}).observe(node('storyDetail'),{attributes:true,attributeFilter:['class']});
  const oldPersonContext=openPersonContext;
+ async function personMemoryRecord(personId){
+   const profiles=check(await sb.from('profiles').select('id').eq('person_id',personId))||[];
+   if(!profiles.length)return null;
+   return check(await sb.from('member_memories').select('user_id,then_photo,now_photo,school_dream,life_now,updated_at').in('user_id',profiles.map(p=>p.id)).limit(1).maybeSingle());
+ }
+ async function openPersonMemoryDossier(person){
+   openPhotoModal(personDisplayName(person),'<'+'div id="communityComparison"><div id="communityCompareResult"></div></div>',async()=>closePhotoModal());
+   closeOnly();
+   let old=null;
+   const media=(person?.data?.media_links||[])[0]?.media_id;
+   if(media){
+     const row=check(await sb.from('archive_media').select('current_storage_path').eq('id',media).maybeSingle());
+     if(row?.current_storage_path)old=await archiveSignedImage(row.current_storage_path);
+   }
+   await comparePerson(person.id,old||'');
+ }
  openPersonContext=id=>{
-   oldPersonContext(id);if(!active())return;
    const person=peopleCache.find(p=>p.id===id);
-   node('contextActions').insertAdjacentHTML('beforeend','<button type="button" class="contextAction" id="communityPersonMemory"><span class="contextActionIcon">◷</span><span class="contextActionText">Тогда / Сейчас<div class="contextActionHint">Личное досье: два портрета и рассказ о себе</div></span></button>'+(editor()?'<button type="button" class="contextAction" id="communityContactSearch"><span class="contextActionIcon">◎</span><span class="contextActionText">'+(person?.data?.contact_status==='missing'?'Контакт найден':'Объявить поиск контакта')+'</span></button>':''));
-   node('communityPersonMemory').onclick=async()=>{
-     closeContextSheet();openPhotoModal('Тогда / Сейчас','<div id="communityComparison"><div id="communityCompareResult"></div></div>',async()=>closePhotoModal());closeOnly();
-     let old=null;const media=(person?.data?.media_links||[])[0]?.media_id;if(media){const row=check(await sb.from('archive_media').select('current_storage_path').eq('id',media).maybeSingle());if(row?.current_storage_path)old=await archiveSignedImage(row.current_storage_path)}
-     await comparePerson(id,old||'');
-   };
-   node('communityContactSearch')?.addEventListener('click',async e=>{
-     e.target.disabled=true;
-     try{const row=check(await sb.from('archive_people').select('data,updated_at').eq('id',id).single());const status=row.data?.contact_status==='missing'?'found':'missing';const changed=check(await sb.from('archive_people').update({data:{...row.data,contact_status:status},updated_at:new Date().toISOString()}).eq('id',id).eq('updated_at',row.updated_at).select('id'));if(!changed.length)throw Error('Карточка уже изменилась. Откройте её заново.');closeContextSheet();await loadPeople();void homeWidgets()}catch(ex){alert(err(ex));e.target.disabled=false}
-   });
+   if(!person||!active()){oldPersonContext(id);return}
+   selectedPersonId=id;renderPeople();
+   void (async()=>{
+     try{
+       const memoryRow=await personMemoryRecord(id);
+       if(memoryRow){
+         await openPersonMemoryDossier(person);
+         return;
+       }
+     }catch(e){}
+     oldPersonContext(id);
+     const actions=node('contextActions');
+     if(!actions)return;
+     actions.insertAdjacentHTML('beforeend',
+       '<button type="button" class="contextAction" id="communityPersonMemory"><span class="contextActionIcon">◷</span><span class="contextActionText">Тогда / Сейчас<div class="contextActionHint">Анкета ещё не заполнена</div></span></button>'+
+       (editor()?'<button type="button" class="contextAction" id="communityContactSearch"><span class="contextActionIcon">◎</span><span class="contextActionText">'+(person?.data?.contact_status==='missing'?'Контакт найден':'Объявить поиск контакта')+'</span></button>':'')
+     );
+     node('communityPersonMemory').onclick=async()=>{
+       closeContextSheet();
+       if(profile?.person_id===id){await editMemory();return}
+       openPhotoModal('Тогда / Сейчас','<div class="notice">Анкета этого участника пока не заполнена.</div>',async()=>closePhotoModal());closeOnly();
+     };
+     node('communityContactSearch')?.addEventListener('click',async e=>{
+       e.target.disabled=true;
+       try{
+         const row=check(await sb.from('archive_people').select('data,updated_at').eq('id',id).single());
+         const status=row.data?.contact_status==='missing'?'found':'missing';
+         const changed=check(await sb.from('archive_people').update({data:{...row.data,contact_status:status},updated_at:new Date().toISOString()}).eq('id',id).eq('updated_at',row.updated_at).select('id'));
+         if(!changed.length)throw Error('Карточка уже изменилась. Откройте её заново.');
+         closeContextSheet();await loadPeople();void homeWidgets();
+       }catch(ex){alert(err(ex));e.target.disabled=false}
+     });
+   })();
  };
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void heartbeat()});
  sb.auth.onAuthStateChange(event=>{
@@ -391,5 +429,5 @@
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets();void heartbeat()}
- window.CommunityPreview={version:'20261008-12',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261008-13',storyTopics,yearsFor,loadLibrary};
 })();

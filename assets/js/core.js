@@ -1210,9 +1210,10 @@ function renderAccountModal(){
      $("accountAddPhotoBtn").onclick=async()=>{
        closeAccountModal();
        await showView("photos");
-       const input=$("submitArchivePhotoInput");
-       if(input)input.dataset.submissionMode="then-now";
-       setTimeout(()=>$("submitArchivePhotoBtn")?.click(),60);
+       setTimeout(()=>{
+         if(typeof openParticipantPhotoPicker==="function")openParticipantPhotoPicker("then-now");
+         else $("submitArchivePhotoBtn")?.click();
+       },60);
      };
      $("accountPrivacyBtn").onclick=()=>{closeAccountModal();openPrivacyRequest()};
      if($("accountServiceBtn"))$("accountServiceBtn").onclick=async()=>{closeAccountModal();await showView("profile")};

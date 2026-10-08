@@ -33,7 +33,7 @@
    }
    if(node('photoStats')&&!node('communityTimeline'))node('photoStats').before(Object.assign(document.createElement('nav'),{id:'communityTimeline',className:'communityTimeline'}));
    node('communityTimeline')?.setAttribute('aria-label','Годы фотоархива');
-   if(node('profileBox')&&!node('communityProfile'))node('profileBox').insertAdjacentHTML('afterend','<section id="communityProfile" class="communityPanel" hidden><h3>Тогда и Сейчас</h3><p>Два портрета, школьная мечта и сегодняшний путь.</p><div id="communityProfilePreview"></div><button type="button" class="secondary" id="communityEditMemory">Заполнить анкету</button><div id="communityProfileStatus" role="status"></div></section>');
+
  }
  function renderTopicButtons(){node('storyToc').innerHTML=topics.map(t=>'<button type="button" data-community-topic="'+esc(t)+'" aria-pressed="'+((topic==='all'&&t==='Все темы')||topic===t)+'">'+esc(t)+'</button>').join('')}
  function storyTopics(s){
@@ -215,13 +215,44 @@
  async function comparePerson(personId,archiveUrl){
    if(!personId)return;const uid=owner(),epoch=generation;
    let dest=node('communityCompareResult');if(!dest){node('communityComparison').innerHTML='<div id="communityCompareResult"></div>';dest=node('communityCompareResult')}
-   dest.textContent='Ищу современный портрет…';const requested=personId;dest.dataset.person=requested;
+   dest.textContent='Открываю личное досье…';const requested=personId;dest.dataset.person=requested;
    try{
-     const profiles=check(await sb.from('profiles').select('id').eq('person_id',personId))||[];
+     const person=peopleCache.find(p=>p.id===personId);
+     const profiles=check(await sb.from('profiles').select('id,display_name,person_id,class_group').eq('person_id',personId))||[];
      const record=profiles.length?check(await sb.from('member_memories').select('*').in('user_id',profiles.map(p=>p.id)).limit(1).maybeSingle()):null;
-     const old=record?.then_photo?await communityUrl(record.then_photo):archiveUrl,now=record?.now_photo?await communityUrl(record.now_photo):null;
+     const old=record?.then_photo?await communityUrl(record.then_photo):archiveUrl;
+     const now=record?.now_photo?await communityUrl(record.now_photo):null;
      if(!current(uid,epoch)||!dest.isConnected||dest.dataset.person!==requested)return;
-     dest.innerHTML='<div class="communityCompare"><div class="communityPair"><figure>'+(old?'<img src="'+esc(old)+'" alt="Архивный снимок">':'<p class="notice">Архивный портрет пока не добавлен.</p>')+'<figcaption>Тогда'+(!record?.then_photo&&old?' · общий архивный снимок':'')+'</figcaption></figure><figure>'+(now?'<img src="'+esc(now)+'" alt="Современный портрет">':'<p class="notice">Современное фото пока не добавлено в анкету.</p>')+'<figcaption>Сейчас</figcaption></figure></div>'+(record?.school_dream?'<p><b>Школьная мечта:</b> '+esc(record.school_dream)+'</p>':'')+(record?.life_now?'<p><b>Сегодня:</b> '+esc(record.life_now)+'</p>':'')+'</div>';
+
+     const textBlock=(eyebrow,title,value)=>{
+       const clean=String(value||'').trim();
+       if(!clean)return '<section class="memoryDossierText empty"><div class="memoryDossierEyebrow">'+esc(eyebrow)+'</div><h4>'+esc(title)+'</h4><p>Пока не заполнено.</p></section>';
+       const limit=760;
+       if(clean.length<=limit)return '<section class="memoryDossierText"><div class="memoryDossierEyebrow">'+esc(eyebrow)+'</div><h4>'+esc(title)+'</h4><p>'+esc(clean)+'</p></section>';
+       const short=clean.slice(0,limit).replace(/\s+\S*$/,'').trim();
+       return '<section class="memoryDossierText"><div class="memoryDossierEyebrow">'+esc(eyebrow)+'</div><h4>'+esc(title)+'</h4><p>'+esc(short)+'…</p><details><summary>Читать полностью</summary><p>'+esc(clean)+'</p></details></section>';
+     };
+
+     const personName=personDisplayName(person);
+     const meta=[person?.group_name,person?.number!=null?'№ '+person.number:null].filter(Boolean).join(' · ');
+     if(!record){
+       dest.innerHTML='<div class="memoryDossier empty"><div class="memoryDossierHead"><div><div class="memoryDossierEyebrow">ЛИЧНОЕ ДОСЬЕ</div><h3>'+esc(personName)+'</h3><span>'+esc(meta)+'</span></div></div><div class="notice">Анкета «Тогда / Сейчас» пока не заполнена.</div></div>';
+       return;
+     }
+     dest.innerHTML=
+       '<article class="memoryDossier">'+
+         '<header class="memoryDossierHead"><div><div class="memoryDossierEyebrow">Тогда / Сейчас · личное досье</div><h3>'+esc(personName)+'</h3><span>'+esc(meta)+'</span></div></header>'+
+         '<div class="memoryDossierPhotos">'+
+           '<figure><div class="memoryPhotoFrame">'+(old?'<img src="'+esc(old)+'" alt="'+esc(personName)+' — тогда">':'<div class="memoryPhotoMissing">Архивный портрет пока не добавлен</div>')+'</div><figcaption><b>Тогда</b><span>школьные годы</span></figcaption></figure>'+
+           '<figure><div class="memoryPhotoFrame">'+(now?'<img src="'+esc(now)+'" alt="'+esc(personName)+' — сейчас">':'<div class="memoryPhotoMissing">Современный портрет пока не добавлен</div>')+'</div><figcaption><b>Сейчас</b><span>наши дни</span></figcaption></figure>'+
+         '</div>'+
+         '<div class="memoryDossierNarrative">'+
+           textBlock('ТОГДА','О чём мечтал',record.school_dream)+
+           textBlock('СЕЙЧАС','Чем живёт сегодня',record.life_now)+
+         '</div>'+
+         (profile?.person_id===personId?'<div class="memoryDossierOwn"><button type="button" class="secondary" id="communityEditOwnMemory">Изменить мою анкету</button></div>':'')+
+       '</article>';
+     node('communityEditOwnMemory')?.addEventListener('click',()=>{closePhotoModal();void editMemory()});
    }catch(e){if(current(uid,epoch)&&dest.isConnected&&dest.dataset.person===requested)dest.textContent=err(e)}
  }
  async function renderMemory(){
@@ -237,20 +268,45 @@
  async function editMemory(){
    if(!active())return;const uid=owner(),epoch=generation;
    const row=check(await sb.from('member_memories').select('*').eq('user_id',uid).maybeSingle());if(!current(uid,epoch))return;
-   openPhotoModal('Моя анкета «Тогда и Сейчас»','<p class="communityMuted">Анкета видна участникам закрытого архива. Расскажите своими словами.</p><div class="communityPair"><div><label>Фото школьных лет<input type="file" id="communityThenFile" accept="image/jpeg,image/png,image/webp"></label><label>Кем я мечтал стать<textarea id="communityDream" maxlength="2000">'+esc(row?.school_dream||'')+'</textarea></label></div><div><label>Современное фото<input type="file" id="communityNowFile" accept="image/jpeg,image/png,image/webp"></label><label>Кем стал и чем живу сейчас<textarea id="communityLife" maxlength="2000">'+esc(row?.life_now||'')+'</textarea></label></div></div>',async()=>{
-     const pending=[];
-     try{
-       const thenFile=node('communityThenFile').files[0],nowFile=node('communityNowFile').files[0];
-       const payload={user_id:uid,school_dream:node('communityDream').value.trim(),life_now:node('communityLife').value.trim(),then_photo:row?.then_photo||null,now_photo:row?.now_photo||null,updated_at:new Date().toISOString()};
-       if(thenFile){payload.then_photo=await upload(thenFile,'portrait');pending.push(payload.then_photo)}if(nowFile){payload.now_photo=await upload(nowFile,'portrait');pending.push(payload.now_photo)}
-       if(!current(uid,epoch))throw Error('Вход завершён.');
-       if(row){const changed=check(await sb.from('member_memories').update(payload).eq('user_id',uid).eq('updated_at',row.updated_at).select('user_id'));if(!changed.length)throw Error('Анкета уже изменилась в другом окне. Откройте её заново.')}else check(await sb.from('member_memories').insert(payload));
-       await renderMemory();
-     }catch(e){if(pending.length)await sb.storage.from('community-media').remove(pending);throw e}
-   });node('photoModalSave').textContent='Сохранить анкету';
+   if(!profile?.person_id&&typeof ensurePeopleData==='function')await ensurePeopleData();
+   const unlinked=!profile?.person_id;
+   const choices=unlinked?peopleCache.filter(p=>!personIdentityUnknown(p)).map(p=>'<option value="'+esc(p.id)+'">'+esc(personDisplayName(p))+' · '+esc(p.group_name||'')+' · № '+esc(p.number??'')+'</option>').join(''):'';
+   const identity=unlinked
+     ?'<div class="notice memoryIdentityLink"><b>Сначала найдите себя в школьном архиве.</b><br>Это нужно один раз, чтобы ваша анкета «Тогда / Сейчас» появилась именно в вашей карточке раздела «Люди».</div><label>Кто вы в архиве<select id="communityMemoryPerson"><option value="">— выберите себя —</option>'+choices+'</select></label>'
+     :'';
+   openPhotoModal('Моя анкета «Тогда и Сейчас»',
+     '<p class="communityMuted">Это ваша личная страница для закрытого архива: школьный портрет, сегодняшнее фото и короткий рассказ о пути между ними.</p>'+
+     identity+
+     '<div class="communityPair communityMemoryEditPair"><div><label>Фото школьных лет<input type="file" id="communityThenFile" accept="image/jpeg,image/png,image/webp"></label><label>О чём я мечтал в школе<textarea id="communityDream" maxlength="5000">'+esc(row?.school_dream||'')+'</textarea></label></div><div><label>Современное фото<input type="file" id="communityNowFile" accept="image/jpeg,image/png,image/webp"></label><label>Чем живу сейчас<textarea id="communityLife" maxlength="5000">'+esc(row?.life_now||'')+'</textarea></label></div></div>',
+     async()=>{
+       const pending=[];
+       try{
+         if(!profile?.person_id){
+           const personId=node('communityMemoryPerson')?.value||'';
+           if(!personId)throw Error('Выберите себя в школьном архиве.');
+           const {data:linked,error:linkError}=await sb.rpc('link_my_archive_person',{p_person_id:personId});
+           if(linkError)throw linkError;
+           profile.person_id=linked?.person_id||personId;
+           profile.class_group=linked?.class_group||peopleCache.find(p=>p.id===personId)?.group_name||null;
+         }
+         const thenFile=node('communityThenFile').files[0],nowFile=node('communityNowFile').files[0];
+         const payload={user_id:uid,school_dream:node('communityDream').value.trim(),life_now:node('communityLife').value.trim(),then_photo:row?.then_photo||null,now_photo:row?.now_photo||null,updated_at:new Date().toISOString()};
+         if(thenFile){payload.then_photo=await upload(thenFile,'portrait');pending.push(payload.then_photo)}
+         if(nowFile){payload.now_photo=await upload(nowFile,'portrait');pending.push(payload.now_photo)}
+         if(!current(uid,epoch))throw Error('Вход завершён.');
+         if(row){
+           const changed=check(await sb.from('member_memories').update(payload).eq('user_id',uid).eq('updated_at',row.updated_at).select('user_id'));
+           if(!changed.length)throw Error('Анкета уже изменилась в другом окне. Откройте её заново.');
+         }else check(await sb.from('member_memories').insert(payload));
+         memory=payload;
+         if(typeof syncAccountNavigation==='function')syncAccountNavigation();
+       }catch(e){if(pending.length)await sb.storage.from('community-media').remove(pending);throw e}
+     }
+   );
+   node('photoModalSave').textContent='Сохранить анкету';
  }
- const oldRenderProfile=renderProfile;
- renderProfile=()=>{oldRenderProfile();void renderMemory()};
+ window.openMemberMemoryEditor=()=>editMemory();
+
  async function heartbeat(){
    const uid=owner(),epoch=generation;if(!uid||document.hidden||heartbeatBusy)return;heartbeatBusy=true;
    try{
@@ -316,7 +372,7 @@
  openPersonContext=id=>{
    oldPersonContext(id);if(!active())return;
    const person=peopleCache.find(p=>p.id===id);
-   node('contextActions').insertAdjacentHTML('beforeend','<button type="button" class="contextAction" id="communityPersonMemory"><span class="contextActionIcon">◷</span><span class="contextActionText">Тогда / Сейчас<div class="contextActionHint">Портреты, школьная мечта и сегодняшний путь</div></span></button>'+(editor()?'<button type="button" class="contextAction" id="communityContactSearch"><span class="contextActionIcon">◎</span><span class="contextActionText">'+(person?.data?.contact_status==='missing'?'Контакт найден':'Объявить поиск контакта')+'</span></button>':''));
+   node('contextActions').insertAdjacentHTML('beforeend','<button type="button" class="contextAction" id="communityPersonMemory"><span class="contextActionIcon">◷</span><span class="contextActionText">Тогда / Сейчас<div class="contextActionHint">Личное досье: два портрета и рассказ о себе</div></span></button>'+(editor()?'<button type="button" class="contextAction" id="communityContactSearch"><span class="contextActionIcon">◎</span><span class="contextActionText">'+(person?.data?.contact_status==='missing'?'Контакт найден':'Объявить поиск контакта')+'</span></button>':''));
    node('communityPersonMemory').onclick=async()=>{
      closeContextSheet();openPhotoModal('Тогда / Сейчас','<div id="communityComparison"><div id="communityCompareResult"></div></div>',async()=>closePhotoModal());closeOnly();
      let old=null;const media=(person?.data?.media_links||[])[0]?.media_id;if(media){const row=check(await sb.from('archive_media').select('current_storage_path').eq('id',media).maybeSingle());if(row?.current_storage_path)old=await archiveSignedImage(row.current_storage_path)}
@@ -335,5 +391,5 @@
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets();void heartbeat()}
- window.CommunityPreview={version:'20261007-11',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261008-12',storyTopics,yearsFor,loadLibrary};
 })();

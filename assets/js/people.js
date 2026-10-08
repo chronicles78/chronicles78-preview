@@ -54,7 +54,12 @@ function personThumbHtml(p,className="personPortrait"){
  if(!r||!cp||!url)return "";
  const aspect=className==="classSelectionPortrait"?64/82:4/5;
  const label=personDisplayName(p)||("Позиция № "+(p.number??""));
- return cropImageHtml(url,cp,r,className,aspect,0,0,"",label);
+ // Regions mark the face tightly. Add context around every portrait so hair,
+ // ears and chin are not clipped on narrow mobile cards.
+ let padX=.22,padY=.18;
+ if(className==="identityReviewCrop"){padX=.16;padY=.12}
+ if(className==="identitySuggestCrop"){padX=.2;padY=.16}
+ return cropImageHtml(url,cp,r,className,aspect,padX,padY,"",label);
 }
 function selectPerson(id,scrollList=true){
  selectedPersonId=id;

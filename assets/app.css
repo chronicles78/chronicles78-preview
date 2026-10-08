@@ -3133,8 +3133,10 @@ html[data-theme="dark"] .accountIdentity span{color:#aaa092}
     margin-bottom:6px!important;
   }
 }
-html[data-theme="dark"] .photoTileImage{
-  background:#eee6d8!important;
-  border-color:#6b6256!important;
-  box-shadow:0 12px 28px rgba(0,0,0,.34)!important;
+@media(max-width:760px){
+  html[data-theme="dark"] .photoTileImage{
+    background:#eee6d8!important;
+    border-color:#6b6256!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.34)!important;
+  }
 }

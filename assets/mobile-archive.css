@@ -112,3 +112,48 @@
 }
 @media(max-width:380px){.top .buildVersion{display:none!important}}
 
+
+
+/* v70 — mobile orientation and navigation */
+@media(max-width:760px){
+  .top .homeBrand{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    gap:2px!important;
+    min-width:0!important;
+    padding:4px 6px!important;
+    line-height:1!important;
+  }
+  .top .homeBrand>span{
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font:700 17px/1.05 Georgia,"Times New Roman",serif;
+    color:var(--ink);
+  }
+  #mobileSectionTitle{
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font:700 10px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    letter-spacing:.04em;
+    color:var(--muted);
+  }
+  .moreNavMenu{
+    max-height:min(68dvh,560px);
+    overflow:auto;
+    overscroll-behavior:contain;
+  }
+  .moreNavItem{
+    min-height:52px;
+  }
+}
+@media(min-width:761px){
+  #mobileSectionTitle{display:none!important}
+  .homeBrand>span{display:inline}
+}

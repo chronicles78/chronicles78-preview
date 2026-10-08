@@ -124,7 +124,7 @@ function showSignupConfirmationState(){
      ?"E-mail подтверждён. Подтвердите согласие, после этого заявка останется на рассмотрении администратора."
      :(pendingProfile?.access_blocked
        ?"E-mail подтверждён, но доступ не предоставлен или был отключён администратором."
-       :"E-mail подтверждён. Заявка передана администратору. Архив откроется после его решения.");
+       :"E-mail подтверждён. Регистрация подтверждена. Откройте профиль, чтобы продолжить.");
    openPhotoModal("E-mail подтверждён",
      '<div class="notice"><b>Адрес подтверждён.</b><br>'+esc(pendingText)+'</div>',
      async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
@@ -1304,7 +1304,7 @@ function renderProfile(){
    if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
    subscribeNotifications();setStatus("Онлайн · "+profileRoleLabel(profile.role));
  } else {
-   if($("adminLoginBox"))$("adminLoginBox").style.display="block";
+   if($("adminLoginBox"))$("adminLoginBox").style.display="none";
    $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";
    if($("loginContextHint"))$("loginContextHint").textContent=APP_STANDALONE
      ?"Сейчас сайт открыт как отдельное приложение с экрана «Домой». Его вход хранится отдельно от Safari."
@@ -1329,9 +1329,9 @@ async function init(){
  renderRooms();renderProfile();
  if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
  if(profile){subscribe();subscribeNotifications();setTimeout(prefetchClassPhotoUrls,0);}
- if(OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)await showView("profile");
+ if(OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START||!profile)await showView("profile");
  else await showView("home");
- if(OPEN_REGISTER_ON_START&&!user)setTimeout(openQuickRegistration,120);
+ if(OPEN_REGISTER_ON_START&&!user&&$("newRegistrationBox"))$("newRegistrationBox").style.display="block";
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
  appNavEnabled=true;
  updateContextBack();
@@ -1344,6 +1344,10 @@ async function finishOtpLogin(email,token){
  const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
  if(error)throw error;
  localStorage.removeItem(OTP_EMAIL_KEY);
+
+ const {error:completeError}=await sb.rpc("complete_archive_registration");
+ if(completeError&&!String(completeError.message||completeError).includes("consent not accepted"))throw completeError;
+
  await hydrateProfileFromSession(data.session,{render:false});
  renderProfile();
  if(profile){
@@ -1353,15 +1357,15 @@ async function finishOtpLogin(email,token){
  }
  if(pendingProfile){
    await showView("profile");
-   if(consentRequired&&pendingProfile.is_active&&!pendingProfile.access_blocked)return "consent";
+   if(consentRequired&&!pendingProfile.access_blocked)return "consent";
    return pendingProfile.access_blocked?"blocked":"pending";
  }
  throw new Error("Код принят, но профиль не найден.");
 }
-
 async function login(){
  $("loginError").className="";
  $("loginError").textContent="";
+ if($("newRegistrationBox"))$("newRegistrationBox").style.display="none";
  const email=$("email").value.trim().toLowerCase();
  if(!email){$("loginError").className="err";$("loginError").textContent="Введите e-mail.";return}
  $("loginBtn").disabled=true;
@@ -1377,15 +1381,54 @@ async function login(){
   $("otpCode").value="";
   $("otpCode").focus();
   $("loginError").className="ok";
-  $("loginError").innerHTML="<b>Код отправлен на "+esc(email)+".</b><br>Введите 8 цифр именно из последнего письма. Если приложение свернётся при открытии почты, этот e-mail сохранится.";
+  $("loginError").innerHTML="<b>Код отправлен.</b> Введите 8 цифр из последнего письма.";
  }catch(e){
-  $("loginError").className="err";
-  $("loginError").textContent=(e.message||String(e)).includes("Signups not allowed")
-    ?"Такой e-mail ещё не зарегистрирован. Нажмите «Запросить доступ»."
-    :(e.message||String(e));
+  const msg=e.message||String(e);
+  if(msg.includes("Signups not allowed")||msg.toLowerCase().includes("signup")){
+    if($("newRegistrationBox"))$("newRegistrationBox").style.display="block";
+    $("loginError").className="ok";
+    $("loginError").textContent="Этот e-mail ещё не зарегистрирован. Заполните имя и согласие ниже.";
+    setTimeout(()=>$("registrationName")?.focus(),0);
+  }else{
+    $("loginError").className="err";
+    $("loginError").textContent=msg;
+  }
  }finally{$("loginBtn").disabled=false}
 }
 
+async function registerAndSendOtp(){
+ const email=$("email").value.trim().toLowerCase();
+ const display_name=$("registrationName")?.value.trim()||"";
+ const consent=!!$("registrationConsent")?.checked;
+ const btn=$("registerOtpBtn");
+ if(!email){$("loginError").className="err";$("loginError").textContent="Введите e-mail.";return}
+ if(display_name.length<2){$("loginError").className="err";$("loginError").textContent="Введите имя и фамилию.";return}
+ if(!consent){$("loginError").className="err";$("loginError").textContent="Для регистрации необходимо принять согласие.";return}
+ btn.disabled=true;
+ $("loginError").className="ok";
+ $("loginError").textContent="Отправляю код…";
+ try{
+   const {error}=await sb.auth.signInWithOtp({
+     email,
+     options:{
+       shouldCreateUser:true,
+       emailRedirectTo:SITE_URL,
+       data:{display_name,consent_personal_data:true,consent_version:CONSENT_VERSION}
+     }
+   });
+   if(error)throw error;
+   localStorage.setItem(OTP_EMAIL_KEY,email);
+   $("newRegistrationBox").style.display="none";
+   $("otpLoginBox").style.display="block";
+   $("otpCode").value="";
+   $("otpCode").focus();
+   $("loginError").className="ok";
+   $("loginError").innerHTML="<b>Регистрация начата.</b> Код отправлен на "+esc(email)+". Введите 8 цифр — после этого откроется главная.";
+ }catch(e){
+   $("loginError").className="err";
+   $("loginError").textContent=e.message||String(e);
+ }finally{btn.disabled=false}
+}
 async function verifyLoginOtp(event){
  if(event?.preventDefault)event.preventDefault();
  const btn=$("otpVerifyBtn");
@@ -1403,10 +1446,10 @@ async function verifyLoginOtp(event){
    if(state==="active")return;
    $("loginError").className="ok";
    $("loginError").textContent=state==="blocked"
-     ?"Код подтверждён. Доступ к архиву отключён администратором."
+     ?"Код подтверждён. Доступ к архиву отключён."
      :(state==="consent"
-       ?"Код подтверждён. Ваш доступ уже одобрен; осталось обновить согласие."
-       :"Код подтверждён. Заявка ожидает решения администратора.");
+       ?"Код подтверждён. Осталось принять действующее согласие."
+       :"Код подтверждён. Регистрация ещё не завершена.");
  }catch(e){
    $("loginError").className="err";
    $("loginError").textContent=e.message||String(e);
@@ -1421,6 +1464,8 @@ async function passwordLogin(){
  $("loginError").textContent="";
  try{
   const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;
+  const {error:completeError}=await sb.rpc("complete_archive_registration");
+  if(completeError&&!String(completeError.message||completeError).includes("consent not accepted"))throw completeError;
   await hydrateProfileFromSession(data.session,{render:false});
   renderProfile();
   if(profile){subscribe();subscribeNotifications();showView("home");await loadHome();return}
@@ -1475,8 +1520,9 @@ function openAdminPasswordReset(){
    }
  );
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("home")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("profile")}
 $("loginBtn").onclick=login;
+if($("registerOtpBtn"))$("registerOtpBtn").onclick=registerAndSendOtp;
 $("otpCode").onkeydown=e=>{if(e.key==="Enter"){verifyLoginOtp(e)} };
 $("passwordLoginToggle").onclick=()=>{
  const box=$("passwordLoginBox");
@@ -1514,7 +1560,7 @@ function openQuickRegistration(){
      $("photoModalBody").innerHTML=
        '<div class="notice"><b>Письмо отправлено.</b><br>На '+esc(email)+' должен прийти 8-значный код подтверждения.</div>'+
        '<label>Код из письма</label><input id="pfRegOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">'+
-       '<div class="formHint">Введите код здесь — не нужно переходить в Safari. После подтверждения заявка появится у администратора.</div>';
+       '<div class="formHint">Введите код здесь — не нужно переходить в Safari. После подтверждения регистрация завершится автоматически.</div>';
      $("photoModalSave").textContent="Подтвердить код";
      photoModalSubmit=async()=>{
        $("photoModalMsg").textContent="Проверяю код…";
@@ -1524,8 +1570,8 @@ function openQuickRegistration(){
          return;
        }
        $("photoModalBody").innerHTML=
-         '<div class="notice"><b>E-mail подтверждён.</b><br>Заявка передана администратору проекта.</div>'+
-         '<div class="formHint">Архив откроется после решения администратора. Вы можете позже открыть Профиль и нажать «Проверить решение».</div>';
+         '<div class="notice"><b>E-mail подтверждён.</b><br>Регистрация подтверждена.</div>'+
+         '<div class="formHint">Откройте Профиль, чтобы завершить вход.</div>';
        $("photoModalMsg").textContent="";
        $("photoModalSave").textContent="Перейти в профиль";
        photoModalSubmit=async()=>{closePhotoModal();await showView("profile")};
@@ -1534,7 +1580,7 @@ function openQuickRegistration(){
  );
  $("photoModalSave").textContent="Отправить заявку";
 }
-$("goRegisterBtn").onclick=openQuickRegistration;
+if($("goRegisterBtn"))$("goRegisterBtn").onclick=openQuickRegistration;
 
 async function acceptCurrentConsent(){
  if(!user)return;
@@ -1543,6 +1589,8 @@ async function acceptCurrentConsent(){
  try{
    const {error}=await sb.rpc("accept_archive_personal_data_consent");
    if(error)throw error;
+   const {error:completeError}=await sb.rpc("complete_archive_registration");
+   if(completeError)throw completeError;
    const {data:{session}}=await sb.auth.getSession();
    await hydrateProfileFromSession(session,{render:false});
    renderProfile();

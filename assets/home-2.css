@@ -284,3 +284,30 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
 .h2HomeTv .eraTvCaption{display:none}
 @media(min-width:761px){.h2HomeTv .eraTvSet{max-width:26cqw}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) 3.1cqw;padding:.8cqw;gap:.5cqw}.h2HomeTv .eraTvDials{gap:.4cqw}.h2HomeTv .eraTvDials button{width:2.6cqw;height:2.6cqw;font-size:1.5cqw}.h2HomeTv .eraTvDials button:last-child{font-size:1.2cqw}}
 @media(max-width:760px){.h2HomeTv{padding:16px;gap:0}}
+
+
+/* v72 — clearer Home 2 top navigation */
+.h2Nav{
+  left:10.5%;
+  right:2.5%;
+  gap:1.7cqw;
+  padding-left:.8cqw;
+  padding-right:.45cqw;
+}
+.h2Nav button:not(.h2Icon){
+  font-size:1.02cqw;
+  font-weight:650;
+  letter-spacing:.01em;
+}
+.h2Nav .h2Profile{margin-left:0}
+#homeSearchBtn{margin-left:auto}
+.h2Nav .h2Icon{
+  width:2.45cqw;
+  height:2.45cqw;
+  font-size:1.55cqw;
+  border-radius:50%;
+}
+.h2Nav .h2Icon:hover{
+  background:rgba(41,58,71,.065);
+}
+.h2Nav svg{width:1.55cqw;height:1.55cqw;stroke-width:1.8}

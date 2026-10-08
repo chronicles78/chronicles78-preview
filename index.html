@@ -42,7 +42,7 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">Home 2.0</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button">Главная</button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink" data-view="profile" type="button">Профиль</button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">v20261008-63</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
 <main>
 <section id="home" class="view active home2">
   <div class="home2Stage" id="home2Stage">
@@ -396,7 +396,7 @@
     </div>
   </section>
 </div>
-<div class="card form" id="adminLoginBox">
+<div class="card form" id="adminLoginBox" style="display:none">
   <b>Вход администратора</b>
   <div class="notice" style="margin-top:9px"><b>Отдельный вход без заявок и согласований.</b><br>Введите e-mail администратора и пароль.</div>
   <label>E-mail администратора</label>
@@ -409,27 +409,44 @@
 </div>
 
 <div class="card form" id="loginBox">
-  <b>Вход участника</b>
-  <div class="notice" style="margin-top:9px"><b>Уже допущены?</b><br>Введите e-mail. Мы пришлём 8-значный код — введите его здесь же. Пароль не нужен.</div>
+  <b>Вход в «Хроники-78»</b>
+  <div class="notice" style="margin-top:9px"><b>Один вход для всех.</b><br>Введите e-mail. Если вы уже зарегистрированы, мы сразу пришлём код. Если вы здесь впервые — регистрация продолжится в этом же окне.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261002-30</div>
-  <label>E-mail</label><input id="email" type="email" autocomplete="email" placeholder="name@example.com">
-  <button class="primary" id="loginBtn">Получить код для входа</button>
-  <div id="otpLoginBox" style="display:none;margin-top:10px">
-    <label>8-значный код из письма</label>
+  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия входа: 20261008-1</div>
+  <label>E-mail</label>
+  <input id="email" type="email" autocomplete="email" placeholder="name@example.com">
+  <button class="primary" id="loginBtn" type="button">Продолжить</button>
+
+  <div id="newRegistrationBox" style="display:none;margin-top:14px">
+    <div class="notice"><b>Первый вход.</b><br>Укажите имя и примите правила закрытого архива. После подтверждения кода регистрация завершится автоматически.</div>
+    <label>Имя и фамилия</label>
+    <input id="registrationName" autocomplete="name" placeholder="Например, Алексей Петров">
+    <label class="checkItem" style="margin-top:12px">
+      <input id="registrationConsent" type="checkbox">
+      <span>Я принимаю правила проекта и даю согласие на обработку персональных данных для работы закрытого архива. <a href="consent.html" target="_blank" rel="noopener">Прочитать полностью</a></span>
+    </label>
+    <button class="primary" id="registerOtpBtn" type="button">Зарегистрироваться и получить код</button>
+  </div>
+
+  <div id="otpLoginBox" style="display:none;margin-top:14px">
+    <div class="notice"><b>Код отправлен.</b><br>Введите 8 цифр из последнего письма.</div>
+    <label>8-значный код</label>
     <input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">
-    <button class="primary" id="otpVerifyBtn" type="button" onclick="verifyLoginOtp(event)">Подтвердить код</button>
+    <button class="primary" id="otpVerifyBtn" type="button" onclick="verifyLoginOtp(event)">Войти</button>
   </div>
   <div id="loginError"></div>
-  <div class="notice" style="margin-top:14px"><b>Впервые здесь?</b><br>Запросите доступ: подтвердите e-mail, после чего администратор решит, допустить ли вас в закрытый архив.</div>
-  <button class="secondary" id="goRegisterBtn" type="button">Запросить доступ</button>
-  <button class="secondary" id="passwordLoginToggle" type="button">Резервный вход участника по старому паролю</button>
-  <div id="passwordLoginBox" style="display:none;margin-top:9px">
-    <div class="formHint">Только для старых учётных записей, где пароль уже был задан. Для обычного входа этот раздел не нужен.</div>
-    <label>Пароль</label><input id="password" type="password" autocomplete="current-password">
-    <button class="secondary" id="passwordLoginBtn" type="button">Войти по старому паролю</button>
-    <button class="secondary" id="forgotPasswordBtn" type="button">Восстановить старый пароль</button>
-  </div>
+
+  <details style="margin-top:16px">
+    <summary class="small">Резервный вход по старому паролю</summary>
+    <div id="passwordLoginBox" style="margin-top:9px">
+      <div class="formHint">Только для старых учётных записей, где пароль уже был задан.</div>
+      <label>Пароль</label><input id="password" type="password" autocomplete="current-password">
+      <button class="secondary" id="passwordLoginBtn" type="button">Войти по старому паролю</button>
+      <button class="secondary" id="forgotPasswordBtn" type="button">Восстановить старый пароль</button>
+    </div>
+  </details>
+  <button id="passwordLoginToggle" type="button" style="display:none"></button>
+</div>
 </div>
 </div></section>
 </main>
@@ -476,7 +493,7 @@
 
 </div></nav>
 
-<script src="assets/js/core.js?v=20261007-15"></script>
+<script src="assets/js/core.js?v=20261008-16"></script>
 <script src="assets/js/chat.js?v=20261002-2"></script>
 <script src="assets/js/story-assistant.js?v=20260929-3"></script>
 <script src="assets/js/people.js?v=20261005-62"></script>

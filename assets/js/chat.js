@@ -238,7 +238,7 @@ async function loadRoom(){
        wait.innerHTML='<span>Фото не удалось открыть.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
      };
      if(!url){showError();return}
-     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom)return;img.style.display="";wait.style.display="none"};
+     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom)return;img.style.display="";wait.style.display="none";requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
      img.onerror=showError;
      img.src=url;
    });
@@ -265,7 +265,7 @@ async function retryChatPhoto(attachmentId){
  try{
    const url=await signedImage(a.current_storage_path);
    if(!url)throw new Error("signed url unavailable");
-   img.onload=()=>{img.style.display="";wait.style.display="none"};
+   img.onload=()=>{img.style.display="";wait.style.display="none";requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
    img.onerror=()=>{img.style.display="none";wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>'};
    img.src=url;
  }catch{

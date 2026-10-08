@@ -51,6 +51,7 @@
     if(tvSet&&tvPage)tvPage.append(tvSet);
     stage.innerHTML=initial;sizeWeekPhoto();mountHomeTv();tvOwner=null;powerOffEraTv();
     closeSearch();homeThemeSync();
+    if(typeof syncAccountNavigation==="function")syncAccountNavigation();
   }
   function setObject(node,type,id,group){
     if(!node)return;

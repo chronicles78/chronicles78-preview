@@ -48,3 +48,143 @@ html[data-theme=dark] .home2Stage>.communityHome button{background:#34352c;color
 @media(max-width:760px){.home2Stage>.communityHome{position:relative;left:auto;right:auto;top:auto;height:auto;margin:20px 16px;grid-template-columns:1fr;gap:12px}.home2Stage>.communityHome .communityPanel{padding:16px;max-height:240px;min-height:125px}.home2Stage>.communityHome h3{font-size:23px;margin-bottom:8px}.home2Stage>.communityHome .communityPanel>div{font-size:15px}.home2Stage>.communityHome button{font-size:14px;padding:7px 10px;margin-top:8px}.home2Stage>.communityHome p{margin:5px 0}.home2Stage>.communityHome img{max-height:100px;margin-right:10px}}
 
 @media(min-width:761px){.home2Stage>.communityHome{right:35.83%;height:8.66%;grid-template-columns:repeat(2,minmax(0,1fr))}.home2Stage>.communityHome .communityPanel{padding:.55cqw 1cqw}.home2Stage>.communityHome h3{font-size:1.4cqw;margin-bottom:.3cqw}.home2Stage>.communityHome .communityPanel>div{font-size:.95cqw}.home2Stage>.communityHome button{font-size:.9cqw;padding:.2cqw .4cqw;margin-top:.2cqw}}
+
+
+/* v68 — polished "Then / Now" personal dossier */
+.memoryDossier{
+  margin:4px 0 0;
+  color:var(--ink,#173b5c);
+}
+.memoryDossierHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  padding:2px 2px 14px;
+  border-bottom:1px solid rgba(23,59,92,.14);
+}
+.memoryDossierHead h3{
+  margin:2px 0 2px;
+  font:700 clamp(28px,4vw,42px)/1.02 var(--font-editorial,Georgia,serif);
+  letter-spacing:-.02em;
+}
+.memoryDossierHead span{
+  display:block;
+  font-size:13px;
+  opacity:.68;
+}
+.memoryDossierEyebrow{
+  font:700 11px/1.2 var(--font-interface,Arial,sans-serif);
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  opacity:.62;
+}
+.memoryDossierPhotos{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:26px;
+  align-items:start;
+  padding:24px 8px 18px;
+}
+.memoryDossierPhotos figure{margin:0}
+.memoryPhotoFrame{
+  position:relative;
+  max-width:320px;
+  margin:auto;
+  padding:10px 10px 28px;
+  background:#fffdf7;
+  box-shadow:0 12px 30px rgba(53,42,25,.18),0 2px 6px rgba(53,42,25,.12);
+  border:1px solid rgba(83,67,42,.12);
+}
+.memoryDossierPhotos figure:first-child .memoryPhotoFrame{transform:rotate(-1.25deg)}
+.memoryDossierPhotos figure:last-child .memoryPhotoFrame{transform:rotate(1.1deg)}
+.memoryPhotoFrame img,
+.memoryPhotoMissing{
+  display:block;
+  width:100%;
+  aspect-ratio:4/5;
+  object-fit:cover;
+  background:#e9e0cd;
+}
+.memoryPhotoMissing{
+  display:grid;
+  place-items:center;
+  box-sizing:border-box;
+  padding:20px;
+  text-align:center;
+  font-size:13px;
+  opacity:.65;
+}
+.memoryDossierPhotos figcaption{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  max-width:320px;
+  margin:10px auto 0;
+}
+.memoryDossierPhotos figcaption b{
+  font:700 24px/1 var(--font-editorial,Georgia,serif);
+}
+.memoryDossierPhotos figcaption span{
+  font-size:12px;
+  opacity:.6;
+}
+.memoryDossierNarrative{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-top:4px;
+}
+.memoryDossierText{
+  padding:18px 20px;
+  background:linear-gradient(180deg,rgba(255,253,247,.72),rgba(247,239,224,.72));
+  border:1px solid rgba(124,101,65,.16);
+}
+.memoryDossierText h4{
+  margin:4px 0 10px;
+  font:700 24px/1.1 var(--font-editorial,Georgia,serif);
+}
+.memoryDossierText p{
+  margin:0;
+  white-space:pre-line;
+  font:16px/1.62 var(--font-editorial,Georgia,serif);
+}
+.memoryDossierText details{margin-top:12px}
+.memoryDossierText summary{
+  cursor:pointer;
+  font-weight:700;
+  color:var(--accent,#984c45);
+}
+.memoryDossierText details p{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid rgba(124,101,65,.14);
+}
+.memoryDossierText.empty{opacity:.7}
+.memoryDossierOwn{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:16px;
+}
+.memoryIdentityLink{margin:12px 0 14px}
+.communityMemoryEditPair textarea{min-height:180px}
+html[data-theme="dark"] .memoryDossier{color:#eadcc5}
+html[data-theme="dark"] .memoryDossierHead{border-bottom-color:rgba(234,220,197,.14)}
+html[data-theme="dark"] .memoryPhotoFrame{background:#e8dfcf;border-color:#51483c;box-shadow:0 14px 32px rgba(0,0,0,.36)}
+html[data-theme="dark"] .memoryDossierText{
+  background:linear-gradient(180deg,rgba(52,48,40,.92),rgba(42,39,33,.92));
+  border-color:rgba(234,220,197,.12);
+}
+html[data-theme="dark"] .memoryDossierText details p{border-top-color:rgba(234,220,197,.12)}
+
+@media(max-width:760px){
+  .memoryDossierPhotos{gap:14px;padding:18px 0 14px}
+  .memoryPhotoFrame{padding:7px 7px 20px}
+  .memoryDossierPhotos figcaption b{font-size:20px}
+  .memoryDossierPhotos figcaption span{display:none}
+  .memoryDossierNarrative{grid-template-columns:1fr}
+  .memoryDossierText{padding:16px}
+  .memoryDossierText p{font-size:15px}
+  .memoryDossierHead h3{font-size:30px}
+}

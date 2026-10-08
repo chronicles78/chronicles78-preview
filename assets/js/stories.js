@@ -74,7 +74,8 @@ function renderStoriesCatalog(){
  const renderCard=s=>{
    const people=(s.data?.people||[]).map(storyPersonName).filter(Boolean);
    const kws=(s.data?.keywords||[]).slice(0,4).map(x=>'<button class="badge tagLink" data-tag="'+esc(x)+'">'+esc(x)+'</button>').join("");
-   const summary=s.data?.editorial_summary||(s.data?.chapter?.subtitle||"");
+   const storyExcerpt=String(s.data?.story_text||"").replace(/\s+/g," ").trim();
+   const summary=storyExcerpt?(storyExcerpt.length>220?storyExcerpt.slice(0,217)+"…":storyExcerpt):"";
    const claims=s.data?.chapter?.claims?.length||0;
    const evidence=s.data?.chapter?.evidence?.length||0;
    const media=(s.data?.media_ids||[]).length;
@@ -235,81 +236,80 @@ async function openStory(id){
  const ch=s.data?.chapter;
  const cover=storyCoverFor(s);
  const isFragment=storyState(s)==="фрагмент памяти";
+ const editorialMode=["editor","admin"].includes(profile?.role);
+ const storyText=String(s.data?.story_text||"").trim();
+
  let html='<div class="storyHero">'+
    (cover?.url?'<div class="storyHeroCover"><img src="'+cover.url+'" alt="'+esc(cover.title||s.title)+'"></div>':'')+
    '<div class="storyHeroInner"><div class="memoryEyebrow">'+esc(isFragment?(s.data?.fragment_type||"ФРАГМЕНТ ПАМЯТИ"):(s.period||"ИЗ ПАМЯТИ КЛАССА"))+'</div>'+
    '<h2>'+esc(s.title)+'</h2>'+
-   '<div class="storyMeta"><button class="badge tagLink" data-tag="'+esc(s.id)+'">'+esc(s.id)+'</button>'+(s.kind?'<button class="badge tagLink" data-tag="'+esc(s.kind)+'">'+esc(s.kind)+'</button>':'')+'<span class="badge">'+esc(storyState(s))+'</span>'+(s.full_chapter?'<span class="badge">развёрнутая реконструкция</span>':'')+'</div>';
- if(!ch){
-   if(s.data?.editorial_summary){
-     html+='<div class="storyIntro">'+esc(s.data.editorial_summary)+'</div>';
-     if(isFragment){
-       const oq=fragmentOpenQuestion(s);
-       html+='<section class="storySection fragmentKnown"><div class="sectionTitle">Что известно</div>'+(s.data?.highlights?.length?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join(""):'<div class="storyFact">'+esc(s.data.editorial_summary)+'</div>')+'</section>';
-       if(oq)html+='<section class="storySection fragmentQuestion"><div class="sectionTitle">Что ещё не установлено</div><div class="storyQuestion">'+esc(oq)+'</div></section>';
-     }
-     html+='</div></div>';
-     if(s.data?.story_text)html+='<section class="storySection storyReadingText"><div class="storyLayerLabel">РЕДАКЦИОННЫЙ ТЕКСТ</div><div class="sectionTitle">История</div><div class="storyProse">'+esc(s.data.story_text).replace(/\n/g,"<br>")+'</div></section>';
-     if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
-       html+='<section class="storySection storySources"><div class="storyLayerLabel">ПЕРВОИСТОЧНИКИ</div><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Слова участников сохранены отдельно от редакционной реконструкции.</p>';
-       s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+(src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+'<div class="storySourceText">'+esc(src.text||"").replace(/\n/g,"<br>")+'</div></article>'});
-       html+='</section>';
-     }
-     if(!isFragment&&(s.data?.highlights?.length||s.data?.source_basis)){
+   '<div class="storyMeta"><button class="badge tagLink" data-tag="'+esc(s.id)+'">'+esc(s.id)+'</button>'+
+     (s.kind?'<button class="badge tagLink" data-tag="'+esc(s.kind)+'">'+esc(s.kind)+'</button>':'')+
+     '<span class="badge">'+esc(storyState(s))+'</span>'+
+     (ch?.place?'<span class="badge">Место: '+esc(ch.place)+'</span>':'')+
+   '</div></div></div>';
+
+ if(storyText){
+   html+='<section class="storySection storyReadingText"><div class="storyProse">'+esc(storyText).replace(/\n/g,"<br>")+'</div></section>';
+ }else if(!isFragment){
+   html+='<div class="notice">Текст этой истории пока не подготовлен.</div>';
+ }
+
+ if(isFragment){
+   const oq=fragmentOpenQuestion(s);
+   const known=s.data?.highlights?.length
+     ?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join("")
+     :(s.data?.editorial_summary?'<div class="storyFact">'+esc(s.data.editorial_summary)+'</div>':'');
+   if(known)html+='<section class="storySection fragmentKnown"><div class="sectionTitle">Что известно</div>'+known+'</section>';
+   if(oq)html+='<section class="storySection fragmentQuestion"><div class="sectionTitle">Что ещё не установлено</div><div class="storyQuestion">'+esc(oq)+'</div></section>';
+   if(s.data?.source_basis)html+='<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>';
+ }
+
+ if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
+   html+='<section class="storySection storySources"><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Слова участников сохранены отдельно.</p>';
+   s.data.original_sources.forEach(src=>{
+     html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+
+       (src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+
+       '<div class="storySourceText">'+esc(src.text||"").replace(/\n/g,"<br>")+'</div></article>';
+   });
+   html+='</section>';
+ }
+
+ // Reconstruction and AI/editorial summaries are useful to the editorial team,
+ // but they should not interrupt ordinary reading.
+ if(editorialMode){
+   if(!ch){
+     if(!isFragment&&(s.data?.highlights?.length||s.data?.source_basis||s.data?.editorial_summary)){
        html+='<section class="storySection storyEditorialNote"><div class="storyLayerLabel">РЕДАКЦИОННОЕ ДОСЬЕ</div><div class="sectionTitle">Редакторская справка</div>'+
+         (s.data?.editorial_summary?'<div class="storySource">'+esc(s.data.editorial_summary)+'</div>':'')+
          (s.data?.highlights?.length?s.data.highlights.map(x=>'<div class="storyFact">'+esc(x)+'</div>').join(""):'')+
          (s.data?.source_basis?'<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>':'')+
        '</section>';
-     }else if(isFragment&&s.data?.source_basis){
-       html+='<div class="storySource"><b>Основание:</b> '+esc(s.data.source_basis)+'</div>';
      }
-   } else {
-     html+='<div class="storyIntro">Для этой истории пока собрана карточка и связи с архивом. Развёрнутая редакционная реконструкция ещё не подготовлена.</div></div></div>';
-   }
-   const kws=s.data?.keywords||[];
-   if(kws.length)html+='<section class="storySection"><div class="sectionTitle">Ключевые темы</div><div class="storyKeywords">'+kws.map(x=>'<button class="badge tagLink" data-tag="'+esc(x)+'">'+esc(x)+'</button>').join("")+'</div></section>';
- } else {
-   html+=(ch.subtitle?'<div class="storyIntro"><b>'+esc(ch.subtitle)+'</b></div>':'')+
-     '<div class="storyMeta">'+
-     (ch.place?'<span class="badge">Место: '+esc(ch.place)+'</span>':'')+
-     (ch.event_status?'<span class="badge">Статус: '+esc(ch.event_status)+'</span>':'')+
-     '</div>'+
-     '</div></div>';
+   }else{
+     html+='<section class="storySection storyReconstruction"><div class="storyLayerLabel">РЕКОНСТРУКЦИЯ ПО СВИДЕТЕЛЬСТВАМ</div><div class="sectionTitle">Что удалось восстановить</div>'+
+       (ch.editorial_note?'<div class="storySource">'+esc(ch.editorial_note)+'</div>':'')+
+       '</section>'+
+       personGroupHtml("Подтверждённые участники",ch.participants?.confirmed)+
+       personGroupHtml("Возможные участники",ch.participants?.possible)+
+       personGroupHtml("Отсутствовали / не подтверждены",ch.participants?.absent||ch.participants?.absent_or_not_on_photo);
 
-   // A chapter is the reconstruction dossier, not a replacement for the story itself.
-   // Always show the readable editorial story first when story_text exists.
-   if(String(s.data?.story_text||"").trim()){
-     html+='<section class="storySection storyReadingText"><div class="storyLayerLabel">САМА ИСТОРИЯ</div><div class="sectionTitle">Читать историю</div><div class="storyProse">'+esc(s.data.story_text).replace(/\\n/g,"<br>")+'</div></section>';
-   }
-
-   html+='<section class="storySection storyReconstruction"><div class="storyLayerLabel">РЕКОНСТРУКЦИЯ ПО СВИДЕТЕЛЬСТВАМ</div><div class="sectionTitle">Что удалось восстановить</div>'+
-     (ch.editorial_note?'<div class="storySource">'+esc(ch.editorial_note)+'</div>':'')+
-     '</section>'+
-     personGroupHtml("Подтверждённые участники",ch.participants?.confirmed)+
-     personGroupHtml("Возможные участники",ch.participants?.possible)+
-     personGroupHtml("Отсутствовали / не подтверждены",ch.participants?.absent||ch.participants?.absent_or_not_on_photo);
-
-   if(ch.claims?.length){
-     html+='<section class="storySection"><div class="sectionTitle">Факты и версии</div>'+
-       ch.claims.map(c=>'<div class="storyFact"><b>'+esc(c.title)+'</b><div>'+(c.status?'<span class="badge">'+esc(c.status)+'</span>':'')+(c.certainty?'<span class="badge">'+esc(c.certainty)+'</span>':'')+'</div><div class="small">'+esc(c.summary||"")+'</div></div>').join("")+
-     '</section>';
-   }
-   if(ch.evidence?.length){
-     html+='<section class="storySection"><div class="sectionTitle">Свидетельства</div>'+
-       ch.evidence.map(e=>'<div class="storyEvidence"><b>'+esc(e.author||"")+'</b> '+(e.kind?'<span class="badge">'+esc(e.kind)+'</span>':'')+(e.date?'<div class="small">'+esc(e.date)+'</div>':'')+(e.quote?'<div class="quote">«'+esc(e.quote)+'»</div>':'')+(e.editorial_summary&&e.editorial_summary!==e.quote?'<div class="small" style="margin-top:7px">'+esc(e.editorial_summary)+'</div>':'')+'</div>').join("")+
-     '</section>';
-   }
-
-   if(Array.isArray(s.data?.original_sources)&&s.data.original_sources.length){
-     html+='<section class="storySection storySources"><div class="storyLayerLabel">ПЕРВОИСТОЧНИКИ</div><div class="sectionTitle">Как это вспоминали</div><p class="storySourceIntro">Слова участников сохранены отдельно от редакционной реконструкции.</p>';
-     s.data.original_sources.forEach(src=>{html+='<article class="storySourceItem"><div class="storySourceMeta"><b>'+esc(src.author||"Участник")+'</b><span>'+esc([src.date,src.time].filter(Boolean).join(" · "))+'</span></div>'+(src.source_type?'<div class="storySourceType">'+esc(src.source_type)+'</div>':'')+'<div class="storySourceText">'+esc(src.text||"").replace(/\\n/g,"<br>")+'</div></article>'});
-     html+='</section>';
-   }
-
-   if(ch.open_questions?.length){
-     html+='<section class="storySection"><div class="sectionTitle">Что ещё не установлено</div>'+ch.open_questions.map(q=>'<div class="storyQuestion">'+esc(q)+'</div>').join("")+'</section>';
+     if(ch.claims?.length){
+       html+='<section class="storySection"><div class="sectionTitle">Факты и версии</div>'+
+         ch.claims.map(c=>'<div class="storyFact"><b>'+esc(c.title)+'</b><div>'+(c.status?'<span class="badge">'+esc(c.status)+'</span>':'')+(c.certainty?'<span class="badge">'+esc(c.certainty)+'</span>':'')+'</div><div class="small">'+esc(c.summary||"")+'</div></div>').join("")+
+       '</section>';
+     }
+     if(ch.evidence?.length){
+       html+='<section class="storySection"><div class="sectionTitle">Свидетельства</div>'+
+         ch.evidence.map(e=>'<div class="storyEvidence"><b>'+esc(e.author||"")+'</b> '+(e.kind?'<span class="badge">'+esc(e.kind)+'</span>':'')+(e.date?'<div class="small">'+esc(e.date)+'</div>':'')+(e.quote?'<div class="quote">«'+esc(e.quote)+'»</div>':'')+(e.editorial_summary&&e.editorial_summary!==e.quote?'<div class="small" style="margin-top:7px">'+esc(e.editorial_summary)+'</div>':'')+'</div>').join("")+
+       '</section>';
+     }
+     if(ch.open_questions?.length){
+       html+='<section class="storySection"><div class="sectionTitle">Что ещё не установлено</div>'+ch.open_questions.map(q=>'<div class="storyQuestion">'+esc(q)+'</div>').join("")+'</section>';
+     }
    }
  }
+
  $("storyDetailBody").innerHTML=html;
  $("storyDetail").classList.add("open");
  $("storyDetail").scrollTop=0;

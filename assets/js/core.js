@@ -682,8 +682,17 @@ window.addEventListener("popstate",async e=>{
  updateContextBack();
 });
 setTimeout(()=>{syncHistoryEntry();updateContextBack()},0);
+function syncMobileSectionTitle(v){
+ const titles={
+  home:"Главная",people:"Люди",stories:"Истории",chat:"Чат",photos:"Фото и видео",
+  city:"Город и время",questions:"Вопросы",tv:"Телевизор",profile:"Служебный"
+ };
+ const el=$("mobileSectionTitle");
+ if(el)el.textContent=titles[v]||"";
+}
 function showView(v,{track=true}={}){
  if(!v)return Promise.resolve(false);
+ syncMobileSectionTitle(v);
  if(v==="profile"&&profile?.role!=="admin"){
    openAccountModal();
    return Promise.resolve(false);
@@ -1176,7 +1185,7 @@ function initAccountUi(){
    document.documentElement.dataset.accountClickBound="1";
    document.addEventListener("click",e=>{
      const btn=e.target.closest?.(".accountEntryBtn");
-     if(btn){e.preventDefault();openAccountModal()}
+     if(btn){e.preventDefault();closeMoreNav();openAccountModal()}
    });
  }
  if($("accountModalClose"))$("accountModalClose").onclick=closeAccountModal;

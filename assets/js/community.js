@@ -307,13 +307,42 @@
  window.openMemberMemoryEditor=()=>editMemory();
 
  async function heartbeat(){
-   const uid=owner(),epoch=generation;if(!uid||document.hidden||heartbeatBusy)return;heartbeatBusy=true;
+   const uid=owner(),epoch=generation;if(document.hidden||heartbeatBusy)return;heartbeatBusy=true;
+   const box=node('communityOnline');
    try{
+     if(!uid){
+       const count=check(await sb.rpc('online_member_count'));
+       if(!box)return;
+       const n=Number(count||0);
+       box.innerHTML=n
+         ?'<div class="onlineSummary"><span class="onlineDot" aria-hidden="true"></span><b>'+n+' '+(n===1?'человек сейчас на сайте':(n<5?'человека сейчас на сайте':'человек сейчас на сайте'))+'</b></div><p class="communityMuted">Войдите, чтобы увидеть, кто именно онлайн.</p>'
+         :'<div class="onlineSummary"><span class="onlineDot idle" aria-hidden="true"></span><b>Сейчас никого нет онлайн</b></div>';
+       return;
+     }
+
      check(await sb.from('site_presence').upsert({user_id:uid,last_seen_at:new Date().toISOString()}));
-     const rows=check(await sb.from('site_presence').select('user_id,last_seen_at,person:profiles(display_name)').gt('last_seen_at',new Date(Date.now()-90000).toISOString()))||[];
-     if(!current(uid,epoch))return;
-     node('communityOnline').innerHTML=rows.length?'<b>'+rows.length+' онлайн</b><p>'+esc(rows.map(r=>r.person?.display_name||'Участник').join(', '))+'</p>':'Сейчас нет активных участников.';
-   }catch(e){if(current(uid,epoch))node('communityOnline').textContent='Статус онлайн временно недоступен.'}finally{heartbeatBusy=false}
+     const rows=check(await sb.from('site_presence').select('user_id,last_seen_at').gt('last_seen_at',new Date(Date.now()-90000).toISOString()).order('last_seen_at',{ascending:false}))||[];
+     const ids=rows.map(r=>r.user_id);
+     let profiles=[];
+     if(ids.length)profiles=check(await sb.from('profiles').select('id,display_name,person_id,class_group').in('id',ids))||[];
+     if(!current(uid,epoch)||!box)return;
+     const byId=new Map(profiles.map(p=>[p.id,p]));
+     const people=rows.map(r=>({...r,person:byId.get(r.user_id)||null}));
+     box.innerHTML=people.length
+       ?'<div class="onlineSummary"><span class="onlineDot" aria-hidden="true"></span><b>'+people.length+' онлайн</b></div><div class="onlinePeople">'+people.map(r=>r.person?.person_id
+         ?'<button type="button" class="onlinePerson" data-online-person="'+esc(r.person.person_id)+'"><span class="onlineDot" aria-hidden="true"></span><b>'+esc(r.person.display_name||'Участник')+'</b>'+(r.person.class_group?'<small>'+esc(r.person.class_group)+'</small>':'')+'</button>'
+         :'<span class="onlinePerson passive"><span class="onlineDot" aria-hidden="true"></span><b>'+esc(r.person?.display_name||'Участник')+'</b></span>'
+       ).join('')+'</div>'
+       :'<div class="onlineSummary"><span class="onlineDot idle" aria-hidden="true"></span><b>Сейчас нет активных участников</b></div>';
+     box.querySelectorAll('[data-online-person]').forEach(btn=>btn.onclick=async()=>{
+       const personId=btn.dataset.onlinePerson;
+       await showView('people');
+       if(typeof loadPeople==='function')await loadPeople();
+       if(typeof openPersonContext==='function')openPersonContext(personId);
+     });
+   }catch(e){
+     if(box)box.textContent='Статус онлайн временно недоступен.';
+   }finally{heartbeatBusy=false}
  }
  const oldLoadHome=loadHome;
  loadHome=async()=>{await oldLoadHome();void homeWidgets();void heartbeat()};
@@ -422,11 +451,11 @@
  };
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void heartbeat()});
  sb.auth.onAuthStateChange(event=>{
-   if(event==='SIGNED_OUT'){generation++;librarySeq++;memory=null;libraryItems=[];libraryImages?.disconnect();if(node('communityProfile'))node('communityProfile').hidden=true;if(node('communityProfilePreview'))node('communityProfilePreview').innerHTML='';node('storiesList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('photosList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('communityTimeline').innerHTML='';node('communityLibraryItems').innerHTML='';notice('communityLibraryStatus','Войдите, чтобы открыть материалы диалога.');node('communityOnline').textContent='Войдите, чтобы увидеть одноклассников онлайн.';node('communityDay').textContent='События и фотографии из закрытого архива.';node('storyDetailBody').querySelector('#communityStoryMedia')?.remove();closePhotoModal()}
+   if(event==='SIGNED_OUT'){generation++;librarySeq++;memory=null;libraryItems=[];libraryImages?.disconnect();if(node('communityProfile'))node('communityProfile').hidden=true;if(node('communityProfilePreview'))node('communityProfilePreview').innerHTML='';node('storiesList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('photosList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('communityTimeline').innerHTML='';node('communityLibraryItems').innerHTML='';notice('communityLibraryStatus','Войдите, чтобы открыть материалы диалога.');void heartbeat();node('communityDay').textContent='События и фотографии из закрытого архива.';node('storyDetailBody').querySelector('#communityStoryMedia')?.remove();closePhotoModal()}
  });
  setup();
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
- if(active()){void renderMemory();void homeWidgets();void heartbeat()}
- window.CommunityPreview={version:'20261008-14',storyTopics,yearsFor,loadLibrary};
+ if(active()){void renderMemory();void homeWidgets()} void heartbeat()
+ window.CommunityPreview={version:'20261008-15',storyTopics,yearsFor,loadLibrary};
 })();

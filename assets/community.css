@@ -188,3 +188,53 @@ html[data-theme="dark"] .memoryDossierText details p{border-top-color:rgba(234,2
   .memoryDossierText p{font-size:15px}
   .memoryDossierHead h3{font-size:30px}
 }
+
+
+/* v72 — online presence */
+.onlineSummary{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:2px 0 8px;
+}
+.onlineDot{
+  width:8px;
+  height:8px;
+  flex:0 0 8px;
+  border-radius:50%;
+  background:#4f9a66;
+  box-shadow:0 0 0 3px rgba(79,154,102,.13);
+}
+.onlineDot.idle{
+  background:#aaa18e;
+  box-shadow:none;
+}
+.onlinePeople{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:8px 0 4px;
+}
+.onlinePerson{
+  appearance:none;
+  display:inline-flex!important;
+  align-items:center;
+  gap:7px;
+  width:auto!important;
+  margin:0!important;
+  padding:7px 10px!important;
+  border:1px solid var(--line,#d7c9ac)!important;
+  border-radius:999px!important;
+  background:rgba(255,253,248,.55)!important;
+  color:inherit!important;
+  text-align:left!important;
+  cursor:pointer;
+}
+.onlinePerson.passive{cursor:default}
+.onlinePerson b{font:700 13px/1.1 var(--font-interface,Arial,sans-serif)}
+.onlinePerson small{font-size:10px;opacity:.62}
+html[data-theme="dark"] .onlinePerson{background:rgba(255,255,255,.025)!important}
+@media(max-width:760px){
+  .onlinePeople{gap:6px}
+  .onlinePerson{padding:7px 9px!important}
+}

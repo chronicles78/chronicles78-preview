@@ -1201,19 +1201,16 @@ function renderAccountModal(){
      userBox.innerHTML=
        '<div class="accountIdentity"><div class="accountAvatar">'+profileInitial(profile.display_name)+'</div><div><b>'+esc(profile.display_name)+'</b><span>'+esc(profileRoleLabel(profile.role))+' · вход сохранён</span></div></div>'+
        '<div class="accountMenuActions">'+
-         '<button class="primary" id="accountAddPhotoBtn" type="button">＋ Добавить фото «тогда и сейчас»</button>'+
+         '<button class="primary" id="accountMemoryBtn" type="button">Моя анкета «Тогда / Сейчас»</button>'+
          '<a class="secondary accountLinkButton" href="consent.html" target="_blank" rel="noopener">Прочитать согласие</a>'+
          '<button class="secondary" id="accountPrivacyBtn" type="button">Приватность / изменить использование данных</button>'+
          (profile.role==="admin"?'<button class="secondary" id="accountServiceBtn" type="button">⚙ Открыть служебный раздел</button>':'')+
          '<button class="secondary" id="accountLogoutBtn" type="button">Выйти</button>'+
        '</div>';
-     $("accountAddPhotoBtn").onclick=async()=>{
+     $("accountMemoryBtn").onclick=()=>{
        closeAccountModal();
-       await showView("photos");
-       setTimeout(()=>{
-         if(typeof openParticipantPhotoPicker==="function")openParticipantPhotoPicker("then-now");
-         else $("submitArchivePhotoBtn")?.click();
-       },60);
+       if(typeof openMemberMemoryEditor==="function")openMemberMemoryEditor();
+       else alert("Анкета «Тогда / Сейчас» временно недоступна. Обновите страницу.");
      };
      $("accountPrivacyBtn").onclick=()=>{closeAccountModal();openPrivacyRequest()};
      if($("accountServiceBtn"))$("accountServiceBtn").onclick=async()=>{closeAccountModal();await showView("profile")};

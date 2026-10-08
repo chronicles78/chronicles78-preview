@@ -108,7 +108,7 @@ function showSignupConfirmationState(){
      async()=>{closePhotoModal();showView("profile")}
    );
    $("photoModalSave").textContent="Перейти ко входу";
-   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();openAccountModal()};
    return;
  }
  if(authReturn.type!=="signup"&&!authReturn.hasToken)return;
@@ -124,20 +124,20 @@ function showSignupConfirmationState(){
      ?"E-mail подтверждён. Подтвердите согласие, после этого заявка останется на рассмотрении администратора."
      :(pendingProfile?.access_blocked
        ?"E-mail подтверждён, но доступ не предоставлен или был отключён администратором."
-       :"E-mail подтверждён. Регистрация подтверждена. Откройте профиль, чтобы продолжить.");
+       :"E-mail подтверждён. Регистрация подтверждена. Продолжите вход в открывшемся окне.");
    openPhotoModal("E-mail подтверждён",
      '<div class="notice"><b>Адрес подтверждён.</b><br>'+esc(pendingText)+'</div>',
-     async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
+     async()=>{clearAuthReturnUrl();closePhotoModal();openAccountModal()}
    );
-   $("photoModalSave").textContent="Перейти в профиль";
-   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
+   $("photoModalSave").textContent="Продолжить";
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();openAccountModal()};
  }else{
    openPhotoModal("E-mail подтверждён",
      '<div class="notice"><b>Адрес подтверждён.</b><br>Вернитесь в профиль и запросите ссылку для входа на этот e-mail.</div>',
-     async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")}
+     async()=>{clearAuthReturnUrl();closePhotoModal();openAccountModal()}
    );
    $("photoModalSave").textContent="Перейти ко входу";
-   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();showView("profile")};
+   photoModalSubmit=async()=>{clearAuthReturnUrl();closePhotoModal();openAccountModal()};
  }
 }
 let authSyncPromise=null;
@@ -183,8 +183,8 @@ sb.auth.onAuthStateChange((event,session)=>{
  if(event==="PASSWORD_RECOVERY")setTimeout(()=>openNewPasswordForm(),0);
  if(["INITIAL_SESSION","SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","SIGNED_OUT"].includes(event)){
    setTimeout(()=>hydrateProfileFromSession(session,{render:true}).then(ok=>{
-      if(!ok&&pendingProfile){showView("profile");return}
-     if(ok){
+      if(!ok&&pendingProfile){showView("home");openAccountModal();return}
+     if(ok){syncAccountNavigation();
         if(typeof trafficHeartbeat==="function")void trafficHeartbeat();
        const v=activeViewId();
        if(v==="home")loadHome();
@@ -684,6 +684,10 @@ window.addEventListener("popstate",async e=>{
 setTimeout(()=>{syncHistoryEntry();updateContextBack()},0);
 function showView(v,{track=true}={}){
  if(!v)return Promise.resolve(false);
+ if(v==="profile"&&profile?.role!=="admin"){
+   openAccountModal();
+   return Promise.resolve(false);
+ }
  const current=activeViewId();
  if(appNavEnabled&&track&&!appNavRestoring&&current&&current!==v)pushAppNavState();
  closeMoreNav();
@@ -1147,6 +1151,103 @@ function profileInitial(name){
  return esc((v[0]||"У").toUpperCase());
 }
 
+function accountShortName(){
+ const name=String(profile?.display_name||pendingProfile?.display_name||"").trim();
+ if(!name)return "Войти";
+ return name.split(/\s+/)[0].slice(0,18);
+}
+function syncAccountNavigation(){
+ const isAdmin=profile?.role==="admin"&&profile?.is_active;
+ document.querySelectorAll(".serviceNavBtn").forEach(btn=>{btn.hidden=!isAdmin});
+ document.querySelectorAll("[data-account-label]").forEach(el=>{el.textContent=accountShortName()});
+ document.querySelectorAll(".accountEntryBtn").forEach(btn=>{
+   btn.classList.toggle("signedIn",!!profile);
+   btn.setAttribute("aria-label",profile?"Меню пользователя "+String(profile.display_name||""):"Войти или зарегистрироваться");
+ });
+}
+function initAccountUi(){
+ const host=$("accountAuthHost")||$("accountModalBody");
+ if(host){
+   const login=$("loginBox"),consent=$("consentGateBox");
+   if(login&&login.parentElement!==host)host.appendChild(login);
+   if(consent&&consent.parentElement!==host)host.appendChild(consent);
+ }
+ document.querySelectorAll(".accountEntryBtn").forEach(btn=>{
+   if(btn.dataset.accountBound==="1")return;
+   btn.dataset.accountBound="1";
+   btn.addEventListener("click",()=>openAccountModal());
+ });
+ if($("accountModalClose"))$("accountModalClose").onclick=closeAccountModal;
+ if($("accountShade"))$("accountShade").onclick=e=>{if(e.target===$("accountShade"))closeAccountModal()};
+ syncAccountNavigation();
+}
+function closeAccountModal(){
+ const sh=$("accountShade");if(!sh)return;
+ sh.classList.remove("open");sh.setAttribute("aria-hidden","true");
+}
+function renderAccountModal(){
+ initAccountUi();
+ const sh=$("accountShade"),title=$("accountModalTitle"),userBox=$("accountUserBox"),host=$("accountAuthHost")||$("accountModalBody");
+ if(!sh||!host)return;
+ if(user&&profile){
+   if(title)title.textContent=profile.role==="admin"?"Игорь · Хроники-78":"Ваш вход в «Хроники-78»";
+   if($("loginBox"))$("loginBox").style.display="none";
+   if($("consentGateBox"))$("consentGateBox").style.display="none";
+   host.style.display="none";
+   if(userBox){
+     userBox.style.display="block";
+     userBox.innerHTML=
+       '<div class="accountIdentity"><div class="accountAvatar">'+profileInitial(profile.display_name)+'</div><div><b>'+esc(profile.display_name)+'</b><span>'+esc(profileRoleLabel(profile.role))+' · вход сохранён</span></div></div>'+
+       '<div class="accountMenuActions">'+
+         '<button class="primary" id="accountAddPhotoBtn" type="button">＋ Добавить фото «тогда и сейчас»</button>'+
+         '<a class="secondary accountLinkButton" href="consent.html" target="_blank" rel="noopener">Прочитать согласие</a>'+
+         '<button class="secondary" id="accountPrivacyBtn" type="button">Приватность / изменить использование данных</button>'+
+         (profile.role==="admin"?'<button class="secondary" id="accountServiceBtn" type="button">⚙ Открыть служебный раздел</button>':'')+
+         '<button class="secondary" id="accountLogoutBtn" type="button">Выйти</button>'+
+       '</div>';
+     $("accountAddPhotoBtn").onclick=async()=>{
+       closeAccountModal();
+       await showView("photos");
+       setTimeout(()=>$("submitArchivePhotoBtn")?.click(),60);
+     };
+     $("accountPrivacyBtn").onclick=()=>{closeAccountModal();openPrivacyRequest()};
+     if($("accountServiceBtn"))$("accountServiceBtn").onclick=async()=>{closeAccountModal();await showView("profile")};
+     $("accountLogoutBtn").onclick=async()=>{closeAccountModal();await logout()};
+   }
+   return;
+ }
+ if(userBox)userBox.style.display="none";
+ host.style.display="block";
+ if(user&&pendingProfile){
+   if(consentRequired){
+     if(title)title.textContent="Подтвердите согласие";
+     if($("loginBox"))$("loginBox").style.display="none";
+     if($("consentGateBox"))$("consentGateBox").style.display="block";
+   }else{
+     if(title)title.textContent="Доступ к архиву";
+     if($("loginBox"))$("loginBox").style.display="none";
+     if($("consentGateBox"))$("consentGateBox").style.display="none";
+     if(userBox){
+       userBox.style.display="block";
+       userBox.innerHTML='<div class="notice"><b>Доступ сейчас закрыт.</b><br>Если это ошибка, свяжитесь с редакцией.</div><button class="secondary" id="accountPendingLogoutBtn" type="button">Выйти</button>';
+       $("accountPendingLogoutBtn").onclick=async()=>{closeAccountModal();await logout()};
+     }
+   }
+ }else{
+   if(title)title.textContent="Вход в «Хроники-78»";
+   if($("consentGateBox"))$("consentGateBox").style.display="none";
+   if($("loginBox"))$("loginBox").style.display="block";
+ }
+}
+function openAccountModal(){
+ renderAccountModal();
+ const sh=$("accountShade");if(!sh)return;
+ sh.classList.add("open");sh.setAttribute("aria-hidden","false");
+ setTimeout(()=>{
+   if(!profile&&!user)$("email")?.focus();
+ },20);
+}
+
 async function loadProfilePanel(el){
  if(!el||el.dataset.loaded==="1")return;
  const kind=el.dataset.profileLoad;
@@ -1223,114 +1324,80 @@ function bindProfileSectionNavigation(){
 
 function renderProfile(){
  bindProfileSectionNavigation();
+ initAccountUi();
+ syncAccountNavigation();
+
+ const isActive=!!user&&!!profile?.is_active;
+ const isAdmin=isActive&&profile.role==="admin";
+
  if(!profile){
-  if(typeof stopHomeCollage==="function")stopHomeCollage();
-  const collage=$("homeClassPhotoLive");
-  if(collage){collage.hidden=true;collage.replaceChildren()}
+   if(typeof stopHomeCollage==="function")stopHomeCollage();
+   const collage=$("homeClassPhotoLive");
+   if(collage){collage.hidden=true;collage.replaceChildren()}
  }
- if(user&&pendingProfile&&!profile){
-   if($("adminLoginBox"))$("adminLoginBox").style.display="none";
-   const alreadyAdmitted=!!pendingProfile.is_active&&!pendingProfile.access_blocked;
-   const pendingMessage=consentRequired
-     ?(alreadyAdmitted
-       ?"Доступ уже одобрен администратором. Осталось обновить действующее согласие — повторное согласование не требуется."
-       :"Нужно подтвердить действующее согласие. После этого заявка останется на рассмотрении администратора.")
-     :(pendingProfile.access_blocked
-       ?"Администратор не предоставил доступ либо ранее отключил его."
-       :"Заявка зарегистрирована и ожидает решения администратора.");
-   $("profileBox").innerHTML=
-     '<div class="profileUserRow">'+
-       '<div class="profileAvatar">'+profileInitial(pendingProfile.display_name||"Участник")+'</div>'+
-       '<div class="profileUserMain"><b>'+esc(pendingProfile.display_name||"Участник")+'</b>'+
-         '<div class="profileBadges"><span class="profileBadge">Кандидат</span>'+
-         (alreadyAdmitted?'<span class="profileBadge ok">Доступ одобрен</span>':'')+
-         (pendingProfile.access_blocked?'<span class="profileBadge warn">Доступ закрыт</span>':'')+
-         '</div><div class="profileUserHint">'+esc(pendingMessage)+'</div></div>'+
-       '<div class="profileUserActions">'+
-         (!consentRequired&&!pendingProfile.access_blocked?'<button class="secondary compact" id="checkAccessBtn">Проверить</button>':'')+
-         '<button class="secondary compact" id="logoutPendingBtn">Выйти</button>'+
-       '</div>'+
-     '</div>';
-   if($("checkAccessBtn"))$("checkAccessBtn").onclick=async()=>{
-     $("checkAccessBtn").disabled=true;$("checkAccessBtn").textContent="Проверяю…";
-     const ok=await syncAuthState({render:false});
-     renderProfile();
-     if(ok){subscribe();subscribeNotifications();await showView("home");await loadHome()}
-   };
-   $("logoutPendingBtn").onclick=logout;
-   $("loginBox").style.display="none";
-   $("nameBox").style.display="none";
-   $("privacyBox").style.display="none";
-   $("consentGateBox").style.display=consentRequired?"block":"none";
-   $("composerWrap").style.display="none";
-   if($("photoContributeBox"))$("photoContributeBox").style.display="none";
-   if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
-    if($("photoEditorBar"))$("photoEditorBar").style.display="none";
-   if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
-   if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
-   if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("trafficStatsBox"))$("trafficStatsBox").style.display="none";
-   if($("identityReviewBox"))$("identityReviewBox").style.display="none";
-   if($("moderationBox"))$("moderationBox").style.display="none";
-   if($("notifyBtn"))$("notifyBtn").style.display="none";
-   setProfileSections();
-   setStatus(consentRequired?"Нужно согласие":(pendingProfile.access_blocked?"Доступ не предоставлен":"Ожидает допуска"));
-   return;
- }
- if(user&&profile){
-   if($("adminLoginBox"))$("adminLoginBox").style.display="none";
+
+ if($("adminLoginBox"))$("adminLoginBox").style.display="none";
+ if($("loginBox"))$("loginBox").style.display=!user?"block":"none";
+ if($("consentGateBox"))$("consentGateBox").style.display=(user&&pendingProfile&&!profile&&consentRequired)?"block":"none";
+ if($("nameBox"))$("nameBox").style.display="none";
+ if($("privacyBox"))$("privacyBox").style.display="none";
+
+ if($("composerWrap"))$("composerWrap").style.display=isActive?"block":"none";
+ if($("photoContributeBox"))$("photoContributeBox").style.display=isActive?"block":"none";
+ if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
+ if($("photoEditorBar"))$("photoEditorBar").style.display="none";
+ if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
+
+ const canModerate=isAdmin;
+ document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=canModerate?"inline-block":"none");
+ if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";
+ if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
+ if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
+ if($("adminUsersBox"))$("adminUsersBox").style.display=isAdmin?"block":"none";
+ if($("archiveStorageBox"))$("archiveStorageBox").style.display=isAdmin?"block":"none";
+ if($("trafficStatsBox"))$("trafficStatsBox").style.display=isAdmin?"block":"none";
+ if($("notifyBtn"))$("notifyBtn").style.display=isActive?"inline-flex":"none";
+
+ if(isAdmin){
    $("profileBox").innerHTML=
      '<div class="profileUserRow">'+
        '<div class="profileAvatar">'+profileInitial(profile.display_name)+'</div>'+
        '<div class="profileUserMain"><b>'+esc(profile.display_name)+'</b>'+
-         '<div class="profileBadges"><span class="profileBadge">'+esc(profileRoleLabel(profile.role))+'</span><span class="profileBadge ok">Доступ активен</span></div>'+
+         '<div class="profileBadges"><span class="profileBadge">Администратор</span><span class="profileBadge ok">Служебный доступ</span></div>'+
        '</div>'+
-       '<div class="profileUserActions"><button class="secondary compact" id="logoutBtn">Выйти</button></div>'+
      '</div>';
-   $("loginBox").style.display="none";$("consentGateBox").style.display="none";$("nameBox").style.display="block";$("displayName").value=profile.display_name;$("logoutBtn").onclick=logout;
-   $("privacyBox").style.display="block";
-   $("privacyConsentState").textContent="Согласие принято "+(profile.consentAcceptedAt?new Date(profile.consentAcceptedAt).toLocaleString("ru-RU"):"ранее")+". Действует только для закрытого архива.";
-   if($("homeState"))$("homeState").innerHTML="<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи.";
-   void loadHome();$("composerWrap").style.display="block";
-   if($("photoContributeBox"))$("photoContributeBox").style.display="block";
-    if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
-   if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="block";
-    {const canEditPhotos=profile.role==="editor"||profile.role==="admin";document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display=canEditPhotos?"inline-block":"none")}if($("adminUsersBox"))$("adminUsersBox").style.display=profile.role==="admin"?"block":"none";
-   if($("archiveStorageBox"))$("archiveStorageBox").style.display=profile.role==="admin"?"block":"none";
-    if($("trafficStatsBox"))$("trafficStatsBox").style.display=profile.role==="admin"?"block":"none";
-   const canModerate=profile.role==="editor"||profile.role==="admin";
-   setProfileSections({personal:true,my:true,editorial:canModerate,admin:profile.role==="admin"});
-   if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display=canModerate?"block":"none";
-   if($("identityReviewBox"))$("identityReviewBox").style.display=canModerate?"block":"none";
-   if($("moderationBox"))$("moderationBox").style.display=canModerate?"block":"none";
-   subscribeNotifications();setStatus("Онлайн · "+profileRoleLabel(profile.role));
- } else {
-   if($("adminLoginBox"))$("adminLoginBox").style.display="none";
-   $("profileBox").innerHTML='<span class="small">Вход не выполнен.</span>';$("loginBox").style.display="block";
-   if($("loginContextHint"))$("loginContextHint").textContent=APP_STANDALONE
-     ?"Сейчас сайт открыт как отдельное приложение с экрана «Домой». Его вход хранится отдельно от Safari."
-     :"Сейчас сайт открыт в браузере. На iPhone ярлык с экрана «Домой» имеет отдельную сессию входа.";
-   const pendingOtpEmail=(localStorage.getItem(OTP_EMAIL_KEY)||"").trim();
-   if(pendingOtpEmail){
-     $("email").value=pendingOtpEmail;
-     $("otpLoginBox").style.display="block";
-   }
-   $("consentGateBox").style.display="none";$("nameBox").style.display="none";$("privacyBox").style.display="none";$("composerWrap").style.display="none";
-   if($("photoContributeBox"))$("photoContributeBox").style.display="none";
-   if($("archiveUploadBox"))$("archiveUploadBox").style.display="none";
-    if($("photoEditorBar"))$("photoEditorBar").style.display="none";
-   if($("myPhotoSubmissionsBox"))$("myPhotoSubmissionsBox").style.display="none";
-   if($("photoSubmissionReviewBox"))$("photoSubmissionReviewBox").style.display="none";
+   setProfileSections({personal:false,my:false,editorial:true,admin:true});
+   subscribeNotifications();
+   setStatus("Онлайн · Администратор");
+ }else{
+   if($("profileBox"))$("profileBox").innerHTML="";
    setProfileSections();
-   document.querySelectorAll(".editorPhotoMode").forEach(x=>x.style.display="none");if($("adminUsersBox"))$("adminUsersBox").style.display="none";if($("archiveStorageBox"))$("archiveStorageBox").style.display="none";if($("trafficStatsBox"))$("trafficStatsBox").style.display="none";if($("identityReviewBox"))$("identityReviewBox").style.display="none";if($("moderationBox"))$("moderationBox").style.display="none";if($("notifyBtn"))$("notifyBtn").style.display="none";if($("homeState"))$("homeState").innerHTML="Для просмотра внутреннего архива войдите через <b>Профиль</b>.";loadHome();setStatus("Нужен вход");
+   if(isActive){
+     subscribeNotifications();
+     setStatus("Онлайн · "+profileRoleLabel(profile.role));
+   }else if(user&&pendingProfile){
+     setStatus(consentRequired?"Нужно согласие":"Доступ закрыт");
+   }else{
+     setStatus("Нужен вход");
+   }
  }
+
+ if($("homeState")){
+   $("homeState").innerHTML=isActive
+     ?"<b>Архив подключён.</b> Здесь собраны свежие материалы и задачи."
+     :"Для просмотра внутреннего архива войдите или зарегистрируйтесь.";
+ }
+ if(isActive)void loadHome();
+ syncAccountNavigation();
 }
+
 async function init(){
  await syncAuthState({render:false});
- renderRooms();renderProfile();
+ renderRooms();renderProfile();initAccountUi();
  if($("themeSelect")){$("themeSelect").value=getTheme();$("themeSelect").onchange=()=>{localStorage.setItem(THEME_KEY,$("themeSelect").value);applyTheme($("themeSelect").value)}}
  if(profile){subscribe();subscribeNotifications();setTimeout(prefetchClassPhotoUrls,0);}
- if(OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START||!profile)await showView("profile");
- else await showView("home");
+ await showView("home");
+ if(!profile||OPEN_LOGIN_ON_START||OPEN_REGISTER_ON_START)setTimeout(openAccountModal,120);
  if(OPEN_REGISTER_ON_START&&!user&&$("newRegistrationBox"))$("newRegistrationBox").style.display="block";
  if(authReturn.type==="signup"||authReturn.error||authReturn.hasToken)setTimeout(showSignupConfirmationState,180);
  appNavEnabled=true;
@@ -1351,12 +1418,12 @@ async function finishOtpLogin(email,token){
  await hydrateProfileFromSession(data.session,{render:false});
  renderProfile();
  if(profile){
-   subscribe();subscribeNotifications();
+   subscribe();subscribeNotifications();syncAccountNavigation();closeAccountModal();
    await showView("home");await loadHome();
    return "active";
  }
  if(pendingProfile){
-   await showView("profile");
+   await showView("home");openAccountModal();
    if(consentRequired&&!pendingProfile.access_blocked)return "consent";
    return pendingProfile.access_blocked?"blocked":"pending";
  }
@@ -1520,7 +1587,7 @@ function openAdminPasswordReset(){
    }
  );
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();showView("profile")}
+async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();await showView("home");openAccountModal()}
 $("loginBtn").onclick=login;
 if($("registerOtpBtn"))$("registerOtpBtn").onclick=registerAndSendOtp;
 $("otpCode").onkeydown=e=>{if(e.key==="Enter"){verifyLoginOtp(e)} };
@@ -1571,9 +1638,9 @@ function openQuickRegistration(){
        }
        $("photoModalBody").innerHTML=
          '<div class="notice"><b>E-mail подтверждён.</b><br>Регистрация подтверждена.</div>'+
-         '<div class="formHint">Откройте Профиль, чтобы завершить вход.</div>';
+         '<div class="formHint">Завершите вход в открывшемся окне.</div>';
        $("photoModalMsg").textContent="";
-       $("photoModalSave").textContent="Перейти в профиль";
+       $("photoModalSave").textContent="Продолжить";
        photoModalSubmit=async()=>{closePhotoModal();await showView("profile")};
      };
    }
@@ -1594,7 +1661,7 @@ async function acceptCurrentConsent(){
    const {data:{session}}=await sb.auth.getSession();
    await hydrateProfileFromSession(session,{render:false});
    renderProfile();
-   if(profile){subscribe();subscribeNotifications();showView("home");await loadHome()}
+   if(profile){subscribe();subscribeNotifications();closeAccountModal();showView("home");await loadHome()}
  }catch(e){
    $("consentGateMsg").className="err";
    $("consentGateMsg").textContent=e.message||String(e);

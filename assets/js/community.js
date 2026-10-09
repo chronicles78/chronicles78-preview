@@ -311,7 +311,10 @@
    const uid=owner(),epoch=generation;if(document.hidden||heartbeatBusy)return;heartbeatBusy=true;
    const box=node('communityOnline');
    try{
-     if(!uid){
+     const {data:{session}}=await sb.auth.getSession();
+     const sessionUid=session?.user?.id||null;
+     if(!uid||sessionUid!==uid){
+       if(uid&&sessionUid!==uid&&typeof syncAuthState==='function')setTimeout(()=>syncAuthState({render:true}),0);
        const count=check(await sb.rpc('online_member_count'));
        if(!box)return;
        const n=Number(count||0);
@@ -458,5 +461,5 @@
  setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat'&&communityLibraryEnabled())void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets()} void heartbeat()
- window.CommunityPreview={version:'20261009-16',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261009-17',storyTopics,yearsFor,loadLibrary};
 })();

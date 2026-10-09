@@ -130,7 +130,7 @@
    root.innerHTML=items.map((x,i)=>{
      const meta='<small>'+esc(x.author)+' · '+esc(new Date(x.date).toLocaleDateString('ru-RU'))+'</small>';
      if(x.kind==='links')return '<a class="communityLibraryItem" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">'+esc(x.url)+meta+'</a>';
-     return '<button class="communityLibraryItem" type="button" data-library-item="'+i+'">'+(x.kind==='photos'?'<img data-library-image="'+i+'" alt="'+esc(x.caption||x.current_file_name||'Фото')+'" loading="lazy">'+esc(x.caption||x.current_file_name||'Фото'):esc(storyCache.find(s=>s.id===x.story)?.title||x.story))+meta+'</button>';
+     return '<button class="communityLibraryItem" type="button" data-library-item="'+i+'">'+(x.kind==='photos'?'<img data-library-image="'+i+'" alt="Фото из чата" loading="lazy" onerror="this.style.display=\'none\'">'+esc(x.caption||'Фотография'):esc(storyCache.find(s=>s.id===x.story)?.title||x.story))+meta+'</button>';
    }).join('');
    const uid=owner(),epoch=generation,room=currentRoom,tab=libraryTab;
    libraryImages?.disconnect();

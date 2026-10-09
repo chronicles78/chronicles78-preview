@@ -1065,7 +1065,7 @@ async function loadHome(){
 
  const weekBox=$("homeWeekLive");
  if(weekly?.st){
-  const st=weekly.st,summary=st.data?.editorial_summary||st.data?.chapter?.subtitle||st.data?.story_text||"";
+  const st=weekly.st,summary=st.data?.story_text||st.data?.original_sources?.[0]?.text||"";
   const sourceText=st.data?.original_sources?.[0]?.text||summary;
   weekBox.hidden=false;
   weekBox.innerHTML=

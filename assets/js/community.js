@@ -98,7 +98,8 @@
  }
  const deleteAsset=r=>editor()?'<button class="secondary" type="button" data-community-remove-asset="'+esc(r.id)+'">Убрать из истории</button>':'';
  const originalLoadRoom=loadRoom;
- loadRoom=async()=>{await originalLoadRoom();void loadLibrary()};
+ const communityLibraryEnabled=()=>!window.matchMedia("(max-width:760px)").matches;
+ loadRoom=async()=>{await originalLoadRoom();if(communityLibraryEnabled())void loadLibrary()};
  async function loadLibrary(){
    const uid=owner(),epoch=generation,room=currentRoom,seq=++librarySeq;if(!uid){libraryItems=[];renderLibrary();return}
    notice('communityLibraryStatus','Собираю материалы всего диалога…');
@@ -454,8 +455,8 @@
    if(event==='SIGNED_OUT'){generation++;librarySeq++;memory=null;libraryItems=[];libraryImages?.disconnect();if(node('communityProfile'))node('communityProfile').hidden=true;if(node('communityProfilePreview'))node('communityProfilePreview').innerHTML='';node('storiesList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('photosList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('communityTimeline').innerHTML='';node('communityLibraryItems').innerHTML='';notice('communityLibraryStatus','Войдите, чтобы открыть материалы диалога.');void heartbeat();node('communityDay').textContent='События и фотографии из закрытого архива.';node('storyDetailBody').querySelector('#communityStoryMedia')?.remove();closePhotoModal()}
  });
  setup();
- setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
+ setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat'&&communityLibraryEnabled())void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets()} void heartbeat()
- window.CommunityPreview={version:'20261008-15',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261009-16',storyTopics,yearsFor,loadLibrary};
 })();

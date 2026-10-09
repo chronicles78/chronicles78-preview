@@ -33,6 +33,11 @@ function scheduleRoomReload(delay=220){
  clearTimeout(chatReloadTimer);
  chatReloadTimer=setTimeout(()=>{if(user&&profile?.is_active)loadRoom()},delay);
 }
+function chatNearBottom(){
+ const el=$("messages");
+ return !!el&&(el.scrollHeight-el.scrollTop-el.clientHeight<140);
+}
+
 const chatReadSyncByRoom=new Map();
 async function markRoomRead(room){
  if(!user||!profile?.is_active||!room)return;
@@ -238,7 +243,7 @@ async function loadRoom(){
        wait.innerHTML='<span>Фото не удалось открыть.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
      };
      if(!url){showError();return}
-     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom)return;img.style.display="";wait.style.display="none";requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
+     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom)return;const stick=chatNearBottom();img.style.display="";wait.style.display="none";if(stick)requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
      img.onerror=showError;
      img.src=url;
    });
@@ -265,7 +270,7 @@ async function retryChatPhoto(attachmentId){
  try{
    const url=await signedImage(a.current_storage_path);
    if(!url)throw new Error("signed url unavailable");
-   img.onload=()=>{img.style.display="";wait.style.display="none";requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
+   img.onload=()=>{const stick=chatNearBottom();img.style.display="";wait.style.display="none";if(stick)requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
    img.onerror=()=>{img.style.display="none";wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>'};
    img.src=url;
  }catch{

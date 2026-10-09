@@ -238,3 +238,9 @@ html[data-theme="dark"] .onlinePerson{background:rgba(255,255,255,.025)!importan
   .onlinePeople{gap:6px}
   .onlinePerson{padding:7px 9px!important}
 }
+
+
+/* v74 — keep chat focused on conversation on phones */
+@media(max-width:760px){
+  #communityLibrary{display:none!important}
+}

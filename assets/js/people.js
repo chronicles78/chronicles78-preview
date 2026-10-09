@@ -131,10 +131,16 @@ function renderClassPhotoPanel(arr){
  }
  return '<div class="classPhotoPanel"><div class="classPhotoHead"><div><b>'+esc(peopleGroup)+' · 1982–1983</b><div class="small">Наведите курсор на лицо или нажмите на него</div></div>'+(url?'<button class="mini '+(showClassNumbers?"on":"")+'" id="toggleClassNumbers">Показать №</button>':'')+'</div>'+stage+(selectedPersonId?(()=>{const p=peopleCache.find(x=>x.id===selectedPersonId);if(!p)return "";const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"classSelectionPortrait"):"";const stories=(p.story_refs||[]);const unknown=personIdentityUnknown(p);const editor=profile?.role==="editor"||profile?.role==="admin";return '<div class="classSelection contextObject" data-selected-person-context="'+esc(p.id)+'">'+portrait+'<div class="classSelectionText"><b>'+esc(personDisplayName(p))+'</b><div class="small">'+esc(p.group_name||"")+' · позиция № '+esc(p.number??"")+(p.person_role?" · "+esc(p.person_role):"")+'</div>'+(unknown?'<div class="small">Лицо выбрано.</div>'+(editor?'<button class="secondary personAssignDirect" data-person-assign="'+esc(p.id)+'">Назначить имя</button>':'<button class="secondary personAssignDirect" data-person-suggest="'+esc(p.id)+'">Предложить имя</button>'):'')+(stories.length?'<div class="small">'+stories.length+' связанн'+(stories.length===1?"ая история":"ых истории")+'</div>':'')+'</div></div>'})():'')+'</div>';
 }
+function normalizePeopleSearch(value){return String(value||"").normalize("NFKC").toLocaleLowerCase("ru").replace(/ё/g,"е").replace(/\s+/g," ").trim()}
+function personMatchesSearch(person,query){
+ const aliases=Array.isArray(person.aliases)?person.aliases.join(" "):String(person.aliases||"");
+ const text=normalizePeopleSearch((person.canonical_name||"")+" "+aliases);
+ return !query||query.split(" ").every(word=>text.includes(word));
+}
 let peopleSearchScrollTimer=null;
 function renderPeople(){
- const q=($("peopleSearch")?.value||"").trim().toLowerCase();
- const arr=peopleCache.filter(p=>(peopleGroup==="all"||p.group_name===peopleGroup)&&(!q||(p.canonical_name||"").toLowerCase().includes(q)||(p.aliases||[]).join(" ").toLowerCase().includes(q)));
+ const q=normalizePeopleSearch($("peopleSearch")?.value);
+ const arr=peopleCache.filter(p=>(peopleGroup==="all"||p.group_name===peopleGroup)&&personMatchesSearch(p,q));
  if(q&&arr.length===1&&["10А","10Б"].includes(peopleGroup))selectedPersonId=arr[0].id;
  const cards=arr.map(p=>{
    const linkedStories=(p.story_refs||[]);
@@ -309,23 +315,22 @@ $("classPhotoInput").onchange=async()=>{
    await loadClassPhoto();renderPeople();
  }catch(e){alert("Фото класса не загружено: "+(e.message||e))}
  finally{$("classPhotoInput").value=""}
-};document.querySelectorAll("[data-pgroup]").forEach(b=>b.onclick=()=>{
- peopleGroup=b.dataset.pgroup;selectedPersonId=null;showClassNumbers=false;classPhotoState=null;
- document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x===b));
- if(!archiveSessionIsCurrent(uid,sessionSeq))return;
- renderPeople();
- loadClassPhoto();
+ };
+document.querySelectorAll("[data-pgroup]").forEach(button=>button.onclick=()=>{
+ if(!user||!profile?.is_active){openAccountModal();return}
+ clearTimeout(peopleSearchScrollTimer);$("peopleSearch").value="";
+ peopleGroup=button.dataset.pgroup;selectedPersonId=null;showClassNumbers=false;classPhotoState=null;
+ document.querySelectorAll("[data-pgroup]").forEach(item=>item.classList.toggle("on",item===button));
+ void loadPeople();
 });
 $("peopleSearch").addEventListener("input",()=>{
- renderPeople();
  clearTimeout(peopleSearchScrollTimer);
- const q=$("peopleSearch").value.trim();
- if(q&&["10А","10Б"].includes(peopleGroup)){
-   peopleSearchScrollTimer=setTimeout(()=>{
-     const matches=peopleCache.filter(p=>p.group_name===peopleGroup&&((p.canonical_name||"").toLowerCase().includes(q.toLowerCase())||(p.aliases||[]).join(" ").toLowerCase().includes(q.toLowerCase())));
-     if(matches.length===1)$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"});
-   },450);
+ if(!user||!profile?.is_active)return;
+ if(normalizePeopleSearch($("peopleSearch").value)){
+  peopleGroup="all";selectedPersonId=null;classPhotoState=null;classPhotoLoadSeq++;
+  document.querySelectorAll("[data-pgroup]").forEach(button=>button.classList.toggle("on",button.dataset.pgroup==="all"));
  }
+ void loadPeople();
 });
 
 function refreshClassPhotoAfterResume(){

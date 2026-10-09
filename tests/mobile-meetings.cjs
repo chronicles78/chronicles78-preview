@@ -25,7 +25,7 @@ const base=process.env.TEST_BASE_URL||'http://127.0.0.1:8008/';
    await p.locator('#mobileMenuBtn').click();await p.locator('#mobileMenuBtn').click();assert.equal(await p.locator('#moreNavMenu').isVisible(),false);
    await p.locator('#mobileMenuBtn').click();await p.locator('#moreNavShade').click({position:{x:2,y:2}});assert.equal(await p.locator('#moreNavMenu').isVisible(),false);count++;
    await p.evaluate(()=>showView('chat'));assert.equal(await p.locator('#sendBtn').isVisible(),true);assert.equal(await p.locator('#attachBtn').isVisible(),true);count++;
-  }else{assert.equal(await p.locator('#mobileMenuBtn').isVisible(),false);assert.equal(await p.locator('.h2Nav').isVisible(),true);count++}
+  }else{assert.equal(await p.locator('#mobileMenuBtn').isVisible(),true);assert.equal(await p.locator('.h2Nav').isVisible(),false);count++}
   assert.equal(await p.locator('#buildVersion').isVisible(),false);assert.equal(await p.locator('.h2Version,#loginBuildMark').count(),0);count++;
   assert.equal(p.errors.length,0,p.errors.join(';'));await p.close();
  }

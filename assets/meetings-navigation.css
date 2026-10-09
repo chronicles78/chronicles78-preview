@@ -1,4 +1,4 @@
-#mobileMenuBtn{display:none}
+#mobileMenuBtn,#mobileThemeBtn{display:none}
 .meetingPanel [hidden]{display:none!important}
 #editorBuildInfo{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 #editorBuildInfo[hidden]{display:none}
@@ -34,4 +34,27 @@
  body.home2App .h2HomeTv .eraTvDials button{width:44px;height:44px}
  .meetingShade{padding:8px;padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:calc(8px + env(safe-area-inset-bottom))}
  .meetingPanel{padding:14px;max-height:96dvh}.meetingHead h2{font-size:20px}.meetingActions>*{flex:1 1 140px;text-align:center;justify-content:center}
+}
+
+/* Mobile Home has only the shared menu and the theme control at a fixed position. */
+@media(max-width:760px){
+ body.home2App #home .home2Stage{padding-top:calc(64px + env(safe-area-inset-top))}
+ html:has(#stories.active),body.home2App:has(#stories.active){overflow-x:hidden;overscroll-behavior-x:none}
+ body.home2App #stories,body.home2App .storyDetail{touch-action:pan-y pinch-zoom;overflow-x:clip;overscroll-behavior-x:none}
+ body.home2App .storyDetail{overflow-x:hidden;overflow-wrap:anywhere}
+ body.home2App .storyDetail :is(.storyProse,.storySourceText,.storySection){overflow-wrap:anywhere;min-width:0;max-width:100%}
+ body.home2App #stories :is(.communityStoryLayout,.communityStoryCard,.communityStorySidebar,#storiesList),body.home2App .storyDetailIn{min-width:0;max-width:100%}
+ body.home2App #stories :is(h2,h3,p,blockquote),body.home2App .storyDetail :is(h2,h3,p,a,b){overflow-wrap:anywhere}
+ body.home2App .storyHead>b{min-width:0}
+ body.home2App .storyDetail img{max-width:100%;height:auto}
+ body.home2App #storyToc{touch-action:pan-x}
+}
+
+/* Home uses these two controls on desktop as well; internal desktop navigation stays intact. */
+body.home2App #home .h2Nav{display:none!important}
+body.home2App:has(#home.active)>#mobileMenuBtn{display:block;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:170;min-width:94px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:600 16px/1.2 sans-serif}
+body.home2App:has(#home.active)>#mobileThemeBtn{display:grid;place-items:center;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(116px + env(safe-area-inset-right));z-index:170;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:24px}
+@media(min-width:761px){
+ body.home2App:has(#home.active)>#moreNavShade.open{display:block!important;z-index:168}
+ body.home2App:has(#home.active)>#moreNavMenu.open{display:block!important;left:auto;right:12px;top:60px;bottom:auto;width:min(380px,calc(100vw - 24px));max-height:calc(100dvh - 80px);overflow-y:auto;z-index:169}
 }

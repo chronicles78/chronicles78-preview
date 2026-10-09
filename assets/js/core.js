@@ -601,7 +601,7 @@ function closeMoreNav(){
  $("moreNavShade")?.setAttribute("aria-hidden","true");
  $("mobileMoreBtn")?.setAttribute("aria-expanded","false");
  $("mobileMenuBtn")?.setAttribute("aria-expanded","false");
- if(wasOpen&&window.matchMedia("(max-width:760px)").matches)$("mobileMenuBtn")?.focus();
+ if(wasOpen&&$("mobileMenuBtn")?.getClientRects().length)$("mobileMenuBtn").focus();
 }
 function openMoreNav(){
  $("moreNavMenu")?.classList.add("open");

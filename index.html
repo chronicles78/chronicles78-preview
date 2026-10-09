@@ -26,13 +26,13 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261009-75">
-<link rel="stylesheet" href="assets/mobile-archive.css?v=20261009-75">
+<link rel="stylesheet" href="assets/app.css?v=20261009-76">
+<link rel="stylesheet" href="assets/mobile-archive.css?v=20261009-76">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
-<link rel="stylesheet" href="assets/design-tokens.css?v=20261009-75">
-<link rel="stylesheet" href="assets/home-2.css?v=20261009-75">
-<link rel="stylesheet" href="assets/community.css?v=20261009-75">
-<link rel="stylesheet" href="assets/chapters.css?v=20261009-75">
+<link rel="stylesheet" href="assets/design-tokens.css?v=20261009-76">
+<link rel="stylesheet" href="assets/home-2.css?v=20261009-76">
+<link rel="stylesheet" href="assets/community.css?v=20261009-76">
+<link rel="stylesheet" href="assets/chapters.css?v=20261009-76">
 </head>
 <body class="home2App">
 <svg class="archiveSvgDefs" width="0" height="0" aria-hidden="true" focusable="false">
@@ -43,6 +43,7 @@
   </defs>
 </svg>
 <header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button"><span>Хроники-78</span><small id="mobileSectionTitle">Главная</small></button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<button id="mobileThemeBtn" type="button" aria-label="Включить тёмную тему" aria-pressed="false">☾</button>
 <button id="mobileMenuBtn" type="button" aria-label="Открыть меню разделов" aria-expanded="false" aria-controls="moreNavMenu">☰ Меню</button>
 <main>
 <section id="home" class="view active home2">
@@ -152,7 +153,7 @@
 
 <section id="people" class="view"><div class="archiveList peopleArchivePage">
 <div class="peopleArchiveIntro"><div class="memoryEyebrow">КЛАССНЫЙ АЛЬБОМ · 1982–1983</div><h2>Люди</h2><p>Общая фотография становится картой класса: наведите курсор на лицо, нажмите на него, откройте человека, его истории и связанные фотографии. Неузнанных можно подписать вместе.</p></div>
-<div class="peopleToolbar"><div class="filterRail"><button class="mini" data-pgroup="all">Все</button><button class="mini on" data-pgroup="10Б">10Б</button><button class="mini" data-pgroup="10А">10А</button></div><input id="peopleSearch" placeholder="Найти одноклассника…"></div>
+<div class="peopleToolbar"><div class="filterRail"><button class="mini" data-pgroup="all">Все</button><button class="mini on" data-pgroup="10Б">10Б</button><button class="mini" data-pgroup="10А">10А</button></div><input id="peopleSearch" placeholder="Фамилия — поиск по обоим классам"></div>
 <div id="peopleList" class="notice">Войдите, чтобы открыть список.</div>
 <input id="classPhotoInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden></div></section>
 <section id="stories" class="view"><div class="archiveList storyArchivePage">
@@ -278,7 +279,7 @@
     <span class="profileCabinetMark">●</span>
   </div>
   <div id="profileBox"></div>
-  <div id="editorBuildInfo" hidden><b>Служебная информация Главреда</b><p id="buildVersion">Версия 75</p></div>
+  <div id="editorBuildInfo" hidden><b>Служебная информация Главреда</b><p id="buildVersion">Версия 76</p></div>
 </div>
 <div class="card form profileConsentGate" id="consentGateBox" style="display:none">
   <div class="profileConsentHead">
@@ -503,22 +504,22 @@
 
 </div></nav>
 
-<link rel="stylesheet" href="assets/meetings-navigation.css?v=20261009-75">
-<script src="assets/js/core.js?v=20261009-75"></script>
-<script src="assets/js/chat.js?v=20261009-75"></script>
-<script src="assets/js/story-assistant.js?v=20261009-75"></script>
-<script src="assets/js/people.js?v=20261009-75"></script>
-<script src="assets/js/stories.js?v=20261009-75"></script>
-<script src="assets/js/photos.js?v=20261009-75"></script>
-<script src="assets/js/videos.js?v=20261009-75"></script>
-<script src="assets/js/city.js?v=20261009-75"></script>
-<script src="assets/js/traffic.js?v=20261009-75"></script>
-<script src="assets/js/questions-admin.js?v=20261009-75"></script>
-<script src="assets/js/home-2-rotation.js?v=20261009-75"></script>
-<script src="assets/js/home-2.js?v=20261009-75"></script>
-<script src="assets/js/community.js?v=20261009-75"></script>
-<script src="assets/js/mobile-navigation.js?v=20261009-75"></script>
-<script src="assets/js/meetings.js?v=20261009-75"></script>
+<link rel="stylesheet" href="assets/meetings-navigation.css?v=20261009-76">
+<script src="assets/js/core.js?v=20261009-76"></script>
+<script src="assets/js/chat.js?v=20261009-76"></script>
+<script src="assets/js/story-assistant.js?v=20261009-76"></script>
+<script src="assets/js/people.js?v=20261009-76"></script>
+<script src="assets/js/stories.js?v=20261009-76"></script>
+<script src="assets/js/photos.js?v=20261009-76"></script>
+<script src="assets/js/videos.js?v=20261009-76"></script>
+<script src="assets/js/city.js?v=20261009-76"></script>
+<script src="assets/js/traffic.js?v=20261009-76"></script>
+<script src="assets/js/questions-admin.js?v=20261009-76"></script>
+<script src="assets/js/home-2-rotation.js?v=20261009-76"></script>
+<script src="assets/js/home-2.js?v=20261009-76"></script>
+<script src="assets/js/community.js?v=20261009-76"></script>
+<script src="assets/js/mobile-navigation.js?v=20261009-76"></script>
+<script src="assets/js/meetings.js?v=20261009-76"></script>
 </body>
 </html>
 

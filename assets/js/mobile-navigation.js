@@ -1,5 +1,9 @@
 /* Shared navigation uses the existing section routing and account component. */
 (()=>{
+ const theme=document.getElementById('mobileThemeBtn');
+ const syncTheme=()=>{const dark=document.documentElement.dataset.theme==='dark';theme.textContent=dark?'☀':'☾';theme.setAttribute('aria-pressed',String(dark));theme.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему')};
+ theme.onclick=()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem(THEME_KEY,next)}catch{}applyTheme(next)};
+ new MutationObserver(syncTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});syncTheme();
  const button=document.getElementById('mobileMenuBtn'),menu=document.getElementById('moreNavMenu');
  button.onclick=()=>menu.classList.contains('open')?closeMoreNav():openMoreNav();
  function sync(){

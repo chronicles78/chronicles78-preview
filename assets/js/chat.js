@@ -50,6 +50,11 @@ function scheduleRoomReload(delay=220){
  clearTimeout(chatReloadTimer);
  chatReloadTimer=setTimeout(()=>{if(user&&profile?.is_active)loadRoom()},delay);
 }
+function chatNearBottom(){
+ const el=$("messages");
+ return !!el&&(el.scrollHeight-el.scrollTop-el.clientHeight<140);
+}
+
 const chatReadSyncByRoom=new Map();
 async function markRoomRead(room){
  if(!user||!profile?.is_active||!room)return;

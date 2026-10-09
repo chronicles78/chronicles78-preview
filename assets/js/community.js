@@ -98,7 +98,8 @@
  }
  const deleteAsset=r=>editor()?'<button class="secondary" type="button" data-community-remove-asset="'+esc(r.id)+'">Убрать из истории</button>':'';
  const originalLoadRoom=loadRoom;
- loadRoom=async options=>{await originalLoadRoom(options);void loadLibrary()};
+ const communityLibraryEnabled=()=>!window.matchMedia("(max-width:760px)").matches;
+ loadRoom=async options=>{await originalLoadRoom(options);if(communityLibraryEnabled())void loadLibrary()};
  async function loadLibrary(){
    const uid=owner(),epoch=generation,room=currentRoom,seq=++librarySeq;if(!uid){libraryItems=[];renderLibrary();return}
    notice('communityLibraryStatus','Собираю материалы всего диалога…');
@@ -130,7 +131,7 @@
    root.innerHTML=items.map((x,i)=>{
      const meta='<small>'+esc(x.author)+' · '+esc(new Date(x.date).toLocaleDateString('ru-RU'))+'</small>';
      if(x.kind==='links')return '<a class="communityLibraryItem" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">'+esc(x.url)+meta+'</a>';
-     return '<button class="communityLibraryItem" type="button" data-library-item="'+i+'">'+(x.kind==='photos'?'<img data-library-image="'+i+'" alt="'+esc(x.caption||x.current_file_name||'Фото')+'" loading="lazy">'+esc(x.caption||x.current_file_name||'Фото'):esc(storyCache.find(s=>s.id===x.story)?.title||x.story))+meta+'</button>';
+     return '<button class="communityLibraryItem" type="button" data-library-item="'+i+'">'+(x.kind==='photos'?'<img data-library-image="'+i+'" alt="Фото из чата" loading="lazy" onerror="this.style.display=\'none\'">'+esc(x.caption||'Фотография'):esc(storyCache.find(s=>s.id===x.story)?.title||x.story))+meta+'</button>';
    }).join('');
    const uid=owner(),epoch=generation,room=currentRoom,tab=libraryTab;
    libraryImages?.disconnect();
@@ -312,7 +313,10 @@
    const uid=owner(),epoch=generation;if(document.hidden||heartbeatBusy)return;heartbeatBusy=true;
    const box=node('communityOnline');
    try{
-     if(!uid){
+     const {data:{session}}=await sb.auth.getSession();
+     const sessionUid=session?.user?.id||null;
+     if(!uid||sessionUid!==uid){
+       if(uid&&sessionUid!==uid&&typeof syncAuthState==='function')setTimeout(()=>syncAuthState({render:true}),0);
        const count=check(await sb.rpc('online_member_count'));
        if(!box||!current(uid,epoch))return;
        const n=Number(count||0);
@@ -466,8 +470,8 @@
    if(event==='SIGNED_OUT'){generation++;librarySeq++;memory=null;libraryItems=[];libraryImages?.disconnect();if(node('communityProfile'))node('communityProfile').hidden=true;if(node('communityProfilePreview'))node('communityProfilePreview').innerHTML='';node('storiesList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('photosList').innerHTML='<div class="notice">Сначала войдите в профиль.</div>';node('communityTimeline').innerHTML='';node('communityLibraryItems').innerHTML='';notice('communityLibraryStatus','Войдите, чтобы открыть материалы диалога.');void heartbeat();node('communityDay').textContent='События и фотографии из закрытого архива.';node('storyDetailBody').querySelector('#communityStoryMedia')?.remove();closePhotoModal()}
  });
  setup();
- setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat')void loadLibrary()},30000);
+ setInterval(()=>{void heartbeat();if(active()&&!document.hidden&&activeViewId()==='chat'&&communityLibraryEnabled())void loadLibrary()},30000);
  // init() belongs to the original application and may already be awaiting auth.
  if(active()){void renderMemory();void homeWidgets()} void heartbeat()
- window.CommunityPreview={version:'20261008-15',storyTopics,yearsFor,loadLibrary};
+ window.CommunityPreview={version:'20261009-17',storyTopics,yearsFor,loadLibrary};
 })();

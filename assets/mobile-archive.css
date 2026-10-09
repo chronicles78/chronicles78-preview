@@ -84,7 +84,7 @@
  .personMeta h3{font:700 16px/1.3 Georgia,serif!important;color:var(--ink)}
  .personAlbumSub{font-size:12px!important}
  .storyCatalogGrid,.cityGrid{grid-template-columns:minmax(0,1fr)!important}
- .photoAlbumGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+ .photoAlbumGrid{grid-template-columns:1fr!important;gap:20px!important}
  .photoTileBody{min-width:0;overflow-wrap:anywhere}
  .photoPrimaryNav{display:flex!important;overflow-x:auto;max-width:100%}
  .photoPrimaryTab{flex:0 0 auto;min-width:100px}
@@ -278,4 +278,57 @@
 @media(max-width:760px){
   .messages .attachmentWrap{max-width:min(78vw,360px)}
   .messages img.attachment{max-height:42dvh}
+}
+
+
+/* v74 — canonical mobile photo archive presentation */
+@media(max-width:760px){
+  .photoTile{
+    background:transparent!important;
+    border:0!important;
+    border-radius:0!important;
+    overflow:visible!important;
+    box-shadow:none!important;
+    transform:none!important;
+  }
+  .photoTile:hover{
+    transform:none!important;
+    box-shadow:none!important;
+  }
+  .photoTileImage,
+  .photoAlbumLead .photoTileImage{
+    aspect-ratio:auto!important;
+    min-height:0!important;
+    height:auto!important;
+    overflow:visible!important;
+    padding:8px 8px 24px!important;
+    margin:0 4px!important;
+    box-sizing:border-box!important;
+    background:#fffdf7!important;
+    border:1px solid rgba(78,60,43,.16)!important;
+    border-radius:2px!important;
+    box-shadow:0 10px 26px rgba(47,39,28,.16),0 2px 5px rgba(47,39,28,.09)!important;
+  }
+  .photoTileImage img,
+  .photoAlbumLead .photoTileImage img{
+    display:block!important;
+    width:auto!important;
+    max-width:100%!important;
+    height:auto!important;
+    max-height:72dvh!important;
+    margin:0 auto!important;
+    object-fit:contain!important;
+    filter:saturate(.88) contrast(.99)!important;
+  }
+  .photoTileMissing{
+    min-height:180px!important;
+    height:auto!important;
+  }
+  .photoTileBody{padding:12px 8px 4px!important}
+  .photoTileCaption{margin-bottom:6px!important}
+  html[data-theme="dark"] .photoTileImage{
+    background:#eee6d8!important;
+    border-color:#6b6256!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.34)!important;
+  }
 }

@@ -484,32 +484,28 @@ async function loadPhotoSubmissionReview(){
    $("photoModalSave").textContent="Отклонить";
  });
 }
-function openParticipantPhotoPicker(mode="archive"){
- if(mode==="then-now")return window.openMemberMemoryEditor?.();
+function openParticipantPhotoPicker(){
  const input=$("submitArchivePhotoInput");
  if(!input)return;
  input.value="";
  input.click();
 }
 window.openParticipantPhotoPicker=openParticipantPhotoPicker;
-$("submitArchivePhotoBtn").onclick=()=>openParticipantPhotoPicker("archive");
+$("submitArchivePhotoBtn").onclick=()=>openParticipantPhotoPicker();
 $("submitArchivePhotoInput").onchange=()=>{
  const input=$("submitArchivePhotoInput");
  const file=input.files?.[0];if(!file)return;
  try{ensureImageFile(file)}catch(e){alert(e.message||e);input.value="";return}
  if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES){alert("Фото больше 25 МБ.");input.value="";return}
  const fileTitle=String(file.name||"Фотография").replace(/\.[^.]+$/,"");
- const defaultTitle=fileTitle;
- const modalTitle="Предложить фотографию";
- const lead='<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>';
- openPhotoModal(modalTitle,
-   lead+
-   '<label>Короткое название *</label><input id="pfSubmissionTitle" value="'+esc(defaultTitle)+'" placeholder="Например: 8 класс, поход на Волгу">'+
+ openPhotoModal("Предложить фотографию",
+   '<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>'+
+   '<label>Короткое название *</label><input id="pfSubmissionTitle" value="'+esc(fileTitle)+'" placeholder="Например: 8 класс, поход на Волгу">'+
    '<label>Что изображено</label><textarea id="pfSubmissionDescription" placeholder="Что происходит на снимке, при каких обстоятельствах…"></textarea>'+
-   '<label>Примерный год / период</label><input id="pfSubmissionDate" placeholder="Например: лето 1981">'+
+   '<label>Примерный год / период</label><input id="pfSubmissionDate" value="" placeholder="Например: лето 1981">'+
    '<label>Место</label><input id="pfSubmissionLocation" placeholder="Самара, Волга, дома…">'+
    '<label>Кто на фотографии</label><textarea id="pfSubmissionPeople" placeholder="Кого узнаёте — можно писать свободным текстом"></textarea>'+
-   '<label>Источник / комментарий</label><input id="pfSubmissionSource" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
+   '<label>Источник / комментарий</label><input id="pfSubmissionSource" value="" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
    '<label class="checkItem" style="margin-top:12px"><input id="pfSubmissionPermission" type="checkbox"> <span>Я разрешаю использовать эту фотографию внутри архива «Хроники-78».</span></label>',
    async()=>{
      const title=$("pfSubmissionTitle").value.trim();
@@ -523,7 +519,7 @@ $("submitArchivePhotoInput").onchange=()=>{
      $("photoModalMsg").textContent="Сохраняю оригинал и готовлю копию для редакции…";
      await submitParticipantPhoto(file,meta);
      input.value="";
-     $("photoSubmitMsg").innerHTML='<span class="ok">Фотография отправлена редакции. Оно появится в архиве после проверки.</span>';
+     $("photoSubmitMsg").innerHTML='<span class="ok">Фотография отправлена редакции. Она появится в архиве после проверки.</span>';
      await loadMyPhotoSubmissions();
    }
  );

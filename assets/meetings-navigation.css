@@ -63,5 +63,5 @@ body.home2App:has(#home.active)>#mobileThemeBtn{display:grid;place-items:center;
 @media(min-width:761px){
  html:has(body.home2App #home.active),body.home2App:has(#home.active){height:100dvh!important;min-height:0!important;overflow:hidden!important}
  body.home2App:has(#home.active) main,body.home2App #home.home2.active{height:100dvh!important;width:100vw!important;display:grid!important;place-items:center;overflow:hidden!important}
- body.home2App #home .home2Stage{width:min(100vw,133.333333dvh)!important;height:min(75vw,100dvh)!important;aspect-ratio:4/3;margin:0!important;overflow:hidden}
+ body.home2App #home .home2Stage{width:100vw!important;height:100dvh!important;aspect-ratio:auto;--home-unit:min(1vw,1.333333dvh);--title-size:calc(3.65 * var(--home-unit));--heading-size:calc(1.85 * var(--home-unit));margin:0!important;overflow:hidden}
 }

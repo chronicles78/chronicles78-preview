@@ -705,6 +705,7 @@ function syncMobileSectionTitle(v){
  if(el)el.textContent=titles[v]||"";
 }
 function showView(v,{track=true}={}){
+ if(v&&v!==activeViewId())window.minimizeArchiveMedia?.();
  window.closeClassMeeting?.();
  if(!v)return Promise.resolve(false);
  if(v==="profile"&&profile?.role!=="admin"){
@@ -1576,6 +1577,7 @@ async function passwordLogin(){
 
 function archiveSessionIsCurrent(uid,seq){return user?.id===uid&&!!profile?.is_active&&privateSessionSeq===seq}
 function clearPrivateSessionState(){
+ window.stopArchiveMedia?.();
  window.closeClassMeeting?.();
  privateSessionSeq++;authHydrationSeq++;chatLoadSeq++;classPhotoLoadSeq++;
  clearTimeout(chatReloadTimer);

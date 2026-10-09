@@ -66,20 +66,7 @@ async function openArchiveVideo(id){
     '<div class="small">'+esc(videoMetaLine(v))+'</div>',async()=>{});
   $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();return;
  }
- openPhotoModal(v.title,
-   '<div class="videoPlayerShell"><video id="archiveVideoPlayer" controls preload="metadata" playsinline '+(poster?'poster="'+esc(poster)+'"':'')+'></video><div id="videoPlayerState" class="small">Готовлю защищённый просмотр…</div></div>'+
-   (v.data?.visual_description?'<p class="photoMemoryText">'+esc(v.data.visual_description)+'</p>':'')+
-   (names.length?'<div class="photoDetailPeople"><b>В кадре:</b> '+names.map(n=>'<span class="videoPersonName">'+esc(n)+'</span>').join("")+'</div>':'')+
-   '<div class="small">'+esc(videoMetaLine(v))+'</div>'+
-   (v.linked_story?'<div class="questionActions"><button class="secondary" id="videoStoryLink" type="button">Читать связанную историю</button></div>':''),async()=>{});
- $("photoModalSave").textContent="Закрыть";photoModalSubmit=async()=>closePhotoModal();
- if(v.linked_story&&$("videoStoryLink"))$("videoStoryLink").onclick=()=>{closePhotoModal();showView("stories");openStory(v.linked_story)};
- const player=$("archiveVideoPlayer"),state=$("videoPlayerState");
- try{
-  const {data,error}=await sb.functions.invoke("drive-video-import",{body:{action:"playback_url",mediaId:id}});
-  if(error||!data?.ok)throw new Error(await driveVideoError(error,data));
-  player.src=data.url;state.textContent="Оригинал хранится в закрытом Google Drive. Ссылка на просмотр временная.";
- }catch(e){state.innerHTML='<span class="err">'+esc(e?.message||String(e))+'</span>'}
+ return window.startArchiveMedia(v);
 }
 async function editArchiveVideoCard(id){
  const {data:v,error}=await sb.from("archive_media").select("title,linked_story,data,source_note,original_owner,approx_date_text,location_text,attributed_by,attribution_confidence,publication_permission,legal_status").eq("id",id).eq("media_type","video").maybeSingle();
@@ -203,6 +190,7 @@ function showEraTvCard(play){
  if(play)void playEraTv();
 }
 async function playEraTv(){
+ window.stopArchiveMedia?.();
  if(eraTvBusy||!eraTvItems.length)return;
  const v=eraTvItems[eraTvIndex],player=$("eraTvPlayer"),screen=$("eraTvScreen"),empty=$("eraTvEmpty"),start=$("eraTvStart");if(!player||!screen)return;
  eraTvBusy=true;if(empty){empty.textContent="Настраиваю канал…";empty.style.display="flex"}

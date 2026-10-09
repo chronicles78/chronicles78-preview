@@ -399,7 +399,7 @@ function qualitySelectHtml(value="копия"){
 let chatUnreadByRoom=new Map();
 function setChatUnreadBadge(n){
  const count=Math.max(0,Number(n)||0);
- document.querySelectorAll('.nav[data-view="chat"]').forEach(chatNav=>{
+ document.querySelectorAll('.nav[data-view="chat"], [data-more-view="chat"]').forEach(chatNav=>{
    let badge=chatNav.querySelector(".chatUnreadBadge");
    if(!badge){badge=document.createElement("span");badge.className="chatUnreadBadge";chatNav.appendChild(badge)}
    badge.textContent=count>99?"99+":String(count);
@@ -594,11 +594,14 @@ $("contextShade").onclick=e=>{if(e.target===$("contextShade"))closeContextSheet(
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeContextSheet()});
 
 function closeMoreNav(){
+ const wasOpen=$("moreNavMenu")?.classList.contains("open");
  $("moreNavMenu")?.classList.remove("open");
  $("moreNavShade")?.classList.remove("open");
  $("moreNavMenu")?.setAttribute("aria-hidden","true");
  $("moreNavShade")?.setAttribute("aria-hidden","true");
  $("mobileMoreBtn")?.setAttribute("aria-expanded","false");
+ $("mobileMenuBtn")?.setAttribute("aria-expanded","false");
+ if(wasOpen&&window.matchMedia("(max-width:760px)").matches)$("mobileMenuBtn")?.focus();
 }
 function openMoreNav(){
  $("moreNavMenu")?.classList.add("open");
@@ -606,6 +609,8 @@ function openMoreNav(){
  $("moreNavMenu")?.setAttribute("aria-hidden","false");
  $("moreNavShade")?.setAttribute("aria-hidden","false");
  $("mobileMoreBtn")?.setAttribute("aria-expanded","true");
+ $("mobileMenuBtn")?.setAttribute("aria-expanded","true");
+ $("moreNavMenu")?.querySelector("button")?.focus();
 }
 function activeViewId(){
  return document.querySelector(".view.active")?.id||"home";
@@ -700,6 +705,7 @@ function syncMobileSectionTitle(v){
  if(el)el.textContent=titles[v]||"";
 }
 function showView(v,{track=true}={}){
+ window.closeClassMeeting?.();
  if(!v)return Promise.resolve(false);
  if(v==="profile"&&profile?.role!=="admin"){
    openAccountModal();
@@ -1570,6 +1576,7 @@ async function passwordLogin(){
 
 function archiveSessionIsCurrent(uid,seq){return user?.id===uid&&!!profile?.is_active&&privateSessionSeq===seq}
 function clearPrivateSessionState(){
+ window.closeClassMeeting?.();
  privateSessionSeq++;authHydrationSeq++;chatLoadSeq++;classPhotoLoadSeq++;
  clearTimeout(chatReloadTimer);
  for(const stop of [unsubMsg,unsubReact,unsubRead,unsubNotif])if(stop)stop();

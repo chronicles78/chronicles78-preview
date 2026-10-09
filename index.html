@@ -26,13 +26,13 @@
 }catch{}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-<link rel="stylesheet" href="assets/app.css?v=20261008-74">
-<link rel="stylesheet" href="assets/mobile-archive.css?v=20261008-74">
+<link rel="stylesheet" href="assets/app.css?v=20261009-75">
+<link rel="stylesheet" href="assets/mobile-archive.css?v=20261009-75">
 <style id="photoScallopStyle">.photoTileImage{clip-path:url(#photoPrintScallop)!important;-webkit-clip-path:url(#photoPrintScallop)!important}</style>
-<link rel="stylesheet" href="assets/design-tokens.css?v=20261008-74">
-<link rel="stylesheet" href="assets/home-2.css?v=20261008-74">
-<link rel="stylesheet" href="assets/community.css?v=20261008-74">
-<link rel="stylesheet" href="assets/chapters.css?v=20261008-74">
+<link rel="stylesheet" href="assets/design-tokens.css?v=20261009-75">
+<link rel="stylesheet" href="assets/home-2.css?v=20261009-75">
+<link rel="stylesheet" href="assets/community.css?v=20261009-75">
+<link rel="stylesheet" href="assets/chapters.css?v=20261009-75">
 </head>
 <body class="home2App">
 <svg class="archiveSvgDefs" width="0" height="0" aria-hidden="true" focusable="false">
@@ -42,7 +42,8 @@
     </clipPath>
   </defs>
 </svg>
-<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button"><span>Хроники-78</span><small id="mobileSectionTitle">Главная</small></button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><span class="buildVersion" id="buildVersion" title="Версия интерфейса">Версия 74</span><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<header class="top"><div class="topLeft"><button class="contextBackBtn" id="contextBackBtn" type="button" aria-label="Вернуться назад">← Назад</button><button class="brand nav homeBrand active" data-view="home" type="button"><span>Хроники-78</span><small id="mobileSectionTitle">Главная</small></button></div><nav class="desktopTopNav" aria-label="Основная навигация"><button class="nav topNavLink" data-view="people" type="button">Люди</button><button class="nav topNavLink" data-view="stories" type="button">Истории</button><button class="nav topNavLink" data-view="city" type="button">Город и время</button><button class="nav topNavLink" data-view="photos" type="button">Архив</button><button class="nav topNavLink" data-view="chat" type="button">Чат</button><button class="nav topNavLink serviceNavBtn" data-view="profile" type="button" hidden>Служебный</button><button class="topNavLink accountEntryBtn" id="accountBtnTop" type="button"><span data-account-label>Войти</span></button></nav><div class="topRight"><button class="notifyBtn" id="notifyBtn" title="Уведомления" aria-label="Уведомления" style="display:none">🔔<span id="notifyBadge" class="notifyBadge" style="display:none">0</span></button><button class="themeBtn" id="themeBtn" title="Тема сайта: Авто. Нажмите для переключения." aria-label="Тема сайта: Авто. Нажмите для переключения."><span class="themeBtnIcon">◐</span><span class="themeBtnLabel">Авто</span></button><div class="status" id="status">Подключение…</div></div></header>
+<button id="mobileMenuBtn" type="button" aria-label="Открыть меню разделов" aria-expanded="false" aria-controls="moreNavMenu">☰ Меню</button>
 <main>
 <section id="home" class="view active home2">
   <div class="home2Stage" id="home2Stage">
@@ -117,13 +118,13 @@
     <a class="h2Credits" href="home-2-sources.html" target="_blank" rel="noopener">Источники изображений</a>
     <img class="h2Leaves" src="assets/home2/botanical.png?v=20261007-15" alt="" aria-hidden="true">
     <img class="h2Leaves h2LeavesTop" src="assets/home2/botanical.png?v=20261007-15" alt="" aria-hidden="true">
-    <small class="h2Version">Версия 74</small>
   </div>
 </section>
 
 
 <section id="chat" class="view">
 <div class="chat">
+  <div class="meetingEntry"><button class="primary" id="meetingOpenBtn" type="button">Встреча одноклассников</button></div>
   <div class="rooms" id="rooms"></div>
   <div class="messages" id="messages"></div>
   <div class="composer" id="composerWrap" style="display:none">
@@ -277,6 +278,7 @@
     <span class="profileCabinetMark">●</span>
   </div>
   <div id="profileBox"></div>
+  <div id="editorBuildInfo" hidden><b>Служебная информация Главреда</b><p id="buildVersion">Версия 75</p></div>
 </div>
 <div class="card form profileConsentGate" id="consentGateBox" style="display:none">
   <div class="profileConsentHead">
@@ -399,7 +401,6 @@
   <b>Вход в «Хроники-78»</b>
   <div class="notice" style="margin-top:9px"><b>Один вход для всех.</b><br>Введите e-mail. Если вы уже зарегистрированы, мы сразу пришлём код. Если вы здесь впервые — регистрация продолжится в этом же окне.</div>
   <div id="loginContextHint" class="formHint" style="margin-top:8px"></div>
-  <div class="formHint" id="loginBuildMark" style="margin-top:4px">Версия 74</div>
   <label>E-mail</label>
   <input id="email" type="email" autocomplete="email" placeholder="name@example.com">
   <button class="primary" id="loginBtn" type="button">Продолжить</button>
@@ -476,8 +477,12 @@
   </div>
 </div>
 <div id="moreNavShade" class="moreNavShade" aria-hidden="true"></div>
-<section id="moreNavMenu" class="moreNavMenu" aria-hidden="true" aria-label="Другие разделы">
+<section id="moreNavMenu" class="moreNavMenu" aria-hidden="true" aria-label="Навигация по разделам" role="dialog" aria-modal="true" tabindex="-1">
   <div class="moreNavHead"><b>Разделы</b><button id="moreNavClose" type="button" aria-label="Закрыть">×</button></div>
+  <button class="moreNavItem" type="button" data-more-view="home"><b>⌂</b><span>Главная</span></button>
+  <button class="moreNavItem" type="button" data-more-view="people"><b>◎</b><span>Люди</span></button>
+  <button class="moreNavItem" type="button" data-more-view="stories"><b>▤</b><span>Истории</span></button>
+  <button class="moreNavItem" type="button" data-more-view="chat"><b>◌</b><span>Чат</span></button>
   <button class="moreNavItem" type="button" data-more-view="photos"><b>▧</b><span>Фото и видео</span></button>
   <button class="moreNavItem" type="button" data-more-view="city"><b>⌘</b><span>Город и время</span></button>
   <button class="moreNavItem" type="button" data-more-view="questions"><b>?</b><span>Открытые вопросы</span></button>
@@ -498,19 +503,22 @@
 
 </div></nav>
 
-<script src="assets/js/core.js?v=20261008-74"></script>
-<script src="assets/js/chat.js?v=20261008-74"></script>
-<script src="assets/js/story-assistant.js?v=20261008-74"></script>
-<script src="assets/js/people.js?v=20261008-74"></script>
-<script src="assets/js/stories.js?v=20261008-74"></script>
-<script src="assets/js/photos.js?v=20261008-74"></script>
-<script src="assets/js/videos.js?v=20261008-74"></script>
-<script src="assets/js/city.js?v=20261008-74"></script>
-<script src="assets/js/traffic.js?v=20261008-74"></script>
-<script src="assets/js/questions-admin.js?v=20261008-74"></script>
-<script src="assets/js/home-2-rotation.js?v=20261008-74"></script>
-<script src="assets/js/home-2.js?v=20261008-74"></script>
-<script src="assets/js/community.js?v=20261008-74"></script>
+<link rel="stylesheet" href="assets/meetings-navigation.css?v=20261009-75">
+<script src="assets/js/core.js?v=20261009-75"></script>
+<script src="assets/js/chat.js?v=20261009-75"></script>
+<script src="assets/js/story-assistant.js?v=20261009-75"></script>
+<script src="assets/js/people.js?v=20261009-75"></script>
+<script src="assets/js/stories.js?v=20261009-75"></script>
+<script src="assets/js/photos.js?v=20261009-75"></script>
+<script src="assets/js/videos.js?v=20261009-75"></script>
+<script src="assets/js/city.js?v=20261009-75"></script>
+<script src="assets/js/traffic.js?v=20261009-75"></script>
+<script src="assets/js/questions-admin.js?v=20261009-75"></script>
+<script src="assets/js/home-2-rotation.js?v=20261009-75"></script>
+<script src="assets/js/home-2.js?v=20261009-75"></script>
+<script src="assets/js/community.js?v=20261009-75"></script>
+<script src="assets/js/mobile-navigation.js?v=20261009-75"></script>
+<script src="assets/js/meetings.js?v=20261009-75"></script>
 </body>
 </html>
 

@@ -5,9 +5,8 @@
  #tv{background:var(--bg)!important}
  html{scroll-padding-top:72px}
  html,body{max-width:100%;width:100%;overflow-x:clip}
- body,body:has(#home.view.active){padding-left:0!important;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))!important;background:var(--bg)!important}
+ body,body:has(#home.view.active){padding-left:0!important;padding-bottom:env(safe-area-inset-bottom)!important;background:var(--bg)!important}
  body:has(#home.view.active)>.top{display:flex!important}
- body:has(#home.view.active)>.bottom{display:block!important}
  body:has(#home.view.active)>.moreNavMenu:not(.open),body:has(#home.view.active)>.moreNavShade:not(.open){display:none!important}
  body:has(#home.view.active)>.moreNavMenu.open,body:has(#home.view.active)>.moreNavShade.open{display:block!important}
  .top{height:64px!important;padding:0 12px!important;gap:8px;min-width:0;background:var(--header)!important;color:var(--ink)!important}
@@ -97,11 +96,11 @@
  .profileUserActions{grid-column:1/-1}
  .profileUserMain{min-width:0;overflow-wrap:anywhere}
  .profileUserMain b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
- .chat{height:calc(100dvh - 64px - var(--nav) - env(safe-area-inset-bottom))!important;display:flex!important;flex-direction:column!important;min-width:0}
+ .chat{height:calc(100dvh - 64px - env(safe-area-inset-bottom))!important;display:flex!important;flex-direction:column!important;min-width:0}
  .rooms{flex-shrink:0;max-width:100%;overflow-x:auto}
  .bubble{max-width:90%!important;overflow-wrap:anywhere;font-size:16px}
  .composeTools{max-width:100%;overflow-x:auto}
- .storyDetail{inset:64px 0 calc(var(--nav) + env(safe-area-inset-bottom))!important}
+ .storyDetail{inset:64px 0 env(safe-area-inset-bottom)!important}
  .modalPanel,.contextSheet{width:100%!important;max-width:100%!important;max-height:90dvh;overflow:auto}
  .tvPage{padding:24px 12px!important}
  .tvPageHead h1{font-size:36px!important}
@@ -238,7 +237,7 @@
   .bottom .nav[data-view="chat"]::after{display:none!important}
   .bottom .mobileSecondary{display:none!important}
   .bottom .mobileMore{display:flex!important}
-  body{padding-bottom:calc(64px + env(safe-area-inset-bottom))!important}
+  body{padding-bottom:env(safe-area-inset-bottom)!important}
 }
 
 /* Chat photo states */

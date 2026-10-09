@@ -2,7 +2,7 @@
 body.home2App:has(#home.active){padding:0!important;background:var(--bg)!important;overflow-x:hidden}
 body.home2App:has(#home.active)>.top{display:none!important}
 @media(min-width:761px){body.home2App:has(#home.active)>.bottom{display:none!important}}
-@media(max-width:760px){body.home2App:has(#home.active){padding-bottom:calc(64px + env(safe-area-inset-bottom))!important}}
+
 body.home2App:has(#home.active) main{margin:0!important;padding:0!important;max-width:none!important;width:100%!important}
 body.home2App #home.home2{padding:0!important;margin:0!important;width:100%!important;max-width:none!important;background:var(--desk)!important;color:var(--ink)!important}
 .home2 *{box-sizing:border-box}

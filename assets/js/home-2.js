@@ -126,7 +126,7 @@
         sizeWeekPhoto();
         setObject(el("h2WeekPhoto"),"story",week?.id);
         setObject(el("h2WeekRead"),"story",week?.id);
-        const summary=week?.data?.editorial_summary||week?.data?.chapter?.subtitle||week?.data?.story_text||"";
+        const summary=week?.data?.story_text||week?.data?.original_sources?.[0]?.text||"";
         el("h2WeekTitle").textContent=week?.title||"История недели готовится";
         el("h2WeekSummary").textContent=week?excerpt(summary,240):"Выбранная история временно недоступна. Другие готовые истории можно найти в оглавлении.";
         el("h2WeekRead").textContent="Читать историю →";

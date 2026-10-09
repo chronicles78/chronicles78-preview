@@ -414,7 +414,9 @@
    if(!profiles.length)return null;
    return check(await sb.from('member_memories').select('user_id,then_photo,now_photo,school_dream,life_now,updated_at').in('user_id',profiles.map(p=>p.id)).limit(1).maybeSingle());
  }
- async function openPersonMemoryDossier(person){
+ async function openPersonMemoryDossier(person,valid=()=>true){
+   if(!valid())return;
+   closeContextSheet();
    openPhotoModal(personDisplayName(person),'<'+'div id="communityComparison"><div id="communityCompareResult"></div></div>',async()=>closePhotoModal());
    closeOnly();
    let old=null;
@@ -423,7 +425,7 @@
      const row=check(await sb.from('archive_media').select('current_storage_path').eq('id',media).maybeSingle());
      if(row?.current_storage_path)old=await archiveSignedImage(row.current_storage_path);
    }
-   await comparePerson(person.id,old||'');
+   if(valid())await comparePerson(person.id,old||'');
  }
  let personContextSeq=0;
  openPersonContext=id=>{
@@ -431,17 +433,17 @@
    const person=peopleCache.find(p=>p.id===id);
    if(!person||!active()){oldPersonContext(id);return}
    selectedPersonId=id;renderPeople();
+   oldPersonContext(id);
    void (async()=>{
      try{
        const memoryRow=await personMemoryRecord(id);
-       if(seq!==personContextSeq||!current(uid,epoch)||selectedPersonId!==id)return;
+       if(seq!==personContextSeq||!current(uid,epoch)||selectedPersonId!==id||!node("contextShade")?.classList.contains("open"))return;
        if(memoryRow){
-         await openPersonMemoryDossier(person);
+         await openPersonMemoryDossier(person,()=>seq===personContextSeq&&current(uid,epoch)&&selectedPersonId===id);
          return;
        }
      }catch(e){}
-     if(seq!==personContextSeq||!current(uid,epoch)||selectedPersonId!==id)return;
-     oldPersonContext(id);
+     if(seq!==personContextSeq||!current(uid,epoch)||selectedPersonId!==id||!node("contextShade")?.classList.contains("open"))return;
      const actions=node('contextActions');
      if(!actions)return;
      actions.insertAdjacentHTML('beforeend',

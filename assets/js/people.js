@@ -49,8 +49,11 @@ function personDisplayName(p){
  const name=String(p?.canonical_name||"").trim();
  return name&&!/^(не установлено|имя не установлено)$/i.test(name)?name:"Имя не установлено · № "+(p?.number??"");
 }
+function personPhotoState(person){
+ return classPhotoState?.photo?.group_name===person.group_name?classPhotoState:classPhotoStateCache.get(person.group_name);
+}
 function personThumbHtml(p,className="personPortrait"){
- const r=classPhotoState?.regions?.[p.id],cp=classPhotoState?.photo,url=classPhotoState?.url;
+ const state=personPhotoState(p),r=state?.regions?.[p.id],cp=state?.photo,url=state?.url;
  if(!r||!cp||!url)return "";
  const aspect=className==="classSelectionPortrait"?64/82:4/5;
  const label=personDisplayName(p)||("Позиция № "+(p.number??""));
@@ -87,7 +90,7 @@ function openPersonContext(id){
  selectedPersonId=id;renderPeople();
  const unknown=personIdentityUnknown(p),editor=profile?.role==="editor"||profile?.role==="admin";
  const stories=p.story_refs||[],media=p.data?.media_links||[];
- const portrait=classPhotoState?.regions?.[p.id]?personThumbHtml(p,"identitySuggestCrop"):"";
+ const portrait=personThumbHtml(p,"identitySuggestCrop");
  const archiveSummary='<div class="personDossierSummary">'+
    '<div><b>'+(stories.length||0)+'</b><span>'+(stories.length===1?'история':stories.length<5?'истории':'историй')+'</span></div>'+
    '<div><b>'+(media.length||0)+'</b><span>фото</span></div>'+
@@ -104,11 +107,11 @@ function openPersonContext(id){
  const actions=[
    stories.length?{icon:"≡",label:"Читать истории",hint:stories.length===1?(stories[0].title||"1 история"):stories.length+" "+(stories.length<5?"истории":"историй"),kind:"primary",run:openStories}:null,
    media.length?{icon:"▧",label:"Смотреть фотографии",hint:media.length+" фото",run:openPhotos}:null,
-   {icon:"◎",label:"Найти на общей фотографии",hint:p.group_name+" · позиция № "+(p.number??""),run:()=>{selectedPersonId=id;renderPeople();setTimeout(()=>$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"}),50)}},
+   {icon:"◎",label:"Найти на общей фотографии",hint:p.group_name+" · позиция № "+(p.number??""),run:async()=>{peopleGroup=p.group_name;selectedPersonId=id;$("peopleSearch").value="";document.querySelectorAll("[data-pgroup]").forEach(button=>button.classList.toggle("on",button.dataset.pgroup===peopleGroup));await loadPeople();await loadClassPhoto();$("peopleList")?.querySelector(".classPhotoPanel")?.scrollIntoView({behavior:"smooth",block:"start"})}},
    unknown&&!editor?{icon:"✎",label:"Предложить имя",hint:"Редактор проверит подпись",run:()=>suggestPersonIdentity(id)}:null,
    editor?{icon:"✎",label:unknown?"Назначить имя":"Редактировать сведения",hint:"Имя, статус и подтверждение",run:()=>editPersonIdentity(id)}:null
  ];
- openContextSheet({eyebrow:"ЛИЧНОЕ ДОСЬЕ",title:personDisplayName(p),meta:[p.group_name,"позиция № "+(p.number??""),p.person_role].filter(Boolean).join(" · "),preview,actions});
+ openContextSheet({eyebrow:"КАРТОЧКА УЧЕНИКА",title:personDisplayName(p),meta:[p.group_name,"позиция № "+(p.number??""),p.person_role].filter(Boolean).join(" · "),preview,actions});
 }
 function renderClassPhotoPanel(arr){
  if(!["10А","10Б"].includes(peopleGroup))return "";
@@ -146,9 +149,7 @@ function renderPeople(){
    const linkedStories=(p.story_refs||[]);
    const stories=linkedStories.map(x=>'<button class="mini" data-pstory="'+esc(x.id)+'">'+esc(x.title||x.id)+'</button>').join("");
    const media=(p.data?.media_links||[]).map(x=>'<button class="mini" data-pmedia="'+esc(x.media_id)+'">▧ '+esc(x.media_id)+'</button>').join("");
-   const thumb=["10А","10Б"].includes(peopleGroup)&&classPhotoState?.url&&classPhotoState?.regions?.[p.id]
-     ?personThumbHtml(p,"personPortrait")
-     :'<div class="personNo">'+esc(p.number??"")+'</div>';
+   const thumb=personThumbHtml(p,"personPortrait")||'<div class="personNo personPhotoMissing" aria-label="Портрет пока не добавлен">Фото пока нет</div>';
    const editor=profile?.role==="editor"||profile?.role==="admin";
    const status=p.identification_status||"подтверждено";
    const shownName=personDisplayName(p);
@@ -289,6 +290,30 @@ async function ensurePeopleData(){
  })().finally(()=>{peopleLoadPromise=null});
  return peopleLoadPromise;
 }
+const peoplePortraitLoads=new Map();
+async function ensureClassPortraits(group){
+ const uid=user?.id,epoch=privateSessionSeq;
+ if(!uid||!profile?.is_active)return;
+ const cached=classPhotoStateCache.get(group);
+ if(cached&&Date.now()-Number(cached.cachedAt||0)<50*60*1000)return;
+ const key=uid+":"+epoch+":"+group;
+ if(peoplePortraitLoads.has(key))return peoplePortraitLoads.get(key);
+ const task=(async()=>{
+  const classId=group==="10А"?"CLASS-10A":"CLASS-10B";
+  const [{data:photo,error:pe},{data:regions,error:re}]=await Promise.all([
+   sb.from("class_photos").select("id,group_name,title,storage_path,source_width,source_height").eq("group_name",group).maybeSingle(),
+   sb.from("class_photo_regions").select("person_id,x,y,w,h").eq("class_photo_id",classId)
+  ]);
+  if(pe||re)throw new Error(pe?.message||re?.message);
+  if(!archiveSessionIsCurrent(uid,epoch))return;
+  const url=photo?.storage_path?await archiveSignedImage(photo.storage_path):null;
+  if(url)await preloadClassPhotoUrl(url);
+  if(!archiveSessionIsCurrent(uid,epoch))return;
+  classPhotoStateCache.set(group,{photo,regions:Object.fromEntries((regions||[]).map(r=>[r.person_id,r])),url,loading:false,cachedAt:Date.now()});
+  if(activeViewId()==="people")renderPeople();
+ })().catch(error=>console.warn("class portraits",group,error)).finally(()=>peoplePortraitLoads.delete(key));
+ peoplePortraitLoads.set(key,task);return task;
+}
 async function loadPeople(){
  if(!user||!profile?.is_active){$("peopleList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
  if(!peopleCache.length)$("peopleList").innerHTML='<div class="notice">Загружаю список класса…</div>';
@@ -296,7 +321,8 @@ async function loadPeople(){
  try{await ensurePeopleData()}catch(e){$("peopleList").innerHTML='<div class="notice">'+esc(e.message||String(e))+'</div>';return}
  if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  renderPeople();
- loadClassPhoto();
+ if(peopleGroup==="all")void Promise.all([ensureClassPortraits("10А"),ensureClassPortraits("10Б")]);
+ else void loadClassPhoto();
 }
 $("classPhotoInput").onchange=async()=>{
  const file=$("classPhotoInput").files?.[0];if(!file)return;

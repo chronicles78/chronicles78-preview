@@ -8,16 +8,20 @@ function photoPlural(n,one,few,many){
  return many;
 }
 async function archiveSignedImage(path){
+ const uid=user?.id,sessionSeq=privateSessionSeq;
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return null;
  if(!path)return null;
  const hit=archiveSignedCache.get(path);
  if(hit&&hit.expires>Date.now())return hit.url;
  const {data,error}=await sb.storage.from("archive-media").createSignedUrl(path,3600);
- if(error)return null;
+ if(error||!archiveSessionIsCurrent(uid,sessionSeq))return null;
  const url=data?.signedUrl||null;
  if(url)archiveSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
  return url;
 }
 async function prefetchArchiveMediaUrls(rows){
+ const uid=user?.id,sessionSeq=privateSessionSeq;
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  const now=Date.now();
  const paths=[];
  for(const m of rows||[]){
@@ -32,6 +36,7 @@ async function prefetchArchiveMediaUrls(rows){
  for(let i=0;i<missing.length;i+=100){
   const chunk=missing.slice(i,i+100);
   const {data,error}=await sb.storage.from("archive-media").createSignedUrls(chunk,3600);
+  if(!archiveSessionIsCurrent(uid,sessionSeq))return;
   if(error){
    console.warn("archive-media signed URL batch failed",error);
    continue;
@@ -41,6 +46,7 @@ async function prefetchArchiveMediaUrls(rows){
    if(url&&path)archiveSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
   });
  }
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  for(const m of rows||[]){
   const full=m.current_storage_path?archiveSignedCache.get(m.current_storage_path):null;
   const thumb=m.data?.thumbnail_storage_path?archiveSignedCache.get(m.data.thumbnail_storage_path):null;
@@ -311,8 +317,10 @@ async function openArchivePhoto(id){
 }
 async function loadPhotos(){
  if(!user||!profile?.is_active){$("photosList").className="";$("photosList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ const uid=user.id,sessionSeq=privateSessionSeq;
  if(!peopleCache.length){
    const {data:pp}=await sb.from("archive_people").select("id,canonical_name,group_name,number").order("group_name").order("number");
+   if(!archiveSessionIsCurrent(uid,sessionSeq))return;
    peopleCache=pp||[];
  }
  const [mediaRes,topicRes,candidateRes]=await Promise.all([
@@ -320,12 +328,14 @@ async function loadPhotos(){
    sb.from("visual_topics").select("*").order("sort_order"),
    sb.from("visual_candidates").select("*").order("sort_order")
  ]);
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(mediaRes.error||topicRes.error||candidateRes.error){$("photosList").className="";$("photosList").innerHTML='<div class="notice">'+esc(mediaRes.error?.message||topicRes.error?.message||candidateRes.error?.message)+'</div>';return}
  const allMedia=mediaRes.data||[];mediaCache=allMedia.filter(m=>m.media_type!=="video");videoCache=allMedia.filter(m=>m.media_type==="video");visualTopicCache=topicRes.data||[];visualCandidateCache=candidateRes.data||[];
  mediaSigned={};mediaThumbSigned={};
  if(typeof prepareVideoArchive==="function")void prepareVideoArchive();
  renderPhotosSection();
  prefetchArchiveMediaUrls(mediaCache).then(()=>{
+   if(!archiveSessionIsCurrent(uid,sessionSeq))return;
    if(photoMode==="archive"&&photoWorkspace!=="upload")renderPhotoGallery();
  }).catch(e=>console.warn("archive media URL prefetch failed",e));
 }
@@ -475,9 +485,9 @@ async function loadPhotoSubmissionReview(){
  });
 }
 function openParticipantPhotoPicker(mode="archive"){
+ if(mode==="then-now")return window.openMemberMemoryEditor?.();
  const input=$("submitArchivePhotoInput");
  if(!input)return;
- input.dataset.submissionMode=mode;
  input.value="";
  input.click();
 }
@@ -486,24 +496,20 @@ $("submitArchivePhotoBtn").onclick=()=>openParticipantPhotoPicker("archive");
 $("submitArchivePhotoInput").onchange=()=>{
  const input=$("submitArchivePhotoInput");
  const file=input.files?.[0];if(!file)return;
- const thenNow=input.dataset.submissionMode==="then-now";
- delete input.dataset.submissionMode;
  try{ensureImageFile(file)}catch(e){alert(e.message||e);input.value="";return}
  if(file.size>ARCHIVE_ORIGINAL_MAX_BYTES){alert("Фото больше 25 МБ.");input.value="";return}
  const fileTitle=String(file.name||"Фотография").replace(/\.[^.]+$/,"");
- const defaultTitle=thenNow?("Тогда и сейчас — "+String(profile?.display_name||fileTitle)):fileTitle;
- const modalTitle=thenNow?'Фото «Тогда и сейчас»':"Предложить фотографию";
- const lead=thenNow
-   ?'<div class="notice"><b>Современная фотография для рубрики «Тогда и сейчас».</b><br>Файл: '+esc(file.name)+' · '+esc(fmtFileSize(file.size))+'. Старое школьное фото редакция свяжет с вашей карточкой при проверке.</div>'
-   :'<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>';
+ const defaultTitle=fileTitle;
+ const modalTitle="Предложить фотографию";
+ const lead='<div class="notice">Файл: <b>'+esc(file.name)+'</b> · '+esc(fmtFileSize(file.size))+'<br>После отправки снимок сначала увидит редакция.</div>';
  openPhotoModal(modalTitle,
    lead+
    '<label>Короткое название *</label><input id="pfSubmissionTitle" value="'+esc(defaultTitle)+'" placeholder="Например: 8 класс, поход на Волгу">'+
-   '<label>Что изображено</label><textarea id="pfSubmissionDescription" placeholder="'+(thenNow?'Можно коротко: где и когда сделано современное фото…':'Что происходит на снимке, при каких обстоятельствах…')+'"></textarea>'+
-   '<label>Примерный год / период</label><input id="pfSubmissionDate" value="'+(thenNow?new Date().getFullYear():'')+'" placeholder="Например: лето 1981">'+
+   '<label>Что изображено</label><textarea id="pfSubmissionDescription" placeholder="Что происходит на снимке, при каких обстоятельствах…"></textarea>'+
+   '<label>Примерный год / период</label><input id="pfSubmissionDate" placeholder="Например: лето 1981">'+
    '<label>Место</label><input id="pfSubmissionLocation" placeholder="Самара, Волга, дома…">'+
-   '<label>Кто на фотографии</label><textarea id="pfSubmissionPeople" placeholder="Кого узнаёте — можно писать свободным текстом">'+(thenNow?esc(profile?.display_name||""):"")+'</textarea>'+
-   '<label>Источник / комментарий</label><input id="pfSubmissionSource" value="'+(thenNow?'Рубрика «Тогда и сейчас»':'')+'" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
+   '<label>Кто на фотографии</label><textarea id="pfSubmissionPeople" placeholder="Кого узнаёте — можно писать свободным текстом"></textarea>'+
+   '<label>Источник / комментарий</label><input id="pfSubmissionSource" placeholder="Семейный альбом, мой снимок, фото родителей…">'+
    '<label class="checkItem" style="margin-top:12px"><input id="pfSubmissionPermission" type="checkbox"> <span>Я разрешаю использовать эту фотографию внутри архива «Хроники-78».</span></label>',
    async()=>{
      const title=$("pfSubmissionTitle").value.trim();
@@ -517,7 +523,7 @@ $("submitArchivePhotoInput").onchange=()=>{
      $("photoModalMsg").textContent="Сохраняю оригинал и готовлю копию для редакции…";
      await submitParticipantPhoto(file,meta);
      input.value="";
-     $("photoSubmitMsg").innerHTML='<span class="ok">'+(thenNow?'Фото «Тогда и сейчас» отправлено редакции.':'Фотография отправлена редакции.')+' Оно появится в архиве после проверки.</span>';
+     $("photoSubmitMsg").innerHTML='<span class="ok">Фотография отправлена редакции. Оно появится в архиве после проверки.</span>';
      await loadMyPhotoSubmissions();
    }
  );

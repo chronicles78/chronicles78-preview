@@ -141,8 +141,10 @@ function showSignupConfirmationState(){
  }
 }
 let authSyncPromise=null;
+let authHydrationSeq=0,privateSessionSeq=0;
 let pendingProfile=null,consentRequired=false;
 async function hydrateProfileFromSession(session,{render=true}={}){
+ const seq=++authHydrationSeq;
  const nextUser=session?.user||null;
  user=nextUser;
  profile=null;
@@ -151,9 +153,10 @@ async function hydrateProfileFromSession(session,{render=true}={}){
  if(session?.access_token)sb.realtime.setAuth(session.access_token);
  if(nextUser){
    const [{data:p,error:pe},{data:consent,error:ce}]=await Promise.all([
-     sb.from("profiles").select("display_name,role,is_active,access_blocked").eq("id",nextUser.id).maybeSingle(),
+     sb.from("profiles").select("display_name,role,is_active,access_blocked,person_id,class_group").eq("id",nextUser.id).maybeSingle(),
      sb.from("user_consents").select("accepted_at,withdrawn_at,consent_version").eq("user_id",nextUser.id).eq("consent_code",CONSENT_CODE).eq("consent_version",CONSENT_VERSION).maybeSingle()
    ]);
+   if(seq!==authHydrationSeq||user?.id!==nextUser.id)return false;
    if(!pe&&p){
      pendingProfile=p;
      const hasConsent=!ce&&!!consent&&!consent.withdrawn_at;
@@ -173,13 +176,16 @@ async function hydrateProfileFromSession(session,{render=true}={}){
 }
 async function syncAuthState({render=true}={}){
  if(authSyncPromise)return authSyncPromise;
+ const sessionSeq=privateSessionSeq;
  authSyncPromise=(async()=>{
    const {data:{session}}=await sb.auth.getSession();
+   if(sessionSeq!==privateSessionSeq)return false;
    return hydrateProfileFromSession(session,{render});
  })().finally(()=>{authSyncPromise=null});
  return authSyncPromise;
 }
 sb.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT")clearPrivateSessionState();
  if(event==="PASSWORD_RECOVERY")setTimeout(()=>openNewPasswordForm(),0);
  if(["INITIAL_SESSION","SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","SIGNED_OUT"].includes(event)){
    setTimeout(()=>hydrateProfileFromSession(session,{render:true}).then(ok=>{
@@ -195,7 +201,7 @@ sb.auth.onAuthStateChange((event,session)=>{
        else if(v==="city")loadCityEssays();
        else if(v==="questions")loadQuestions();
      }
-   }),0);
+   }).catch(e=>console.warn("Auth refresh failed",e)),0);
  }
 });
 window.addEventListener("pageshow",()=>setTimeout(()=>syncAuthState({render:true}),0));
@@ -392,13 +398,13 @@ function qualitySelectHtml(value="копия"){
 
 let chatUnreadByRoom=new Map();
 function setChatUnreadBadge(n){
- const chatNav=document.querySelector('.nav[data-view="chat"]');
- if(!chatNav)return;
- let badge=chatNav.querySelector(".chatUnreadBadge");
- if(!badge){badge=document.createElement("span");badge.className="chatUnreadBadge";chatNav.appendChild(badge)}
  const count=Math.max(0,Number(n)||0);
- badge.textContent=count>99?"99+":String(count);
- badge.style.display=count?"inline-flex":"none";
+ document.querySelectorAll('.nav[data-view="chat"]').forEach(chatNav=>{
+   let badge=chatNav.querySelector(".chatUnreadBadge");
+   if(!badge){badge=document.createElement("span");badge.className="chatUnreadBadge";chatNav.appendChild(badge)}
+   badge.textContent=count>99?"99+":String(count);
+   badge.style.display=count?"inline-flex":"none";
+ });
 }
 function updateRoomUnreadBadges(){
  document.querySelectorAll("#rooms .room[data-id]").forEach(btn=>{
@@ -410,11 +416,14 @@ function updateRoomUnreadBadges(){
 }
 async function loadChatUnreadCount(){
  if(!user||!profile?.is_active){chatUnreadByRoom=new Map();setChatUnreadBadge(0);updateRoomUnreadBadges();return}
+ const uid=user.id,sessionSeq=privateSessionSeq;
  const {data:msgs,error}=await sb.from("messages").select("id,author_id,room_id").neq("author_id",user.id);
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(error)return;
  const ids=(msgs||[]).map(x=>x.id);
  if(!ids.length){chatUnreadByRoom=new Map();setChatUnreadBadge(0);updateRoomUnreadBadges();return}
- const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",user.id).in("message_id",ids);
+ const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",uid).in("message_id",ids);
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(re)return;
  const seen=new Set((reads||[]).map(x=>x.message_id));
  const byRoom=new Map();
@@ -692,11 +701,11 @@ function syncMobileSectionTitle(v){
 }
 function showView(v,{track=true}={}){
  if(!v)return Promise.resolve(false);
- syncMobileSectionTitle(v);
  if(v==="profile"&&profile?.role!=="admin"){
    openAccountModal();
    return Promise.resolve(false);
  }
+ syncMobileSectionTitle(v);
  const current=activeViewId();
  if(appNavEnabled&&track&&!appNavRestoring&&current&&current!==v)pushAppNavState();
  closeMoreNav();
@@ -1201,7 +1210,7 @@ function renderAccountModal(){
  const sh=$("accountShade"),title=$("accountModalTitle"),userBox=$("accountUserBox"),host=$("accountAuthHost")||$("accountModalBody");
  if(!sh||!host)return;
  if(user&&profile){
-   if(title)title.textContent=profile.role==="admin"?"Игорь · Хроники-78":"Ваш вход в «Хроники-78»";
+   if(title)title.textContent="Ваш вход в «Хроники-78»";
    if($("loginBox"))$("loginBox").style.display="none";
    if($("consentGateBox"))$("consentGateBox").style.display="none";
    host.style.display="none";
@@ -1347,7 +1356,6 @@ function renderProfile(){
    if(collage){collage.hidden=true;collage.replaceChildren()}
  }
 
- if($("adminLoginBox"))$("adminLoginBox").style.display="none";
  if($("loginBox"))$("loginBox").style.display=!user?"block":"none";
  if($("consentGateBox"))$("consentGateBox").style.display=(user&&pendingProfile&&!profile&&consentRequired)?"block":"none";
  if($("nameBox"))$("nameBox").style.display="none";
@@ -1460,6 +1468,7 @@ async function login(){
   $("otpCode").focus();
   $("loginError").className="ok";
   $("loginError").innerHTML="<b>Код отправлен.</b> Введите 8 цифр из последнего письма. Код действует 10 минут.";
+  return true;
  }catch(e){
   const msg=e.message||String(e);
   if(msg.includes("Signups not allowed")||msg.toLowerCase().includes("signup")){
@@ -1471,6 +1480,7 @@ async function login(){
     $("loginError").className="err";
     $("loginError").textContent=msg;
   }
+  return false;
  }finally{$("loginBtn").disabled=false}
 }
 
@@ -1558,53 +1568,31 @@ async function passwordLogin(){
  }catch(e){$("loginError").className="err";$("loginError").textContent=e.message||String(e)}
 }
 
-async function adminPasswordLogin(){
- const msg=$("adminLoginMsg");
- msg.className="";
- msg.textContent="";
- const email=$("adminEmail").value.trim();
- const password=$("adminPassword").value;
- if(!email||!password){msg.className="err";msg.textContent="Введите e-mail администратора и пароль.";return}
- $("adminLoginBtn").disabled=true;
- try{
-   const {data,error}=await sb.auth.signInWithPassword({email,password});
-   if(error)throw error;
-   await hydrateProfileFromSession(data.session,{render:false});
-   if(profile?.role!=="admin"){
-     await sb.auth.signOut();
-     user=null;profile=null;pendingProfile=null;consentRequired=false;
-     renderProfile();
-     throw new Error("Эта учётная запись не имеет прав администратора.");
-   }
-   localStorage.setItem("chronicles78-admin-email",email);
-   renderProfile();
-   subscribe();subscribeNotifications();
-   await showView("home");
-   await loadHome();
- }catch(e){
-   msg.className="err";
-   msg.textContent=e.message||String(e);
- }finally{$("adminLoginBtn").disabled=false}
+function archiveSessionIsCurrent(uid,seq){return user?.id===uid&&!!profile?.is_active&&privateSessionSeq===seq}
+function clearPrivateSessionState(){
+ privateSessionSeq++;authHydrationSeq++;chatLoadSeq++;classPhotoLoadSeq++;
+ clearTimeout(chatReloadTimer);
+ for(const stop of [unsubMsg,unsubReact,unsubRead,unsubNotif])if(stop)stop();
+ unsubMsg=unsubReact=unsubRead=unsubNotif=null;
+ user=profile=pendingProfile=null;consentRequired=false;
+ lastMessages=[];reactionRows=[];pendingFiles=[];replyTo=null;questionDiscussion=null;
+ peopleCache=[];peopleLoadPromise=null;storyIndex=[];storyCache=[];storyCoverUrls={};storyCoverMedia={};
+ mediaCache=[];videoCache=[];mediaSigned={};cityCache=[];questionCache=[];
+ classPhotoState=null;classPhotoStateCache.clear();selectedPersonId=null;homeSearchCache=null;
+ chatSignedCache.clear();chatReadSyncByRoom.clear();chatUnreadByRoom.clear();setChatUnreadBadge(0);
+ archiveSignedCache.clear();mediaThumbSigned={};driveImportSnapshot=null;openStoryId=null;
+ $("storyDetail")?.classList.remove("open");
+ closePhotoModal();closeContextSheet();closeMoreNav();closeHomeSearch();
+ for(const id of ["messages","peopleList","storiesList","photosList","cityList","cityDetailsList","questionsList","storyDetailBody","accountUserBox","myPhotoSubmissionsList","photoSubmissionReviewList","identityReviewList","moderationList","adminUsersList","trafficOnlineList"]){$(id)?.replaceChildren()}
+ document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);
+ renderReply();
 }
-
-function openAdminPasswordReset(){
- const remembered=($("adminEmail")?.value||localStorage.getItem("chronicles78-admin-email")||"").trim();
- openPhotoModal("Пароль администратора",
-   '<div class="notice"><b>Восстановление только пароля администратора.</b><br>На указанный e-mail придёт ссылка для задания нового пароля.</div>'+
-   '<label>E-mail администратора</label><input id="pfAdminResetEmail" type="email" autocomplete="email" value="'+esc(remembered)+'" placeholder="name@example.com">',
-   async()=>{
-     const email=$("pfAdminResetEmail").value.trim();
-     if(!email)throw new Error("Введите e-mail администратора.");
-     $("photoModalMsg").textContent="Отправляю письмо…";
-     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:PASSWORD_RESET_REDIRECT});
-     if(error)throw error;
-     $("photoModalBody").innerHTML='<div class="notice"><b>Письмо отправлено.</b><br>Откройте ссылку и задайте новый пароль. После этого используйте блок «Вход администратора».</div>';
-     $("photoModalSave").textContent="Закрыть";
-     photoModalSubmit=async()=>closePhotoModal();
-   }
- );
+async function logout(){
+ const {error}=await sb.auth.signOut();
+ if(error){alert("Не удалось выйти: "+error.message);return false}
+ clearPrivateSessionState();localStorage.removeItem(OTP_EMAIL_KEY);
+ renderProfile();await showView("home");openAccountModal();return true;
 }
-async function logout(){if(unsubMsg)unsubMsg();if(unsubReact)unsubReact();if(unsubRead)unsubRead();if(unsubNotif)unsubNotif();await sb.auth.signOut();localStorage.removeItem(OTP_EMAIL_KEY);document.querySelectorAll("[data-profile-load]").forEach(el=>delete el.dataset.loaded);user=null;profile=null;pendingProfile=null;consentRequired=false;renderProfile();await showView("home");openAccountModal()}
 $("loginBtn").onclick=login;
 if($("registerOtpBtn"))$("registerOtpBtn").onclick=registerAndSendOtp;
 if($("otpResendBtn"))$("otpResendBtn").onclick=async()=>{
@@ -1616,9 +1604,10 @@ if($("otpResendBtn"))$("otpResendBtn").onclick=async()=>{
  if($("email"))$("email").value=email;
  btn.disabled=true;btn.textContent="Отправляю…";
  try{
-   await login();
-   $("loginError").className="ok";
-   $("loginError").innerHTML="<b>Новый код отправлен.</b> Он действует 10 минут. Используйте код только из самого последнего письма.";
+   if(await login()){
+     $("loginError").className="ok";
+     $("loginError").innerHTML="<b>Новый код отправлен.</b> Он действует 10 минут. Используйте код только из самого последнего письма.";
+   }
  }finally{
    btn.disabled=false;btn.textContent="Отправить новый код";
  }
@@ -1630,57 +1619,7 @@ $("passwordLoginToggle").onclick=()=>{
 };
 $("passwordLoginBtn").onclick=passwordLogin;
 $("forgotPasswordBtn").onclick=openForgotPassword;
-$("adminLoginBtn").onclick=adminPasswordLogin;
-$("adminPassword").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();adminPasswordLogin()}};
-$("adminResetBtn").onclick=openAdminPasswordReset;
-$("adminEmail").value=localStorage.getItem("chronicles78-admin-email")||"";
 
-function openQuickRegistration(){
- openPhotoModal("Запросить доступ",
-   '<div class="notice"><b>Новый участник проходит три шага.</b><br>1. Имя, e-mail и согласие. 2. Подтверждение e-mail 8-значным кодом из письма. 3. Решение администратора о допуске.</div>'+
-   '<label>Ваше имя</label><input id="pfRegName" autocomplete="name" placeholder="Например, Алексей Петров">'+
-   '<label>E-mail</label><input id="pfRegEmail" type="email" autocomplete="email" placeholder="name@example.com">'+
-    '<label class="checkItem" style="margin-top:14px"><input id="pfRegConsent" type="checkbox"> <span>Я согласен(на) на обработку данных для работы закрытого архива, включая внутреннюю статистику посещений и разделов без сохранения IP‑адреса и цифрового fingerprint. <a href="consent.html" target="_blank" rel="noopener">Полный текст</a></span></label>'+
-   '<div class="formHint" style="margin-top:9px">Открытая публикация в интернете, соцсетях или рекламе в это согласие не входит.</div>',
-   async()=>{
-     const display_name=$("pfRegName").value.trim();
-     const email=$("pfRegEmail").value.trim();
-     if(!display_name||!email)throw new Error("Введите имя и e-mail.");
-     if(!$("pfRegConsent").checked)throw new Error("Нужно подтвердить согласие для закрытого архива.");
-     $("photoModalMsg").textContent="Отправляю код подтверждения…";
-     const {error}=await sb.auth.signInWithOtp({
-       email,
-       options:{
-         shouldCreateUser:true,
-         emailRedirectTo:SITE_URL,
-         data:{display_name,consent_personal_data:true,consent_version:CONSENT_VERSION}
-       }
-     });
-     if(error)throw error;
-     $("photoModalBody").innerHTML=
-       '<div class="notice"><b>Письмо отправлено.</b><br>На '+esc(email)+' должен прийти 8-значный код подтверждения.</div>'+
-       '<label>Код из письма</label><input id="pfRegOtp" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">'+
-       '<div class="formHint">Введите код здесь — не нужно переходить в Safari. После подтверждения регистрация завершится автоматически.</div>';
-     $("photoModalSave").textContent="Подтвердить код";
-     photoModalSubmit=async()=>{
-       $("photoModalMsg").textContent="Проверяю код…";
-       const state=await finishOtpLogin(email,$("pfRegOtp").value);
-       if(state==="active"){
-         closePhotoModal();
-         return;
-       }
-       $("photoModalBody").innerHTML=
-         '<div class="notice"><b>E-mail подтверждён.</b><br>Регистрация подтверждена.</div>'+
-         '<div class="formHint">Завершите вход в открывшемся окне.</div>';
-       $("photoModalMsg").textContent="";
-       $("photoModalSave").textContent="Продолжить";
-       photoModalSubmit=async()=>{closePhotoModal();await showView("profile")};
-     };
-   }
- );
- $("photoModalSave").textContent="Отправить заявку";
-}
-if($("goRegisterBtn"))$("goRegisterBtn").onclick=openQuickRegistration;
 
 async function acceptCurrentConsent(){
  if(!user)return;

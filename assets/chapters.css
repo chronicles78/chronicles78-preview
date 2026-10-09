@@ -22,15 +22,14 @@ body.home2App .communityStoryCard blockquote{border-left-color:#b89055}
 body.home2App #chat .rooms,body.home2App .communityLibrary{background:var(--paper)}
 body.home2App #chat .messages{background:linear-gradient(#fff9edec,#fff9edec),url('home2/paper-grain.svg')}
 body.home2App .bottom{background:var(--nav-bg)}
-body.home2App .bottomIn{max-width:1120px;grid-template-columns:repeat(8,minmax(0,1fr))}
-body.home2App .bottom .mobileSecondary{display:flex!important}
+@media(min-width:761px){body.home2App .bottomIn{max-width:1120px;grid-template-columns:repeat(8,minmax(0,1fr))}body.home2App .bottom .mobileSecondary{display:flex!important}}
+body.home2App .bottom .nav[hidden]{display:none!important}
 html[data-theme=dark] body.home2App:has(.view.active:not(#home)){background:linear-gradient(#171815e8,#292a23ed),url('home2/paper-texture.png') center/650px auto}
 html[data-theme=dark] body.home2App:has(.view.active:not(#home))::before{opacity:.05}
 html[data-theme=dark] body.home2App:has(.view.active:not(#home))::after{opacity:.13}
 html[data-theme=dark] body.home2App #chat .messages{background:var(--paper-2)}
 html[data-theme=dark] body.home2App .view:not(#home) .memoryEyebrow{color:#d1ad79}
-@media(max-width:760px){body.home2App:has(.view.active:not(#home))::before,body.home2App:has(.view.active:not(#home))::after{display:none}body.home2App:has(.view.active:not(#home)) main{padding:12px 0 20px}body.home2App .bottomIn{display:flex;overflow-x:auto;justify-content:flex-start;scrollbar-width:thin}body.home2App .bottomIn .nav{display:flex!important;flex:0 0 70px;min-width:70px;}body.home2App .view:not(#home) .archiveList{padding-inline:16px}}
+@media(max-width:760px){body.home2App:has(.view.active:not(#home))::before,body.home2App:has(.view.active:not(#home))::after{display:none}body.home2App:has(.view.active:not(#home)) main{padding:12px 0 20px}body.home2App .view:not(#home) .archiveList{padding-inline:16px}}
 body.home2App main>.view:not(#home){max-width:1120px!important}
 body.home2App main>#profile{max-width:900px!important}
 body.home2App .desktopTopNav .topNavLink.active{color:var(--primary-bg);border-color:#b89055}
-@media(max-width:760px){body.home2App .bottomIn{display:flex!important;flex-wrap:nowrap!important;grid-template-columns:none!important;overflow-x:auto!important;gap:0;width:100%;height:var(--nav);max-width:none}body.home2App .bottom{height:calc(var(--nav) + env(safe-area-inset-bottom))!important}body.home2App .bottomIn .nav{flex:0 0 70px!important;min-width:70px!important}}

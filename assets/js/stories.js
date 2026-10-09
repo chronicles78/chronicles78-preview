@@ -133,8 +133,10 @@ function renderStoriesCatalog(){
 }
 async function loadStories(){
  if(!user||!profile?.is_active){$("storiesList").className="";$("storiesList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ const uid=user.id,sessionSeq=privateSessionSeq;
  if(!peopleCache.length){
    const {data:pp}=await sb.from("archive_people").select("id,canonical_name,group_name,number,aliases").order("group_name").order("number");
+   if(!archiveSessionIsCurrent(uid,sessionSeq))return;
    peopleCache=pp||[];
  }
  const [storiesRes,mediaRes]=await Promise.all([
@@ -143,6 +145,7 @@ async function loadStories(){
      .eq("media_type","photo")
      .not("current_storage_path","is",null)
  ]);
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(storiesRes.error){$("storiesList").className="";$("storiesList").innerHTML='<div class="notice">'+esc(storiesRes.error.message)+'</div>';return}
  storyCache=storiesRes.data||[];
  storyCoverUrls={};storyCoverMedia={};
@@ -174,6 +177,7 @@ async function loadStories(){
    storyCoverMedia[m.id]=rec;
    if(m.linked_story&&!storyCoverMedia[m.linked_story])storyCoverMedia[m.linked_story]=rec;
  }
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  renderStoriesCatalog();
 }
 document.querySelectorAll("[data-storyfilter]").forEach(b=>b.onclick=()=>{
@@ -230,8 +234,11 @@ function fragmentOpenQuestion(s){
  return "";
 }
 async function openStory(id){
+ if(!user||!profile?.is_active)return;
+ const uid=user.id;
  openStoryId=id;
  const {data:s,error}=await sb.from("archive_stories").select("*").eq("id",id).maybeSingle();
+ if(user?.id!==uid||!profile?.is_active||openStoryId!==id)return;
  if(error||!s){alert(error?.message||"История не найдена");return}
  const ch=s.data?.chapter;
  const cover=storyCoverFor(s);

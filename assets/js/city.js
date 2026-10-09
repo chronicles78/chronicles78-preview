@@ -175,7 +175,9 @@ function openMemoryContext(x,url){
 }
 async function loadCityDetails(){
  if(!user||!profile?.is_active){$("cityDetailsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ const uid=user.id,sessionSeq=privateSessionSeq;
  const {data,error}=await sb.from("city_memory_details").select("*").order("sort_order").order("id");
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(error){$("cityDetailsList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  const arr=data||[];
  const editor=profile?.role==="editor"||profile?.role==="admin";
@@ -183,6 +185,7 @@ async function loadCityDetails(){
  await Promise.all(arr.map(async x=>{
    if(x.image_storage_path)visualUrls[x.id]=await archiveSignedImage(x.image_storage_path);
  }));
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  const intro=$("cityDetailsList")?.previousElementSibling;
  if(intro&&intro.classList.contains("cityIntro")){const p=intro.querySelector("p");if(p&&!p.dataset.counted){p.textContent+=" Сейчас в мозаике — "+arr.length+" живых деталей.";p.dataset.counted="1"}}
  $("cityDetailsList").className="memoryMosaic";
@@ -214,10 +217,12 @@ async function loadCityDetails(){
 }
 async function loadCityEssays(){
  if(!user||!profile?.is_active){$("cityList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
+ const uid=user.id,sessionSeq=privateSessionSeq;
  if($("newCityEssayBtn"))$("newCityEssayBtn").style.display=(profile?.role==="editor"||profile?.role==="admin")?"inline-block":"none";
  document.querySelectorAll(".editorCityFilter").forEach(x=>x.style.display=(profile?.role==="editor"||profile?.role==="admin")?"":"none");
  if(!mediaCache.length){await loadPhotos()}
  const {data,error}=await sb.from("city_essays").select("*").order("sort_order").order("id");
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(error){$("cityList").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  cityCache=data||[];
 
@@ -240,6 +245,7 @@ async function loadCityEssays(){
      }));
    }
  }
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  const confirmed=cityCache.filter(x=>x.source_status==="подтверждённая редакция").length;
  const restore=cityCache.filter(x=>x.source_status==="требует восстановления").length;
  if($("cityStats")){

@@ -1,14 +1,30 @@
 const chatSignedCache=new Map();
+let chatStickToBottom=true,chatLastScrollTop=0;
+$("messages").addEventListener("scroll",()=>{
+ const box=$("messages");
+ if(box.scrollTop<chatLastScrollTop-4)chatStickToBottom=false;
+ else if(box.scrollHeight-box.clientHeight-box.scrollTop<=64)chatStickToBottom=true;
+ chatLastScrollTop=box.scrollTop;
+});
+function pinChatToBottom(){
+ if(!chatStickToBottom)return;
+ const box=$("messages");box.scrollTop=box.scrollHeight;chatLastScrollTop=box.scrollTop;
+}
 async function signedImage(path){
+ const uid=user?.id,sessionSeq=privateSessionSeq;
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return null;
  if(!path)return null;
  const hit=chatSignedCache.get(path);
  if(hit&&hit.expires>Date.now())return hit.url;
  const {data}=await sb.storage.from("chat-media").createSignedUrl(path,3600);
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return null;
  const url=data?.signedUrl||null;
  if(url)chatSignedCache.set(path,{url,expires:Date.now()+55*60*1000});
  return url;
 }
 async function signedChatImages(paths){
+ const uid=user?.id,sessionSeq=privateSessionSeq;
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return {};
  const unique=[...new Set((paths||[]).filter(Boolean))],out={};
  const missing=[];
  for(const path of unique){
@@ -18,6 +34,7 @@ async function signedChatImages(paths){
  }
  if(missing.length){
    const {data,error}=await sb.storage.from("chat-media").createSignedUrls(missing,3600);
+   if(!archiveSessionIsCurrent(uid,sessionSeq))return {};
    if(!error){
      (data||[]).forEach((row,i)=>{
        const path=missing[i],url=row?.signedUrl||null;
@@ -36,33 +53,35 @@ function scheduleRoomReload(delay=220){
 const chatReadSyncByRoom=new Map();
 async function markRoomRead(room){
  if(!user||!profile?.is_active||!room)return;
- const key=user.id+"|"+room;
+ const uid=user.id,sessionSeq=privateSessionSeq,key=uid+"|"+room;
  if(chatReadSyncByRoom.has(key))return chatReadSyncByRoom.get(key);
  const task=(async()=>{
    const {data:msgs,error}=await sb.from("messages").select("id").eq("room_id",room).neq("author_id",user.id);
-   if(error)return;
+   if(error||!archiveSessionIsCurrent(uid,sessionSeq))return;
    const ids=(msgs||[]).map(x=>x.id);
    if(!ids.length){if(typeof loadChatUnreadCount==="function")await loadChatUnreadCount();return}
-   const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",user.id).in("message_id",ids);
-   if(re)return;
+   const {data:reads,error:re}=await sb.from("message_reads").select("message_id").eq("user_id",uid).in("message_id",ids);
+   if(re||!archiveSessionIsCurrent(uid,sessionSeq))return;
    const seen=new Set((reads||[]).map(x=>x.message_id));
-   const missing=ids.filter(id=>!seen.has(id)).map(message_id=>({message_id,user_id:user.id}));
+   const missing=ids.filter(id=>!seen.has(id)).map(message_id=>({message_id,user_id:uid}));
    if(missing.length){
      const {error:ue}=await sb.from("message_reads").upsert(missing,{onConflict:"message_id,user_id",ignoreDuplicates:true});
      if(ue)return;
    }
    if(typeof loadChatUnreadCount==="function")await loadChatUnreadCount();
- })().finally(()=>chatReadSyncByRoom.delete(key));
+ })().finally(()=>{if(chatReadSyncByRoom.get(key)===task)chatReadSyncByRoom.delete(key)});
  chatReadSyncByRoom.set(key,task);
  return task;
 }
-async function loadRoom(){
+async function loadRoom({preserveScroll=false}={}){
  if(!user||!profile?.is_active)return;
- const seq=++chatLoadSeq,room=currentRoom;
+ const seq=++chatLoadSeq,room=currentRoom,uid=user.id;
+ const box=$("messages");
+ chatStickToBottom=!preserveScroll&&(!lastMessages.length||box.scrollHeight-box.clientHeight-box.scrollTop<=64);
  const {data,error}=await sb.from("messages")
   .select("id,body,created_at,edited_at,author_id,reply_to,is_evidence,is_hidden_from_publication,linked_entity_type,linked_entity_id,author:profiles!messages_author_id_fkey(display_name,role),attachments:message_attachments(id,current_storage_path,current_file_name,caption,created_by,is_removed,created_at)")
   .eq("room_id",room).order("created_at",{ascending:false}).limit(chatLoadedLimit);
- if(seq!==chatLoadSeq||room!==currentRoom)return;
+ if(seq!==chatLoadSeq||room!==currentRoom||user?.id!==uid||!profile?.is_active)return;
  if(error){$("messages").innerHTML='<div class="notice">'+esc(error.message)+'</div>';return}
  lastMessages=(data||[]).reverse();
  const ids=lastMessages.map(x=>x.id);
@@ -74,6 +93,7 @@ async function loadRoom(){
      sb.from("reactions").select("message_id,user_id,emoji").in("message_id",ids),
      sb.from("message_reads").select("message_id,user_id,read_at").in("message_id",ids)
    ]);
+   if(seq!==chatLoadSeq||room!==currentRoom||user?.id!==uid||!profile?.is_active)return;
    reactionRows=r||[];readRows=rr||[];
 
    const already=new Set(readRows.filter(x=>x.user_id===user.id).map(x=>x.message_id));
@@ -84,7 +104,7 @@ async function loadRoom(){
    }
  }
  setTimeout(()=>{if(room===currentRoom)markRoomRead(room)},0);
- if(seq!==chatLoadSeq||room!==currentRoom)return;
+ if(seq!==chatLoadSeq||room!==currentRoom||user?.id!==uid||!profile?.is_active)return;
 
  const allAttachments=lastMessages.flatMap(m=>(m.attachments||[]).filter(x=>!x.is_removed));
  const signedPromise=signedChatImages(allAttachments.map(a=>a.current_storage_path));
@@ -118,7 +138,7 @@ async function loadRoom(){
    const photos=liveAttachments.map(a=>
      '<div class="attachmentWrap" data-chat-photo-wrap="'+a.id+'">'+
        '<div class="chatPhotoState" data-chat-photo-wait="'+a.id+'">Фото загружается…</div>'+
-       '<img class="attachment" data-chat-photo="'+a.id+'" alt="Фотография в чате" loading="lazy" decoding="async" style="display:none">'+
+       '<img class="attachment" data-chat-photo="'+a.id+'" alt="Фотография в чате" loading="eager" decoding="async" style="display:none">'+
        (a.caption?'<div class="caption">'+esc(a.caption)+'</div>':'')+
      '</div>'
    ).join("");
@@ -164,7 +184,7 @@ async function loadRoom(){
  if($("loadOlderMessages"))$("loadOlderMessages").onclick=async()=>{
    const beforeHeight=$("messages").scrollHeight,beforeTop=$("messages").scrollTop;
    chatLoadedLimit+=80;
-   await loadRoom();
+   await loadRoom({preserveScroll:true});
    requestAnimationFrame(()=>$("messages").scrollTop=Math.max(0,$("messages").scrollHeight-beforeHeight+beforeTop));
  };
  $("messages").querySelectorAll("[data-menu-trigger]").forEach(s=>{
@@ -226,7 +246,7 @@ async function loadRoom(){
  $("messages").querySelectorAll("[data-photo-archive]").forEach(b=>b.onclick=()=>archivePhotoFromChat(b.dataset.photoArchive,b.dataset.mid));
 
  signedPromise.then(signedByPath=>{
-   if(seq!==chatLoadSeq||room!==currentRoom)return;
+   if(seq!==chatLoadSeq||room!==currentRoom||user?.id!==uid||!profile?.is_active)return;
    allAttachments.forEach(a=>{
      const img=$("messages").querySelector('[data-chat-photo="'+CSS.escape(String(a.id))+'"]');
      const wait=$("messages").querySelector('[data-chat-photo-wait="'+CSS.escape(String(a.id))+'"]');
@@ -238,21 +258,23 @@ async function loadRoom(){
        wait.innerHTML='<span>Фото не удалось открыть.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
      };
      if(!url){showError();return}
-     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom)return;img.style.display="";wait.style.display="none";requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
+     img.onload=()=>{if(seq!==chatLoadSeq||room!==currentRoom||user?.id!==uid||!profile?.is_active)return;img.style.display="";wait.style.display="none";requestAnimationFrame(pinChatToBottom)};
      img.onerror=showError;
      img.src=url;
    });
  }).catch(()=>{
-   if(seq!==chatLoadSeq||room!==currentRoom)return;
+   if(seq!==chatLoadSeq||room!==currentRoom||user?.id!==uid||!profile?.is_active)return;
    allAttachments.forEach(a=>{
      const wait=$("messages").querySelector('[data-chat-photo-wait="'+CSS.escape(String(a.id))+'"]');
      if(wait)wait.innerHTML='<span>Фото не удалось открыть.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
    });
  });
 
- requestAnimationFrame(()=>$("messages").scrollTop=$("messages").scrollHeight);
+ requestAnimationFrame(()=>{if(seq===chatLoadSeq&&room===currentRoom&&user?.id===uid)pinChatToBottom()});
 }
 async function retryChatPhoto(attachmentId){
+ const seq=chatLoadSeq,room=currentRoom,uid=user?.id;
+ const valid=()=>seq===chatLoadSeq&&room===currentRoom&&user?.id===uid&&!!profile?.is_active&&img.isConnected;
  const a=lastMessages.flatMap(m=>m.attachments||[]).find(x=>String(x.id)===String(attachmentId));
  if(!a)return;
  const img=$("messages")?.querySelector('[data-chat-photo="'+CSS.escape(String(a.id))+'"]');
@@ -264,11 +286,13 @@ async function retryChatPhoto(attachmentId){
  chatSignedCache.delete(a.current_storage_path);
  try{
    const url=await signedImage(a.current_storage_path);
+   if(!valid())return;
    if(!url)throw new Error("signed url unavailable");
-   img.onload=()=>{img.style.display="";wait.style.display="none";requestAnimationFrame(()=>{$("messages").scrollTop=$("messages").scrollHeight})};
-   img.onerror=()=>{img.style.display="none";wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>'};
+   img.onload=()=>{if(!valid())return;img.style.display="";wait.style.display="none";requestAnimationFrame(pinChatToBottom)};
+   img.onerror=()=>{if(!valid())return;img.style.display="none";wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>'};
    img.src=url;
  }catch{
+   if(!valid())return;
    wait.innerHTML='<span>Фото пока недоступно.</span><button class="chatPhotoRetry" type="button" data-chat-photo-retry="'+esc(a.id)+'">Повторить</button>';
  }
 }

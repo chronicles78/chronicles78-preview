@@ -55,7 +55,7 @@
    node('storiesList').className='communityStories';
    node('storiesList').innerHTML=rows.map(s=>{
      const cover=storyCoverFor(s),ids=s.data?.people||[],author=ids[0]?storyPersonName(ids[0]):'Автор уточняется';
-     const raw=String(s.data?.story_text||''),quotation=String(s.data?.quote||raw.split(/\n+/).find(t=>t.trim())||'').trim();
+     const raw=String(s.data?.story_text||''),quotation=raw.replace(/\s+/g,' ').trim();
      const person=peopleCache.find(p=>p.id===ids[0]),portrait=person?personThumbHtml(person,'communityAuthorPortrait'):'';
      return '<article class="communityStoryCard '+(cover?.url?'':'noCover')+'">'+(cover?.url?'<img src="'+esc(cover.url)+'" alt="'+esc(cover.title||s.title)+'" loading="lazy">':'')+'<div><div class="communityMuted">'+esc([s.period,storyState(s)].filter(Boolean).join(' · '))+'</div><h3>'+esc(s.title)+'</h3>'+(quotation?'<blockquote>'+esc(quotation.slice(0,220))+(quotation.length>220?'…':'')+'</blockquote>':'')+'<div class="communityStoryAuthor">'+(portrait||'<span class="communityInitial" aria-hidden="true">'+esc(author.charAt(0))+'</span>')+'<span>'+esc(author)+'</span></div><button type="button" class="secondary" data-community-story="'+esc(s.id)+'">Читать историю</button>'+(editor()?' <button type="button" class="secondary" data-community-topic-edit="'+esc(s.id)+'">Темы</button>':'')+'</div></article>';
    }).join('')||'<div class="notice">В этой теме пока нет историй. Выберите другую тему или добавьте её в редакторе.</div>';
@@ -98,7 +98,7 @@
  }
  const deleteAsset=r=>editor()?'<button class="secondary" type="button" data-community-remove-asset="'+esc(r.id)+'">Убрать из истории</button>':'';
  const originalLoadRoom=loadRoom;
- loadRoom=async()=>{await originalLoadRoom();void loadLibrary()};
+ loadRoom=async options=>{await originalLoadRoom(options);void loadLibrary()};
  async function loadLibrary(){
    const uid=owner(),epoch=generation,room=currentRoom,seq=++librarySeq;if(!uid){libraryItems=[];renderLibrary();return}
    notice('communityLibraryStatus','Собираю материалы всего диалога…');
@@ -278,6 +278,7 @@
      identity+
      '<div class="communityPair communityMemoryEditPair"><div><label>Фото школьных лет<input type="file" id="communityThenFile" accept="image/jpeg,image/png,image/webp"></label><label>О чём я мечтал в школе<textarea id="communityDream" maxlength="5000">'+esc(row?.school_dream||'')+'</textarea></label></div><div><label>Современное фото<input type="file" id="communityNowFile" accept="image/jpeg,image/png,image/webp"></label><label>Чем живу сейчас<textarea id="communityLife" maxlength="5000">'+esc(row?.life_now||'')+'</textarea></label></div></div>',
      async()=>{
+       if(!current(uid,epoch))throw Error('Вход завершён. Откройте анкету заново.');
        const pending=[];
        try{
          if(!profile?.person_id){
@@ -285,6 +286,7 @@
            if(!personId)throw Error('Выберите себя в школьном архиве.');
            const {data:linked,error:linkError}=await sb.rpc('link_my_archive_person',{p_person_id:personId});
            if(linkError)throw linkError;
+           if(!current(uid,epoch))throw Error('Вход завершён.');
            profile.person_id=linked?.person_id||personId;
            profile.class_group=linked?.class_group||peopleCache.find(p=>p.id===personId)?.group_name||null;
          }
@@ -312,7 +314,7 @@
    try{
      if(!uid){
        const count=check(await sb.rpc('online_member_count'));
-       if(!box)return;
+       if(!box||!current(uid,epoch))return;
        const n=Number(count||0);
        box.innerHTML=n
          ?'<div class="onlineSummary"><span class="onlineDot" aria-hidden="true"></span><b>'+n+' '+(n===1?'человек сейчас на сайте':(n<5?'человека сейчас на сайте':'человек сейчас на сайте'))+'</b></div><p class="communityMuted">Войдите, чтобы увидеть, кто именно онлайн.</p>'
@@ -336,12 +338,18 @@
        :'<div class="onlineSummary"><span class="onlineDot idle" aria-hidden="true"></span><b>Сейчас нет активных участников</b></div>';
      box.querySelectorAll('[data-online-person]').forEach(btn=>btn.onclick=async()=>{
        const personId=btn.dataset.onlinePerson;
+       const person=peopleCache.find(p=>p.id===personId);
+       if(person?.group_name)peopleGroup=person.group_name;
+       else if(/^10A-/.test(personId))peopleGroup='10А';
+       else if(/^10B-/.test(personId))peopleGroup='10Б';
+       if(node('peopleSearch'))node('peopleSearch').value='';
+       document.querySelectorAll('[data-pgroup]').forEach(x=>x.classList.toggle('on',x.dataset.pgroup===peopleGroup));
        await showView('people');
        if(typeof loadPeople==='function')await loadPeople();
        if(typeof openPersonContext==='function')openPersonContext(personId);
      });
    }catch(e){
-     if(box)box.textContent='Статус онлайн временно недоступен.';
+     if(box&&current(uid,epoch))box.textContent='Статус онлайн временно недоступен.';
    }finally{heartbeatBusy=false}
  }
  const oldLoadHome=loadHome;
@@ -413,18 +421,22 @@
    }
    await comparePerson(person.id,old||'');
  }
+ let personContextSeq=0;
  openPersonContext=id=>{
+   const seq=++personContextSeq,uid=owner(),epoch=generation;
    const person=peopleCache.find(p=>p.id===id);
    if(!person||!active()){oldPersonContext(id);return}
    selectedPersonId=id;renderPeople();
    void (async()=>{
      try{
        const memoryRow=await personMemoryRecord(id);
+       if(seq!==personContextSeq||!current(uid,epoch)||selectedPersonId!==id)return;
        if(memoryRow){
          await openPersonMemoryDossier(person);
          return;
        }
      }catch(e){}
+     if(seq!==personContextSeq||!current(uid,epoch)||selectedPersonId!==id)return;
      oldPersonContext(id);
      const actions=node('contextActions');
      if(!actions)return;

@@ -269,11 +269,14 @@ async function enrichPeopleStoryRefs(){
  }catch(e){}
 }
 async function ensurePeopleData(){
+ if(!user||!profile?.is_active)return false;
+ const uid=user.id,sessionSeq=privateSessionSeq;
  if(peopleCache.length)return true;
  if(peopleLoadPromise)return peopleLoadPromise;
  peopleLoadPromise=(async()=>{
    const {data,error}=await sb.from("archive_people").select("id,group_name,number,canonical_name,person_role,aliases,data,identification_status,identification_note").order("group_name").order("number");
    if(error)throw new Error(error.message);
+   if(!archiveSessionIsCurrent(uid,sessionSeq))return false;
    peopleCache=(data||[]).map(p=>({...p,story_refs:[]}));
    setTimeout(enrichPeopleStoryRefs,0);
    return true;
@@ -283,7 +286,9 @@ async function ensurePeopleData(){
 async function loadPeople(){
  if(!user||!profile?.is_active){$("peopleList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';return}
  if(!peopleCache.length)$("peopleList").innerHTML='<div class="notice">Загружаю список класса…</div>';
+ const uid=user.id,sessionSeq=privateSessionSeq;
  try{await ensurePeopleData()}catch(e){$("peopleList").innerHTML='<div class="notice">'+esc(e.message||String(e))+'</div>';return}
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  renderPeople();
  loadClassPhoto();
 }
@@ -307,6 +312,7 @@ $("classPhotoInput").onchange=async()=>{
 };document.querySelectorAll("[data-pgroup]").forEach(b=>b.onclick=()=>{
  peopleGroup=b.dataset.pgroup;selectedPersonId=null;showClassNumbers=false;classPhotoState=null;
  document.querySelectorAll("[data-pgroup]").forEach(x=>x.classList.toggle("on",x===b));
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  renderPeople();
  loadClassPhoto();
 });

@@ -3098,6 +3098,10 @@ html[data-theme="dark"] .accountIdentity span{color:#aaa092}
     transform:none!important;
     box-shadow:none!important;
   }
+  .photoTile .photoTileImage{
+    clip-path:none!important;
+    -webkit-clip-path:none!important;
+  }
   .photoTileImage,
   .photoAlbumLead .photoTileImage{
     aspect-ratio:auto!important;

@@ -67,11 +67,13 @@ async function loadQuestions(){
    $("questionsList").innerHTML='<div class="notice">Сначала войдите в профиль.</div>';
    return;
  }
+ const uid=user.id,sessionSeq=privateSessionSeq;
  $("questionStats").textContent="Загружаю вопросы…";
  const [a,e]=await Promise.all([
    sb.from("archive_questions").select("id,category,priority,status,question,why_it_matters,ask,links,tags,discussion_room,resolution_note").order("priority").order("id"),
    sb.from("editorial_questions").select("id,source_message_id,question,status,priority,linked_entity_type,linked_entity_id,notes,tags,discussion_room,created_at").order("created_at",{ascending:false})
  ]);
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  if(a.error||e.error){
    $("questionStats").textContent="Не удалось загрузить реестр.";
    $("questionsList").innerHTML='<div class="notice">'+esc(a.error?.message||e.error?.message)+'</div>';
@@ -83,9 +85,11 @@ async function loadQuestions(){
  ];
  if(!peopleCache.length){
    const {data:pp}=await sb.from("archive_people").select("id,group_name,number,canonical_name").order("group_name").order("number");
+   if(!archiveSessionIsCurrent(uid,sessionSeq))return;
    peopleCache=pp||[];
  }
  await loadQuestion10AVisual();
+ if(!archiveSessionIsCurrent(uid,sessionSeq))return;
  renderQuestions();
 }
 async function openClassPhotoFromQuestion(group){

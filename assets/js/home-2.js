@@ -13,7 +13,11 @@
     if(view!=='home')powerOffEraTv();
   }
   const previousShowView=showView;
-  window.showView=(view,options)=>{if(view==='tv')view='home';mountHomeTv(view);return previousShowView(view,options)};
+  window.showView=(view,options)=>{
+    if(view==='tv')view='home';
+    if(view==='profile'&&profile?.role!=='admin')return previousShowView(view,options);
+    mountHomeTv(view);return previousShowView(view,options);
+  };
   let generation=0,pending=null,loadedOwner=null,loadedWeek=null,loadedAt=0;
   let searchCache=null,searchPending=null,searchOwner=null,searchSequence=0,focusBeforeSearch=null;
   const el=id=>document.getElementById(id);
@@ -126,7 +130,7 @@
         sizeWeekPhoto();
         setObject(el("h2WeekPhoto"),"story",week?.id);
         setObject(el("h2WeekRead"),"story",week?.id);
-        const summary=week?.data?.editorial_summary||week?.data?.chapter?.subtitle||week?.data?.story_text||"";
+        const summary=week?.data?.story_text||"";
         el("h2WeekTitle").textContent=week?.title||"История недели готовится";
         el("h2WeekSummary").textContent=week?excerpt(summary,240):"Выбранная история временно недоступна. Другие готовые истории можно найти в оглавлении.";
         el("h2WeekRead").textContent="Читать историю →";

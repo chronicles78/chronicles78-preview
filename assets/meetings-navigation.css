@@ -50,13 +50,16 @@
  body.home2App #storyToc{touch-action:pan-x}
 }
 
-/* Home uses these two controls on desktop as well; internal desktop navigation stays intact. */
-body.home2App #home .h2Nav{display:none!important}
-body.home2App:has(#home.active)>#mobileMenuBtn{display:block;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:170;min-width:94px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:600 16px/1.2 sans-serif}
-body.home2App:has(#home.active)>#mobileThemeBtn{display:grid;place-items:center;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(116px + env(safe-area-inset-right));z-index:170;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:24px}
+/* Home navigation: full editorial bar on desktop, compact shared menu on mobile. */
+@media(max-width:760px){
+ body.home2App #home .h2Nav{display:none!important}
+ body.home2App:has(#home.active)>#mobileMenuBtn{display:block;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:170;min-width:94px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:600 16px/1.2 sans-serif}
+ body.home2App:has(#home.active)>#mobileThemeBtn{display:grid;place-items:center;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(116px + env(safe-area-inset-right));z-index:170;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:24px}
+}
 @media(min-width:761px){
- body.home2App:has(#home.active)>#moreNavShade.open{display:block!important;z-index:168}
- body.home2App:has(#home.active)>#moreNavMenu.open{display:block!important;left:auto;right:12px;top:60px;bottom:auto;width:min(380px,calc(100vw - 24px));max-height:calc(100dvh - 80px);overflow-y:auto;z-index:169}
+ body.home2App #home .h2Nav{display:flex!important}
+ body.home2App:has(#home.active)>#mobileMenuBtn,
+ body.home2App:has(#home.active)>#mobileThemeBtn{display:none!important}
 }
 
 .personPhotoMissing{font-size:13px!important;line-height:1.3;text-align:center;padding:8px}

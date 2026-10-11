@@ -2489,3 +2489,17 @@ https://liveviewer.ru/2020/08/kraya-istorii-fotograficheskij-rezak-hh-veka/
 - Видео получает ссылку прежним drive-video-import playback_url, серверная схема и данные не изменены. При ошибке загрузки есть повтор, при запрете autoplay — ручной запуск. Чат учитывает высоту панели, чтобы композер не перекрывался.
 - Cache-busting 20261010-78. tests/archive-player.cjs: 36 проверок на 320/390/1366/1920 с настоящим двухсекундным WebM+аудио (генерируется ffmpeg), mock Supabase. Проверены реальное воспроизведение, навигация без паузы, pause/resume, повтор, естественное завершение, выключение, поздняя ссылка, retry, session cleanup и доступность композера. Реальные частные Drive-файлы не проверены.
 - Повторены 36 Home/people, 69 people/stories/navigation и 65 mobile/meetings проверок. Для запуска: python3 -m http.server 8009 --bind 127.0.0.1; TEST_BASE_URL=http://127.0.0.1:8009/ node tests/archive-player.cjs. Нужны Playwright, /usr/bin/chromium и ffmpeg; зависимости приложения не менялись.
+
+
+## 2026-10-11 — версия 79: аудит v74–v78 и возврат desktop-навигации Home
+
+- Аудит продолжен по фактическому HEAD v78, а не по устаревшей v73.
+- Проверен синтаксис всех подключённых JS-модулей: ошибок синтаксиса не выявлено.
+- Проверены обязательные DOM-target новых модулей meetings.js, mobile-navigation.js и archive-player.js: отсутствующих обязательных элементов не выявлено.
+- Серверные контрольные тесты подтвердили: authenticated не имеет table UPDATE на profiles; разрешён UPDATE display_name, запрещён прямой UPDATE person_id/class_group; повторная привязка archive person блокируется; member не может вызвать редакторскую set_person_identity; online_member_count доступен anon/auth без раскрытия профилей.
+- Связь Альберта подтверждена в живой БД: person_id 10A-11, class_group 10А, обе фотографии «Тогда / Сейчас» и тексты сохранены.
+- Обычное чтение Историй по-прежнему начинается с story_text; editorial_summary не возвращён читателю как AI-вступление.
+- Канонический mobile photo override v74 сохранён: естественные пропорции, object-fit:contain, архивная рамка.
+- Найдена регрессия v76: meetings-navigation.css скрывал .h2Nav на Home на всех экранах, хотя пользователь ранее потребовал читаемую верхнюю навигацию desktop. В v79 .h2Nav снова показывается на desktop; «☰ Меню» и отдельная кнопка темы остаются mobile-only.
+- Серверная схема в рамках v79 не менялась.
+- Непроверенные вручную зоны: физический iPhone Safari, реальный Jitsi звонок, реальные приватные Drive-видео и визуальная приёмка desktop Home в живом браузере.

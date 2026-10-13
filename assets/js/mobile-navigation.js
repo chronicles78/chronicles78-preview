@@ -25,5 +25,5 @@
   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
  });
- window.matchMedia('(max-width:760px)').addEventListener('change',closeMoreNav);
+ window.matchMedia('(max-width:1279px)').addEventListener('change',closeMoreNav);
 })();

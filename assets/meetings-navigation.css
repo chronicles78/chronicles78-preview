@@ -14,17 +14,23 @@
 .meetingPanel p{font-size:15px;line-height:1.5}
 .meetingLink{width:100%;box-sizing:border-box;font:14px/1.4 sans-serif;padding:10px;margin:10px 0}
 .meetingServiceLimit{padding:14px;border-left:3px solid #984d48;background:var(--soft)}
-@media(max-width:760px){
+@media(max-width:1279px){
  #mobileMenuBtn{display:block;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:170;min-width:94px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper,#fffdf7);color:var(--ink,#18283b);font:600 16px/1.2 sans-serif}
  body.home2App .bottom{display:none!important}
- body.home2App{--nav:0px}
+ body.home2App{--nav:0px;padding-left:0!important}
  body.home2App{padding-bottom:env(safe-area-inset-bottom)!important}
  body.home2App main,body.home2App #home.home2{padding-bottom:0!important}
- body.home2App .top{padding-right:116px!important;min-height:60px}
+ body.home2App .top{padding-right:116px!important;min-height:64px}
+ body.home2App .topRight .status{display:none}
+ body.home2App:not(:has(#home.active)) .bottom{display:none!important}
+ body.home2App .moreNavShade.open{display:block!important}
+ body.home2App .moreNavMenu.open{display:block!important}
  body.home2App .h2Nav{padding-top:calc(64px + env(safe-area-inset-top))!important}
  .moreNavShade.open{z-index:168!important}
  .moreNavMenu.open{position:fixed!important;top:calc(60px + env(safe-area-inset-top))!important;bottom:auto!important;left:12px!important;right:12px!important;max-height:calc(100dvh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;overflow-y:auto!important;z-index:169!important;padding:12px!important}
  .moreNavItem{min-height:48px!important;font-size:16px!important}.moreNavItem.active{background:var(--soft);border-color:var(--accent,#984d48)}
+ }
+@media(max-width:760px){
  body.home2App .home2 .h2Actions{display:grid;grid-template-columns:1fr;gap:8px;width:100%;max-width:260px;margin:0 auto}
  body.home2App .home2 .h2Button{width:auto!important;max-width:100%!important;min-width:44px!important;min-height:44px!important;height:auto!important;box-sizing:border-box!important;padding:10px 12px!important;font:500 15px/1.3 var(--font-interface)!important;white-space:nowrap!important}
  body.home2App .h2Title{min-height:270px!important}
@@ -37,7 +43,7 @@
 }
 
 /* Mobile Home has only the shared menu and the theme control at a fixed position. */
-@media(max-width:760px){
+@media(max-width:1279px){
  body.home2App #home .home2Stage{padding-top:calc(64px + env(safe-area-inset-top))}
  html:has(#stories.active),body.home2App:has(#stories.active){overflow-x:hidden;overscroll-behavior-x:none}
  body.home2App #stories,body.home2App .storyDetail{touch-action:pan-y pinch-zoom;overflow-x:clip;overscroll-behavior-x:none}
@@ -51,12 +57,12 @@
 }
 
 /* Home navigation: full editorial bar on desktop, compact shared menu on mobile. */
-@media(max-width:760px){
+@media(max-width:1279px){
  body.home2App #home .h2Nav{display:none!important}
  body.home2App:has(#home.active)>#mobileMenuBtn{display:block;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:170;min-width:94px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:600 16px/1.2 sans-serif}
  body.home2App:has(#home.active)>#mobileThemeBtn{display:grid;place-items:center;position:fixed;top:calc(8px + env(safe-area-inset-top));right:calc(116px + env(safe-area-inset-right));z-index:170;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:24px}
 }
-@media(min-width:761px){
+@media(min-width:1280px){
  body.home2App #home .h2Nav{display:flex!important}
  body.home2App:has(#home.active)>#mobileMenuBtn,
  body.home2App:has(#home.active)>#mobileThemeBtn{display:none!important}

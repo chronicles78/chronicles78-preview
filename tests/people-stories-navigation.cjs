@@ -30,7 +30,7 @@ const stub=require('./frontend-fixture.cjs');
    const before=await p.locator('#mobileMenuBtn,#mobileThemeBtn').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().top));await p.evaluate(()=>scrollTo(0,550));const after=await p.locator('#mobileMenuBtn,#mobileThemeBtn').evaluateAll(xs=>xs.map(x=>x.getBoundingClientRect().top));assert.deepEqual(after,before);checks++;
    await p.locator('#mobileThemeBtn').click();assert.equal(await p.locator('html').getAttribute('data-theme'),'dark');assert.equal(await p.locator('#mobileThemeBtn').getAttribute('aria-pressed'),'true');await p.locator('#mobileThemeBtn').click();assert.equal(await p.locator('html').getAttribute('data-theme'),'light');checks++;
    await p.locator('#mobileMenuBtn').click();await p.locator('[data-more-view="people"]').click();assert.equal(await p.locator('#people.active').count(),1);checks++;
-  }else{await p.evaluate(()=>showView('home'));assert.equal(await p.locator('.h2Nav').isVisible(),false);assert.equal(await p.locator('#mobileThemeBtn').isVisible(),true);await p.locator('#mobileMenuBtn').click();assert.equal(await p.locator('#moreNavMenu').isVisible(),true);await p.locator('#moreNavClose').click();checks++}
+  }else{await p.evaluate(()=>showView('home'));assert.equal(await p.locator('.h2Nav').isVisible(),true);assert.equal(await p.locator('#mobileThemeBtn').isVisible(),false);assert.equal(await p.locator('#mobileMenuBtn').isVisible(),false);await p.locator('.h2Nav [data-home-view="people"]').click();assert.equal(await p.locator('#people.active').count(),1);checks++}
   assert.deepEqual(errors,[]);await p.close();
  }
  await browser.close();console.log(checks+' targeted checks passed (fixture data; Chromium).');

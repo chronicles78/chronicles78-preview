@@ -1203,6 +1203,8 @@ function syncAccountNavigation(){
 function initAccountUi(){
  const host=$("accountAuthHost")||$("accountModalBody");
  if(host){
+   const welcome=$("archiveWelcome");
+   if(welcome&&welcome.parentElement!==host)host.prepend(welcome);
    const login=$("loginBox"),consent=$("consentGateBox");
    if(login&&login.parentElement!==host)host.appendChild(login);
    if(consent&&consent.parentElement!==host)host.appendChild(consent);

@@ -1,0 +1,25 @@
+/* Keep the archive's paper, ink and muted red palette in both themes. */
+.guideCard,.guideInvitation{position:fixed;z-index:175;box-sizing:border-box;background:var(--paper,#fffaf1);color:var(--ink,#302923);border:1px solid var(--line,#dac9ad);border-radius:12px;padding:18px;box-shadow:0 8px 28px #30292330;font:17px/1.5 Georgia,"Times New Roman",serif;overflow:auto;overscroll-behavior:contain}
+.guideCard[hidden],.guideInvitation[hidden],.guideRing[hidden]{display:none!important}
+.guideCard{display:flex;flex-direction:column}
+.guideBody{overflow:auto;min-height:0;overscroll-behavior:contain}
+.guideCard>h2,.guideCard>.guideProgress,.guideCard>.guideControls{flex-shrink:0}
+.guideCard h2{font:700 23px/1.2 Georgia,"Times New Roman",serif;margin:8px 0 12px;color:inherit}
+.guideCard p,.guideInvitation p{margin:0 0 14px}
+.guideCard .guideProgress{font:14px/1.3 var(--font-interface,sans-serif);color:var(--ink-muted,#66574c);margin:0}
+.guideCard .guideNote{font-size:15px;color:var(--ink-muted,#66574c)}
+.guideControls{display:flex;flex-wrap:wrap;gap:8px}
+.guideCard .guideControls{padding-top:8px}
+.guideControls button{min-height:44px;min-width:44px;border:1px solid var(--line,#dac9ad);border-radius:8px;padding:9px 12px;background:var(--paper,#fffaf1);color:inherit;font:600 15px/1.2 var(--font-interface,sans-serif);cursor:pointer}
+.guideControls [data-guide-next],.guideControls [data-guide-start]{background:var(--accent,#984d48);border-color:var(--accent,#984d48);color:#fff}
+.guideControls button:disabled{opacity:.5;cursor:default}
+.guideCard .guideControls button{padding:9px 8px;font-size:14px}
+.guideControls button:focus-visible,.guideEntry:focus-visible{outline:3px solid var(--accent,#984d48);outline-offset:3px}
+.guideRing{position:fixed;z-index:174;pointer-events:none;border:2px solid #984d48;border-radius:8px;box-sizing:border-box;box-shadow:0 0 0 3px #984d4820}
+.guideInvitation{right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:min(380px,calc(100vw - 24px));max-height:calc(100dvh - 100px)}
+.guideEntry{white-space:nowrap}
+/* A persistent entry on Home also fits narrow desktop/tablet layouts. */
+.guideHomeEntry{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:30;min-height:44px;padding:9px 12px;border:1px solid var(--line,#dac9ad);border-radius:8px;background:var(--paper,#fffaf1);color:var(--ink,#302923);font:600 15px/1.2 var(--font-interface,sans-serif)}
+body:not(:has(#home.active)) .guideHomeEntry{display:none}
+@media(max-width:760px){.guideHomeEntry{display:none}.guideCard,.guideInvitation{padding:16px}.guideCard h2{font-size:22px}}
+@media(min-width:761px) and (max-width:1023px){body:not(:has(#home.active)) .guideInvitation{bottom:calc(var(--nav,60px) + env(safe-area-inset-bottom) + 12px)}}

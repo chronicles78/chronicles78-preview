@@ -68,20 +68,20 @@ function trafficWhen(v){
  return d.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 }
 function trafficPeriodCard(title,x){
- return '<article class="trafficKpi"><span>'+esc(title)+'</span><b>'+Number(x?.visitors||0)+'</b><small>посетителей · '+Number(x?.knownUsers||0)+' участн. · '+Number(x?.guests||0)+' гост.</small></article>';
+ return '<article class="trafficKpi"><span>'+esc(title)+'</span><b>'+Number(x?.visitors||0)+'</b><small>посетителей · '+Number(x?.knownUsers||0)+' участников · '+Number(x?.guests||0)+' неавториз.</small></article>';
 }
 function renderTrafficStats(data){
  const k=data?.kpis||{},chat=data?.chat||{};
  if($("trafficStatsState")){
    $("trafficStatsState").className="small trafficGenerated";
-   $("trafficStatsState").textContent="Обновлено "+new Date(data.generatedAt||Date.now()).toLocaleString("ru-RU")+". Гости учитываются как анонимные сессии.";
+   $("trafficStatsState").textContent="Обновлено "+new Date(data.generatedAt||Date.now()).toLocaleString("ru-RU")+". Неавторизованные посещения учитываются отдельно.";
  }
  if($("trafficKpis"))$("trafficKpis").innerHTML=
    trafficPeriodCard("Сегодня",k.today)+trafficPeriodCard("7 дней",k.sevenDays)+trafficPeriodCard("30 дней",k.thirtyDays)+trafficPeriodCard("Сейчас",k.online);
 
  const online=data.online||[];
  if($("trafficOnlineList"))$("trafficOnlineList").innerHTML=online.length?online.map(x=>
-   '<div class="trafficRow"><div><b>'+esc(x.name||"Гость")+'</b><span>'+esc(trafficViewLabel(x.currentView))+' · '+esc(x.deviceType||"")+'</span></div><small>'+esc(trafficWhen(x.lastSeenAt))+'</small></div>'
+   '<div class="trafficRow '+(x.isGuest?'trafficGuest':'trafficKnown')+'"><div><b>'+esc(x.name||(x.isGuest?"Неавторизованный посетитель":"Участник"))+'</b><span>'+esc(trafficViewLabel(x.currentView))+' · '+esc(x.deviceType||"")+'</span></div><small>'+esc(trafficWhen(x.lastSeenAt))+'</small></div>'
  ).join(""):'<div class="trafficEmpty">Сейчас активных посетителей нет.</div>';
 
  const periods=[["Сегодня",chat.today],["7 дней",chat.sevenDays],["30 дней",chat.thirtyDays]];
@@ -95,12 +95,20 @@ function renderTrafficStats(data){
  ).join(""):'<div class="trafficEmpty">Данных пока нет.</div>';
 
  const recent=data.recentVisitors||[];
- if($("trafficRecentVisitors"))$("trafficRecentVisitors").innerHTML=recent.length?recent.map(x=>
-   '<div class="trafficVisitor"><div class="trafficVisitorTop"><b>'+esc(x.name||"Гость")+'</b><small>'+esc(trafficWhen(x.lastSeenAt))+'</small></div>'+
-   '<div class="trafficVisitorMeta">'+esc(trafficViewLabel(x.currentView))+' · '+esc(x.deviceType||"")+' · '+esc(x.platform||"")+' · '+Number(x.pageViews||0)+' просмотров'+(x.chatViews?' · чат '+Number(x.chatViews):'')+'</div>'+
-   (!x.isGuest?'<div class="trafficVisitorMeta">За 30 дней: '+Number(x.messages30||0)+' сообщений · '+Number(x.reads30||0)+' отметок прочтения</div>':'')+
-   '</div>'
- ).join(""):'<div class="trafficEmpty">Посещений пока нет.</div>';
+ if($("trafficRecentVisitors")){
+   const known=recent.filter(x=>!x.isGuest),guests=recent.filter(x=>x.isGuest);
+   const visitorCard=x=>
+     '<div class="trafficVisitor '+(x.isGuest?'trafficGuest':'trafficKnown')+'"><div class="trafficVisitorTop"><b>'+esc(x.name||(x.isGuest?"Неавторизованный посетитель":"Участник"))+'</b><small>'+esc(trafficWhen(x.lastSeenAt))+'</small></div>'+
+     '<div class="trafficVisitorMeta">'+esc(trafficViewLabel(x.currentView))+' · '+esc(x.deviceType||"")+' · '+esc(x.platform||"")+' · '+Number(x.pageViews||0)+' просмотров'+(x.chatViews?' · чат '+Number(x.chatViews):'')+'</div>'+
+     (!x.isGuest?'<div class="trafficVisitorMeta">За 30 дней: '+Number(x.messages30||0)+' сообщений · '+Number(x.reads30||0)+' отметок прочтения</div>':'<div class="trafficVisitorMeta trafficGuestNote">Без входа в закрытый архив</div>')+
+     '</div>';
+   const group=(title,items,cls)=>items.length
+     ?'<section class="trafficVisitorGroup '+cls+'"><div class="trafficVisitorGroupHead"><b>'+title+'</b><span>'+items.length+'</span></div>'+items.map(visitorCard).join("")+'</section>'
+     :'';
+   $("trafficRecentVisitors").innerHTML=recent.length
+     ?group("Участники с доступом",known,"trafficKnownGroup")+group("Неавторизованные посещения",guests,"trafficGuestGroup")
+     :'<div class="trafficEmpty">Посещений пока нет.</div>';
+ }
 }
 async function loadTrafficStats(){
  if(profile?.role!=="admin"||trafficStatsBusy||!$("trafficStatsBox"))return;

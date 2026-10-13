@@ -772,7 +772,7 @@ document.addEventListener("click",e=>{
 function closeChatMenus(){
  document.querySelectorAll("details.footMenu[open]").forEach(d=>{
    const panel=d.querySelector('.msgMenuPanel');
-   if(panel?.matches(':popover-open'))panel.hidePopover();
+   if(panel?.hidePopover&&panel.matches(':popover-open'))panel.hidePopover();
    d.removeAttribute('open');
  });
 }

@@ -180,11 +180,6 @@ html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:va
  .h2FooterLetter{font-size:13px;width:28%;right:-8%;top:30%}.h2FooterPhoto{width:25%;right:8%;top:45%}
  .h2Final .h2FooterLeaves{width:28%;height:130%;bottom:-35%}.h2Final blockquote{z-index:5}
 }
-@media(min-width:1280px){
- html:has(body.home2App #home.active),body.home2App:has(#home.active){height:auto;overflow-y:auto}
- body.home2App:has(#home.active) main{height:auto;display:block;overflow:visible}
- body.home2App #home.home2.active{height:auto;display:block!important;overflow:visible}
-}
 /* A quiet full-width printed band, with three botanical foreground layers. */
 .h2Week{isolation:isolate;z-index:2}
 .h2Week::before,.h2Week::after{content:"";position:absolute;inset:calc(-.3 * var(--home-unit,1cqw)) -6.818182% calc(-.8 * var(--home-unit,1cqw));pointer-events:none;z-index:-1}
@@ -386,7 +381,7 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
 @media(min-width:1280px){
  .home2Stage{--home-unit:1cqw;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-rows:auto minmax(360px,1fr) auto auto auto 120px;gap:16px 24px;min-height:100dvh;aspect-ratio:auto}
  .home2Stage>.h2Nav{position:relative;grid-column:1/-1;left:auto;right:auto;top:auto;height:auto;min-height:54px;padding:6px 4%!important;gap:clamp(8px,1.2vw,24px)!important}
- .home2Stage>.h2Hero{position:relative;grid-column:1/-1;inset:auto;height:100%;min-height:360px}
+ .home2Stage>.h2Hero{position:relative;grid-column:1/-1;inset:auto;height:100%;min-height:clamp(360px,26cqw,520px)}
  .h2Title{height:auto;min-height:66%;padding:16px 20px}
  .h2Title h1{font-size:clamp(42px,4cqw,76px)}
  .h2Title .h2Kicker{font-size:clamp(14px,1.13cqw,20px);white-space:normal}

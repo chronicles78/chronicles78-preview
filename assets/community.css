@@ -1,6 +1,4 @@
 /* Community preview: matches the archive's paper, ink and readable typography. */
-html:has(body.home2App #home.active),body.home2App:has(#home.active){height:auto!important;overflow-y:auto!important}
-body.home2App:has(#home.active) main,body.home2App #home.home2.active{height:auto!important;display:block!important;overflow:visible!important}
 .communityPanel{background:var(--card,#fffdf8);color:var(--text,#283b45);border:1px solid var(--line,#d7c9ac);border-radius:12px;padding:20px;margin:16px 0}
 .communityPanel h3{font:600 26px/1.15 Georgia,serif;margin:0 0 12px}
 .communityPanel p{line-height:1.6}.communityPanel button,.communityPanel input,.communityPanel select,.communityPanel textarea{font:inherit}

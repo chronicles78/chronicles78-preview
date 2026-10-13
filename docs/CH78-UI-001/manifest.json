@@ -22,7 +22,8 @@
   },
   "publication": {
     "selected_screenshots": 46,
-    "published_screenshots": 15,
-    "pending_explicit_export_approval": 31
+    "published_screenshots": 46,
+    "pending_explicit_export_approval": 0,
+    "export_approval_received": "2026-10-14"
   }
 }

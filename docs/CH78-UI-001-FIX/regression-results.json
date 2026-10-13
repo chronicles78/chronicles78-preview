@@ -1,0 +1,969 @@
+{
+  "checks": 241,
+  "results": [
+    {
+      "name": "320 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "320 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 member questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "320 admin questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "320 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "320 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "320 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "320 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "320 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "320 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "320 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "320 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "320 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "320 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "320 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "320 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "375 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "375 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 member questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "375 admin questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "375 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "375 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "375 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "375 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "375 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "375 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "375 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "375 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "375 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "375 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "375 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "375 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "390 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "390 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 member questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "390 admin questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "390 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "390 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "390 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "390 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "390 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "390 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "390 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "390 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "native touch release preserves menu",
+      "ok": true
+    },
+    {
+      "name": "390 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "390 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "390 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "390 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "430 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "430 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 member questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "430 admin questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "430 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "430 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "430 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "430 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "430 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "430 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "430 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "430 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "430 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "430 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "430 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "430 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "768 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "768 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 member questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "768 admin questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "768 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "768 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "768 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "768 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "768 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "768 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "768 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "768 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "768 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "768 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "768 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "768 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "1024 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "1024 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 member questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "1024 admin questions via compact menu",
+      "ok": true
+    },
+    {
+      "name": "1024 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1024 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "1024 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "1024 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1024 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "1024 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "1024 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "1024 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "1024 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "1024 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "1024 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "1024 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "1366 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "1366 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 home panels do not overlap",
+      "ok": true
+    },
+    {
+      "name": "1366 hero actions remain unclipped and clickable",
+      "ok": true
+    },
+    {
+      "name": "1366 member desktop controls in viewport",
+      "ok": true
+    },
+    {
+      "name": "1366 member direct questions entry",
+      "ok": true
+    },
+    {
+      "name": "1366 admin desktop controls in viewport",
+      "ok": true
+    },
+    {
+      "name": "1366 admin direct questions entry",
+      "ok": true
+    },
+    {
+      "name": "1366 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1366 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "1366 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "1366 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1366 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "1366 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "1366 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "1366 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "1366 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "1366 unread badge leaves label visible",
+      "ok": true
+    },
+    {
+      "name": "1366 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "1366 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "1366 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "1920 welcome belongs to visible account host",
+      "ok": true
+    },
+    {
+      "name": "1920 readable home without horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 home panels do not overlap",
+      "ok": true
+    },
+    {
+      "name": "1920 hero actions remain unclipped and clickable",
+      "ok": true
+    },
+    {
+      "name": "1920 member desktop controls in viewport",
+      "ok": true
+    },
+    {
+      "name": "1920 member direct questions entry",
+      "ok": true
+    },
+    {
+      "name": "1920 admin desktop controls in viewport",
+      "ok": true
+    },
+    {
+      "name": "1920 admin direct questions entry",
+      "ok": true
+    },
+    {
+      "name": "1920 people no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 stories no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 photos no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 city no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 questions no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 chat no horizontal overflow",
+      "ok": true
+    },
+    {
+      "name": "1920 composer inside viewport",
+      "ok": true
+    },
+    {
+      "name": "1920 voice and attachment tap areas",
+      "ok": true
+    },
+    {
+      "name": "1920 consistent primary palette",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 every message action can be reached",
+      "ok": true
+    },
+    {
+      "name": "1920 Escape closes message menu",
+      "ok": true
+    },
+    {
+      "name": "1920 long press survives release",
+      "ok": true
+    },
+    {
+      "name": "1920 reply closes menu",
+      "ok": true
+    },
+    {
+      "name": "1920 reply focuses composer",
+      "ok": true
+    },
+    {
+      "name": "1920 assistant takes precedence",
+      "ok": true
+    },
+    {
+      "name": "1920 unread badge leaves label visible",
+      "ok": true
+    },
+    {
+      "name": "1920 dark composer contrast preserved",
+      "ok": true
+    },
+    {
+      "name": "1920 no JavaScript errors ",
+      "ok": true
+    },
+    {
+      "name": "1920 no real backend requests",
+      "ok": true
+    },
+    {
+      "name": "568x320 focused composer above compact player",
+      "ok": true
+    },
+    {
+      "name": "568 short viewport no errors",
+      "ok": true
+    },
+    {
+      "name": "844x390 focused composer above compact player",
+      "ok": true
+    },
+    {
+      "name": "844 short viewport no errors",
+      "ok": true
+    },
+    {
+      "name": "390x430 focused composer above compact player",
+      "ok": true
+    },
+    {
+      "name": "390 short viewport no errors",
+      "ok": true
+    }
+  ]
+}

@@ -6,7 +6,24 @@
  new MutationObserver(syncTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});syncTheme();
  const button=document.getElementById('mobileMenuBtn'),menu=document.getElementById('moreNavMenu');
  button.onclick=()=>menu.classList.contains('open')?closeMoreNav():openMoreNav();
+ let chatFrame=0;
+ function sizeChatWorkspace(){
+  cancelAnimationFrame(chatFrame);
+  chatFrame=requestAnimationFrame(()=>{
+   const chat=document.querySelector('#chat.active .chat');
+   if(!chat)return;
+   const vv=window.visualViewport,top=vv?.offsetTop||0,height=vv?.height||innerHeight;
+   const inset=parseFloat(getComputedStyle(document.body).paddingBottom)||0;
+   const available=Math.max(0,top+height-chat.getBoundingClientRect().top-inset);
+   chat.style.setProperty('--chat-workspace-height',available+'px');
+  });
+ }
+ window.addEventListener('resize',sizeChatWorkspace);
+ window.visualViewport?.addEventListener('resize',sizeChatWorkspace);
+ window.visualViewport?.addEventListener('scroll',sizeChatWorkspace);
+ new ResizeObserver(sizeChatWorkspace).observe(document.querySelector('.top'));
  function sync(){
+  sizeChatWorkspace();
   const current=activeViewId();
   menu.querySelectorAll('[data-more-view]').forEach(item=>{
    item.classList.toggle('active',item.dataset.moreView===current);

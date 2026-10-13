@@ -1,0 +1,397 @@
+[
+  {
+    "case": "touch-before-release",
+    "open": 1
+  },
+  {
+    "case": "touch-after-release",
+    "open": 0
+  },
+  {
+    "case": "same-message-menu",
+    "offset": 5,
+    "buttons": [
+      {
+        "text": "↩ Ответить",
+        "rect": {
+          "x": 159,
+          "y": 74.734375,
+          "width": 208,
+          "height": 28,
+          "top": 74.734375,
+          "right": 367,
+          "bottom": 102.734375,
+          "left": 159
+        },
+        "clickable": false
+      },
+      {
+        "text": "⧉ Копировать текст",
+        "rect": {
+          "x": 159,
+          "y": 102.734375,
+          "width": 208,
+          "height": 32,
+          "top": 102.734375,
+          "right": 367,
+          "bottom": 134.734375,
+          "left": 159
+        },
+        "clickable": false
+      },
+      {
+        "text": "👍 Нравится",
+        "rect": {
+          "x": 159,
+          "y": 143.734375,
+          "width": 208,
+          "height": 28,
+          "top": 143.734375,
+          "right": 367,
+          "bottom": 171.734375,
+          "left": 159
+        },
+        "clickable": false
+      },
+      {
+        "text": "❤️ Сердце",
+        "rect": {
+          "x": 159,
+          "y": 171.734375,
+          "width": 208,
+          "height": 28,
+          "top": 171.734375,
+          "right": 367,
+          "bottom": 199.734375,
+          "left": 159
+        },
+        "clickable": false
+      },
+      {
+        "text": "😂 Смешно",
+        "rect": {
+          "x": 159,
+          "y": 199.734375,
+          "width": 208,
+          "height": 28,
+          "top": 199.734375,
+          "right": 367,
+          "bottom": 227.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "✎ Редактировать",
+        "rect": {
+          "x": 159,
+          "y": 236.734375,
+          "width": 208,
+          "height": 28,
+          "top": 236.734375,
+          "right": 367,
+          "bottom": 264.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "＋ Добавить фото",
+        "rect": {
+          "x": 159,
+          "y": 264.734375,
+          "width": 208,
+          "height": 31,
+          "top": 264.734375,
+          "right": 367,
+          "bottom": 295.734375,
+          "left": 159
+        },
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "case": "same-message-menu",
+    "offset": 275,
+    "buttons": [
+      {
+        "text": "↩ Ответить",
+        "rect": {
+          "x": 159,
+          "y": 344.734375,
+          "width": 208,
+          "height": 28,
+          "top": 344.734375,
+          "right": 367,
+          "bottom": 372.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "⧉ Копировать текст",
+        "rect": {
+          "x": 159,
+          "y": 372.734375,
+          "width": 208,
+          "height": 32,
+          "top": 372.734375,
+          "right": 367,
+          "bottom": 404.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "👍 Нравится",
+        "rect": {
+          "x": 159,
+          "y": 413.734375,
+          "width": 208,
+          "height": 28,
+          "top": 413.734375,
+          "right": 367,
+          "bottom": 441.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "❤️ Сердце",
+        "rect": {
+          "x": 159,
+          "y": 441.734375,
+          "width": 208,
+          "height": 28,
+          "top": 441.734375,
+          "right": 367,
+          "bottom": 469.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "😂 Смешно",
+        "rect": {
+          "x": 159,
+          "y": 469.734375,
+          "width": 208,
+          "height": 28,
+          "top": 469.734375,
+          "right": 367,
+          "bottom": 497.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "✎ Редактировать",
+        "rect": {
+          "x": 159,
+          "y": 506.734375,
+          "width": 208,
+          "height": 28,
+          "top": 506.734375,
+          "right": 367,
+          "bottom": 534.734375,
+          "left": 159
+        },
+        "clickable": true
+      },
+      {
+        "text": "＋ Добавить фото",
+        "rect": {
+          "x": 159,
+          "y": 534.734375,
+          "width": 208,
+          "height": 31,
+          "top": 534.734375,
+          "right": 367,
+          "bottom": 565.734375,
+          "left": 159
+        },
+        "clickable": true
+      }
+    ]
+  },
+  {
+    "case": "badge-12",
+    "data": {
+      "text": {
+        "x": 762.390625,
+        "y": 19,
+        "width": 22.734375,
+        "height": 15,
+        "top": 19,
+        "right": 785.125,
+        "bottom": 34,
+        "left": 762.390625
+      },
+      "badge": {
+        "x": 760.875,
+        "y": 18,
+        "width": 26.25,
+        "height": 20,
+        "top": 18,
+        "right": 787.125,
+        "bottom": 38,
+        "left": 760.875
+      },
+      "overlap": 1
+    }
+  },
+  {
+    "case": "badge-0",
+    "data": {
+      "text": {
+        "x": 762.390625,
+        "y": 19,
+        "width": 22.734375,
+        "height": 15,
+        "top": 19,
+        "right": 785.125,
+        "bottom": 34,
+        "left": 762.390625
+      },
+      "badge": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "overlap": 0
+    }
+  },
+  {
+    "case": "loaded-gallery-proportions",
+    "images": [
+      {
+        "source": [
+          1600,
+          900
+        ],
+        "rect": {
+          "x": 27,
+          "y": -2219.984375,
+          "width": 320,
+          "height": 180.875,
+          "top": -2219.984375,
+          "right": 347,
+          "bottom": -2039.109375,
+          "left": 27
+        },
+        "fit": "contain"
+      },
+      {
+        "source": [
+          1600,
+          900
+        ],
+        "rect": {
+          "x": 27,
+          "y": -1821.3125,
+          "width": 320,
+          "height": 180.875,
+          "top": -1821.3125,
+          "right": 347,
+          "bottom": -1640.4375,
+          "left": 27
+        },
+        "fit": "contain"
+      },
+      {
+        "source": [
+          1600,
+          900
+        ],
+        "rect": {
+          "x": 27,
+          "y": -1422.640625,
+          "width": 320,
+          "height": 180.875,
+          "top": -1422.640625,
+          "right": 347,
+          "bottom": -1241.765625,
+          "left": 27
+        },
+        "fit": "contain"
+      },
+      {
+        "source": [
+          900,
+          1600
+        ],
+        "rect": {
+          "x": 27,
+          "y": -883.453125,
+          "width": 319.984375,
+          "height": 567.328125,
+          "top": -883.453125,
+          "right": 346.984375,
+          "bottom": -316.125,
+          "left": 27
+        },
+        "fit": "contain"
+      },
+      {
+        "source": [
+          1800,
+          600
+        ],
+        "rect": {
+          "x": 27,
+          "y": -98.328125,
+          "width": 320,
+          "height": 108,
+          "top": -98.328125,
+          "right": 347,
+          "bottom": 9.671875,
+          "left": 27
+        },
+        "fit": "contain"
+      },
+      {
+        "source": [
+          1600,
+          900
+        ],
+        "rect": {
+          "x": 27,
+          "y": 367.984375,
+          "width": 320,
+          "height": 180.875,
+          "top": 367.984375,
+          "right": 347,
+          "bottom": 548.859375,
+          "left": 27
+        },
+        "fit": "contain"
+      }
+    ]
+  },
+  {
+    "case": "portrait-viewer",
+    "image": {
+      "source": [
+        900,
+        1600
+      ],
+      "rect": {
+        "x": 40.703125,
+        "y": 153.40625,
+        "width": 308.578125,
+        "height": 548.578125,
+        "top": 153.40625,
+        "right": 349.28125,
+        "bottom": 701.984375,
+        "left": 40.703125
+      },
+      "fit": "contain"
+    }
+  }
+]

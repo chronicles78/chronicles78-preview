@@ -1,0 +1,30 @@
+e999eb5af8117d2aa2e5eef52520680bb773b491	2026-10-13T14:24:56-04:00	Merge pull request #3 from chronicles78/feat/ch78-guide-001
+0e5ec36f27685abc9c9625955f33286f49832c1d	2026-10-13T14:07:19-04:00	CH78-GUIDE-001: add adaptive interactive guide for actual navigation (v81)
+4aab6f4ae711c94e28656b0314a247c62f6aa9f4	2026-10-13T11:55:36-04:00	UX: add clear first-visit registration guide
+f2b141a8bca52bd730591969b325b0357592e65d	2026-10-13T11:46:43-04:00	Publish clearer traffic labels as version 80
+d3b2c3b11cf96bbf6a826ca88711dcf48a016493	2026-10-13T11:46:27-04:00	Style authenticated and anonymous traffic groups
+3fb269d4430eaf77e177a33d20211fa3d65d3a30	2026-10-13T11:46:07-04:00	Clarify anonymous traffic in admin analytics
+a95172c99e73fcdadb59de710dc27d21948136d7	2026-10-11T12:24:01-04:00	Document version 79 regression audit
+1681cc6e89d82b676151eb9a15e4cfe498760e45	2026-10-11T12:23:35-04:00	Publish audited desktop Home navigation fix as version 79
+5622421aee0c95bd5cdb422b77d10f35f151d139	2026-10-11T12:22:00-04:00	Restore desktop Home navigation and keep compact controls mobile-only
+e4c1c84ab956bada63c94971a6887169c393d4e1	2026-10-09T20:09:11Z	Fill desktop Home width and persist controllable archive playback in version 78
+64c632014f51993d2a964ca272251afcd87c8bc1	2026-10-09T19:47:33Z	Fit desktop Home to viewport and show portraits and immediate pupil cards in version 77
+dc126b02d8f1af797a82f877b703436d9ea5cfa0	2026-10-09T19:32:29Z	Fix people filters and search, vertical story scrolling and Home controls in version 76
+e593aea065974741b841946d55162bcc79c1e86c	2026-10-09T19:09:58Z	Add class meeting invitations and shared mobile menu in version 75
+79456b56ea30afaf66093bccbd2e287cfa5556a2	2026-10-09T18:59:28Z	Merge remote-tracking branch 'origin/main' into work
+a8aa0f953bb4c14450c07047326d6551aae74651	2026-10-09T18:59:12Z	Fix audited frontend regressions and session isolation
+d5a15923f2a324d37a10ef7db161acef6cef3cb0	2026-10-08T23:27:05-04:00	Publish audit fixes as version 74
+06caa1410be24e57eb42e36c067c82e24776cd3f	2026-10-08T23:26:33-04:00	Keep chat scroll stable while delayed photos load
+a28ea91ed8767e603762a451f86fd5e8024f4d7e	2026-10-08T23:25:18-04:00	Verify live Supabase session before presence heartbeat
+a987840d5a469f895f44a5b0c3a8d7d889447429	2026-10-08T23:24:00-04:00	Disable chat media library loading on mobile
+b87e3b7e1e2cbff5cb39bf2d6d3882015d6cee42	2026-10-08T23:23:24-04:00	Avoid filenames as broken chat library image fallback
+4fb3bc36f9ae58128e264f57276929743d892fa1	2026-10-08T23:23:20-04:00	Hide chat media library on mobile
+712d1181cbe3b5d5bcd2df1094ae8202e2d1e711	2026-10-08T23:22:22-04:00	Remove obsolete duplicate Then and Now photo submission path
+87dc991aabea6c7bacac244d3d061b894f412eb0	2026-10-08T23:21:33-04:00	Remove AI summary from Home 2 weekly story teaser
+7f2db13aba3ddfa73f63edbd1b3e6024dc6779a2	2026-10-08T23:21:25-04:00	Use story text instead of editorial AI summary on home
+4c15d672d0ffb7197302e3db1bfa78a4a2c40e58	2026-10-08T23:21:15-04:00	Make mobile photo archive single-column with natural proportions
+ce4e2d382991412c4156facaea9d751803f8db92	2026-10-08T23:21:05-04:00	Remove duplicate mobile photo archive override
+3400e1c8c2ba6811b7f0d16f83bb07e26163834a	2026-10-08T15:22:47-04:00	Publish full-width desktop Home 2 as version 73
+2164d845ae63005f221f5b7222aaff143d4f37ca	2026-10-08T15:22:34-04:00	Expand Home 2 to full desktop width and enlarge top navigation
+16c6784a2adc440356095fa4962c279dc9d4521d	2026-10-08T15:19:12-04:00	Refresh mobile photo CSS cache for version 72
+e68bfa27228a6045cc99e897a7f11ebf86adcec2	2026-10-08T15:18:54-04:00	Scope mobile photo-frame dark styling

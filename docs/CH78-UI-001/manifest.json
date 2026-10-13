@@ -1,0 +1,28 @@
+{
+  "main": "e999eb5af8117d2aa2e5eef52520680bb773b491",
+  "all_screenshots_collected": 473,
+  "selected_screenshots_attached": 46,
+  "main_visual_states": 432,
+  "functional_checks": 21,
+  "data": "Synthetic, intercepted requests, no live backend",
+  "browser": "Chromium 151.0.7922.173 / Playwright 1.62.1",
+  "unchanged_app_files": {
+    "index.html": "ad5942edb5776cddbf33ac3671c604464822b215713a52f5a3a134a7c84c62e0",
+    "assets/app.css": "9c6aeca96097c762600381b2bb28a39e96aebbaba9fbb5ef92c8288a7532d8df",
+    "assets/mobile-archive.css": "c7ddb42f0fd775a534528d4a5466ef380b19cda9c37c2b580284644d2f31647e",
+    "assets/home-2.css": "4be8030400c0128a2c52689d9dac4f83c6522cf0e8c5c5b21bca8ad1fb5aeed5",
+    "assets/design-tokens.css": "7701b4b98ea0980e402e53ab0a3d70ddcd30c20546637ace0d78f971e4f6355a",
+    "assets/community.css": "6c9676e36185c2557cb7bae839c7e5d19ce3474f145c77f33c714a4182e2e199",
+    "assets/chapters.css": "6cd7f3ca12ce2e68611cc523e31bede953029c0f948b2cf6ade54b4f25aced95",
+    "assets/meetings-navigation.css": "7413eee36c38753a8d280c6573d9f79b0ca931ee23ae41becf3818d0ccac5ea8",
+    "assets/css/guide.css": "58b3aa327e672f6ed36ead7b7446e522bd62c0b6b53220ac04e9e06a03c29106",
+    "assets/js/core.js": "b8c95deb27dd5b936323a32130c192aee7125eed4231ce760c608b6a20026668",
+    "assets/js/chat.js": "307a5445f1a8d5a7f6775e6a4be75524ebc9babe17d92b9870652a24b86b7f5c",
+    "assets/js/guide.js": "5924f6bcb7a0503067b127672dcf56bc908078e56c9acc01c9c2a22cdd744371"
+  },
+  "publication": {
+    "selected_screenshots": 46,
+    "published_screenshots": 15,
+    "pending_explicit_export_approval": 31
+  }
+}

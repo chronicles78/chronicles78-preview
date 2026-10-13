@@ -1,0 +1,949 @@
+[
+  {
+    "version": "v81",
+    "case": "header-1024",
+    "data": {
+      "width": 1024,
+      "scrollWidth": 1039,
+      "controls": [
+        {
+          "text": "← К историям",
+          "id": "contextBackBtn",
+          "classes": "contextBackBtn show",
+          "rect": {
+            "x": 24,
+            "y": 11.5,
+            "width": 105.6875,
+            "height": 30,
+            "top": 11.5,
+            "right": 129.6875,
+            "bottom": 41.5,
+            "left": 24
+          },
+          "font": "12px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        },
+        {
+          "text": "Хроники-78Истории",
+          "id": "",
+          "classes": "brand nav homeBrand",
+          "rect": {
+            "x": 139.6875,
+            "y": 15,
+            "width": 128.03125,
+            "height": 23,
+            "top": 15,
+            "right": 267.71875,
+            "bottom": 38,
+            "left": 139.6875
+          },
+          "font": "23px",
+          "border": "0px none rgb(22, 56, 88)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Люди",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 287.71875,
+            "y": 12,
+            "width": 56.296875,
+            "height": 29,
+            "top": 12,
+            "right": 344.015625,
+            "bottom": 41,
+            "left": 287.71875
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Истории",
+          "id": "",
+          "classes": "nav topNavLink active",
+          "rect": {
+            "x": 350.015625,
+            "y": 12,
+            "width": 74.640625,
+            "height": 29,
+            "top": 12,
+            "right": 424.65625,
+            "bottom": 41,
+            "left": 350.015625
+          },
+          "font": "13px",
+          "border": "0px none rgb(155, 79, 60)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Город и время",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 430.65625,
+            "y": 12,
+            "width": 114.046875,
+            "height": 29,
+            "top": 12,
+            "right": 544.703125,
+            "bottom": 41,
+            "left": 430.65625
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Архив",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 550.703125,
+            "y": 12,
+            "width": 60.375,
+            "height": 29,
+            "top": 12,
+            "right": 611.078125,
+            "bottom": 41,
+            "left": 550.703125
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Чат12",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 617.078125,
+            "y": 12,
+            "width": 42.734375,
+            "height": 29,
+            "top": 12,
+            "right": 659.8125,
+            "bottom": 41,
+            "left": 617.078125
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Тестовый",
+          "id": "accountBtnTop",
+          "classes": "topNavLink accountEntryBtn signedIn",
+          "rect": {
+            "x": 665.8125,
+            "y": 10.5,
+            "width": 95.296875,
+            "height": 32,
+            "top": 10.5,
+            "right": 761.109375,
+            "bottom": 42.5,
+            "left": 665.8125
+          },
+          "font": "16px",
+          "border": "0px none rgb(18, 55, 79)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Путеводитель",
+          "id": "",
+          "classes": "topNavLink guideEntry",
+          "rect": {
+            "x": 767.109375,
+            "y": 14.5,
+            "width": 119.875,
+            "height": 24,
+            "top": 14.5,
+            "right": 886.984375,
+            "bottom": 38.5,
+            "left": 767.109375
+          },
+          "font": "16px",
+          "border": "2px outset rgb(0, 0, 0)",
+          "background": "rgb(239, 239, 239)"
+        },
+        {
+          "text": "🔔0",
+          "id": "notifyBtn",
+          "classes": "notifyBtn",
+          "rect": {
+            "x": 906.984375,
+            "y": 7.5,
+            "width": 38,
+            "height": 38,
+            "top": 7.5,
+            "right": 944.984375,
+            "bottom": 45.5,
+            "left": 906.984375
+          },
+          "font": "18px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        },
+        {
+          "text": "☀Светлая",
+          "id": "themeBtn",
+          "classes": "themeBtn",
+          "rect": {
+            "x": 951.984375,
+            "y": 9.5,
+            "width": 86.609375,
+            "height": 34,
+            "top": 9.5,
+            "right": 1038.59375,
+            "bottom": 43.5,
+            "left": 951.984375
+          },
+          "font": "16px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        }
+      ]
+    }
+  },
+  {
+    "version": "v81",
+    "case": "isolated-guide-entry-removal",
+    "data": {
+      "scrollWidth": 1024,
+      "width": 1024
+    }
+  },
+  {
+    "version": "v80",
+    "case": "header-1024",
+    "data": {
+      "width": 1024,
+      "scrollWidth": 1024,
+      "controls": [
+        {
+          "text": "← К историям",
+          "id": "contextBackBtn",
+          "classes": "contextBackBtn show",
+          "rect": {
+            "x": 24,
+            "y": 11.5,
+            "width": 105.6875,
+            "height": 30,
+            "top": 11.5,
+            "right": 129.6875,
+            "bottom": 41.5,
+            "left": 24
+          },
+          "font": "12px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        },
+        {
+          "text": "Хроники-78Истории",
+          "id": "",
+          "classes": "brand nav homeBrand",
+          "rect": {
+            "x": 139.6875,
+            "y": 15,
+            "width": 128.03125,
+            "height": 23,
+            "top": 15,
+            "right": 267.71875,
+            "bottom": 38,
+            "left": 139.6875
+          },
+          "font": "23px",
+          "border": "0px none rgb(22, 56, 88)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Люди",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 331.359375,
+            "y": 12,
+            "width": 56.296875,
+            "height": 29,
+            "top": 12,
+            "right": 387.65625,
+            "bottom": 41,
+            "left": 331.359375
+          },
+          "font": "13px",
+          "border": "0px none rgb(46, 71, 93)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Истории",
+          "id": "",
+          "classes": "nav topNavLink active",
+          "rect": {
+            "x": 393.65625,
+            "y": 12,
+            "width": 74.640625,
+            "height": 29,
+            "top": 12,
+            "right": 468.296875,
+            "bottom": 41,
+            "left": 393.65625
+          },
+          "font": "13px",
+          "border": "0px none rgb(150, 79, 62)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Город и время",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 474.296875,
+            "y": 12,
+            "width": 114.046875,
+            "height": 29,
+            "top": 12,
+            "right": 588.34375,
+            "bottom": 41,
+            "left": 474.296875
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Архив",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 594.34375,
+            "y": 12,
+            "width": 60.375,
+            "height": 29,
+            "top": 12,
+            "right": 654.71875,
+            "bottom": 41,
+            "left": 594.34375
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Чат12",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 660.71875,
+            "y": 12,
+            "width": 42.734375,
+            "height": 29,
+            "top": 12,
+            "right": 703.453125,
+            "bottom": 41,
+            "left": 660.71875
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Тестовый",
+          "id": "accountBtnTop",
+          "classes": "topNavLink accountEntryBtn signedIn",
+          "rect": {
+            "x": 709.453125,
+            "y": 10.5,
+            "width": 95.296875,
+            "height": 32,
+            "top": 10.5,
+            "right": 804.75,
+            "bottom": 42.5,
+            "left": 709.453125
+          },
+          "font": "16px",
+          "border": "0px none rgb(18, 55, 79)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "🔔0",
+          "id": "notifyBtn",
+          "classes": "notifyBtn",
+          "rect": {
+            "x": 868.390625,
+            "y": 7.5,
+            "width": 38,
+            "height": 38,
+            "top": 7.5,
+            "right": 906.390625,
+            "bottom": 45.5,
+            "left": 868.390625
+          },
+          "font": "18px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        },
+        {
+          "text": "☀Светлая",
+          "id": "themeBtn",
+          "classes": "themeBtn",
+          "rect": {
+            "x": 913.390625,
+            "y": 9.5,
+            "width": 86.609375,
+            "height": 34,
+            "top": 9.5,
+            "right": 1000,
+            "bottom": 43.5,
+            "left": 913.390625
+          },
+          "font": "16px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        }
+      ]
+    }
+  },
+  {
+    "version": "v74",
+    "case": "header-1024",
+    "data": {
+      "width": 1024,
+      "scrollWidth": 1024,
+      "controls": [
+        {
+          "text": "← К историям",
+          "id": "contextBackBtn",
+          "classes": "contextBackBtn show",
+          "rect": {
+            "x": 24,
+            "y": 11.5,
+            "width": 105.6875,
+            "height": 30,
+            "top": 11.5,
+            "right": 129.6875,
+            "bottom": 41.5,
+            "left": 24
+          },
+          "font": "12px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        },
+        {
+          "text": "Хроники-78Истории",
+          "id": "",
+          "classes": "brand nav homeBrand",
+          "rect": {
+            "x": 139.6875,
+            "y": 15,
+            "width": 128.03125,
+            "height": 23,
+            "top": 15,
+            "right": 267.71875,
+            "bottom": 38,
+            "left": 139.6875
+          },
+          "font": "23px",
+          "border": "0px none rgb(22, 56, 88)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Люди",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 295.734375,
+            "y": 12,
+            "width": 56.296875,
+            "height": 29,
+            "top": 12,
+            "right": 352.03125,
+            "bottom": 41,
+            "left": 295.734375
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Истории",
+          "id": "",
+          "classes": "nav topNavLink active",
+          "rect": {
+            "x": 358.03125,
+            "y": 12,
+            "width": 74.640625,
+            "height": 29,
+            "top": 12,
+            "right": 432.671875,
+            "bottom": 41,
+            "left": 358.03125
+          },
+          "font": "13px",
+          "border": "0px none rgb(155, 79, 60)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Город и время",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 438.671875,
+            "y": 12,
+            "width": 114.046875,
+            "height": 29,
+            "top": 12,
+            "right": 552.71875,
+            "bottom": 41,
+            "left": 438.671875
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Архив",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 558.71875,
+            "y": 12,
+            "width": 60.375,
+            "height": 29,
+            "top": 12,
+            "right": 619.09375,
+            "bottom": 41,
+            "left": 558.71875
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Чат12",
+          "id": "",
+          "classes": "nav topNavLink",
+          "rect": {
+            "x": 625.09375,
+            "y": 12,
+            "width": 42.734375,
+            "height": 29,
+            "top": 12,
+            "right": 667.828125,
+            "bottom": 41,
+            "left": 625.09375
+          },
+          "font": "13px",
+          "border": "0px none rgb(41, 71, 95)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "Тестовый",
+          "id": "accountBtnTop",
+          "classes": "topNavLink accountEntryBtn signedIn",
+          "rect": {
+            "x": 673.828125,
+            "y": 10.5,
+            "width": 95.296875,
+            "height": 32,
+            "top": 10.5,
+            "right": 769.125,
+            "bottom": 42.5,
+            "left": 673.828125
+          },
+          "font": "16px",
+          "border": "0px none rgb(18, 55, 79)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "text": "🔔0",
+          "id": "notifyBtn",
+          "classes": "notifyBtn",
+          "rect": {
+            "x": 868.390625,
+            "y": 7.5,
+            "width": 38,
+            "height": 38,
+            "top": 7.5,
+            "right": 906.390625,
+            "bottom": 45.5,
+            "left": 868.390625
+          },
+          "font": "18px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        },
+        {
+          "text": "☀Светлая",
+          "id": "themeBtn",
+          "classes": "themeBtn",
+          "rect": {
+            "x": 913.390625,
+            "y": 9.5,
+            "width": 86.609375,
+            "height": 34,
+            "top": 9.5,
+            "right": 1000,
+            "bottom": 43.5,
+            "left": 913.390625
+          },
+          "font": "16px",
+          "border": "1px solid rgba(183, 156, 113, 0.333)",
+          "background": "rgb(255, 253, 247)"
+        }
+      ]
+    }
+  },
+  {
+    "case": "force-light-on-dark-os",
+    "data": {
+      "theme": "light",
+      "scheme": "light only",
+      "body": "rgb(237, 225, 201)"
+    }
+  },
+  {
+    "case": "reader-typography-dark",
+    "data": {
+      "font": "17px",
+      "line": "29.24px",
+      "family": "Georgia, \"Times New Roman\", serif",
+      "width": 350,
+      "color": "rgb(240, 228, 203)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "case": "reader-typography-light",
+    "data": {
+      "font": "17px",
+      "line": "29.24px",
+      "family": "Georgia, \"Times New Roman\", serif",
+      "width": 332,
+      "color": "rgb(18, 55, 79)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "case": "short-viewport-login-not-physical-keyboard",
+    "data": {
+      "viewport": [
+        390,
+        430
+      ],
+      "field": {
+        "x": 17,
+        "y": 279,
+        "width": 356,
+        "height": 42,
+        "top": 279,
+        "right": 373,
+        "bottom": 321,
+        "left": 17
+      },
+      "modal": {
+        "x": 0,
+        "y": 43.8125,
+        "width": 390,
+        "height": 386.1875,
+        "top": 43.8125,
+        "right": 390,
+        "bottom": 430,
+        "left": 0
+      }
+    }
+  },
+  {
+    "case": "landscape-chat",
+    "width": 568,
+    "height": 320,
+    "data": {
+      "horizontal": false,
+      "composer": {
+        "x": 0,
+        "y": 530,
+        "width": 434.59375,
+        "height": 42,
+        "top": 530,
+        "right": 434.59375,
+        "bottom": 572,
+        "left": 0
+      },
+      "body": 572,
+      "window": 320
+    }
+  },
+  {
+    "case": "landscape-guide",
+    "width": 568,
+    "height": 320,
+    "data": {
+      "rect": {
+        "x": 104,
+        "y": 64,
+        "width": 360,
+        "height": 244,
+        "top": 64,
+        "right": 464,
+        "bottom": 308,
+        "left": 104
+      },
+      "viewport": [
+        568,
+        320
+      ],
+      "controls": [
+        {
+          "x": 121,
+          "y": 247,
+          "width": 59.515625,
+          "height": 44,
+          "top": 247,
+          "right": 180.515625,
+          "bottom": 291,
+          "left": 121
+        },
+        {
+          "x": 188.515625,
+          "y": 247,
+          "width": 60.046875,
+          "height": 44,
+          "top": 247,
+          "right": 248.5625,
+          "bottom": 291,
+          "left": 188.515625
+        },
+        {
+          "x": 256.5625,
+          "y": 247,
+          "width": 95.0625,
+          "height": 44,
+          "top": 247,
+          "right": 351.625,
+          "bottom": 291,
+          "left": 256.5625
+        }
+      ]
+    }
+  },
+  {
+    "case": "landscape-chat",
+    "width": 844,
+    "height": 390,
+    "data": {
+      "horizontal": false,
+      "composer": {
+        "x": 180,
+        "y": 304,
+        "width": 260.59375,
+        "height": 42,
+        "top": 304,
+        "right": 440.59375,
+        "bottom": 346,
+        "left": 180
+      },
+      "body": 390,
+      "window": 390
+    }
+  },
+  {
+    "case": "landscape-guide",
+    "width": 844,
+    "height": 390,
+    "data": {
+      "rect": {
+        "x": 12,
+        "y": 132,
+        "width": 360,
+        "height": 246.28125,
+        "top": 132,
+        "right": 372,
+        "bottom": 378.28125,
+        "left": 12
+      },
+      "viewport": [
+        844,
+        390
+      ],
+      "controls": [
+        {
+          "x": 31,
+          "y": 315.28125,
+          "width": 59.515625,
+          "height": 44,
+          "top": 315.28125,
+          "right": 90.515625,
+          "bottom": 359.28125,
+          "left": 31
+        },
+        {
+          "x": 98.515625,
+          "y": 315.28125,
+          "width": 60.046875,
+          "height": 44,
+          "top": 315.28125,
+          "right": 158.5625,
+          "bottom": 359.28125,
+          "left": 98.515625
+        },
+        {
+          "x": 166.5625,
+          "y": 315.28125,
+          "width": 95.0625,
+          "height": 44,
+          "top": 315.28125,
+          "right": 261.625,
+          "bottom": 359.28125,
+          "left": 166.5625
+        }
+      ]
+    }
+  },
+  {
+    "case": "landscape-chat",
+    "width": 1024,
+    "height": 768,
+    "data": {
+      "horizontal": false,
+      "composer": {
+        "x": 185,
+        "y": 706,
+        "width": 430.59375,
+        "height": 42,
+        "top": 706,
+        "right": 615.59375,
+        "bottom": 748,
+        "left": 185
+      },
+      "body": 768,
+      "window": 768
+    }
+  },
+  {
+    "case": "landscape-guide",
+    "width": 1024,
+    "height": 768,
+    "data": {
+      "rect": {
+        "x": 12,
+        "y": 510,
+        "width": 360,
+        "height": 246.28125,
+        "top": 510,
+        "right": 372,
+        "bottom": 756.28125,
+        "left": 12
+      },
+      "viewport": [
+        1024,
+        768
+      ],
+      "controls": [
+        {
+          "x": 31,
+          "y": 693.28125,
+          "width": 59.515625,
+          "height": 44,
+          "top": 693.28125,
+          "right": 90.515625,
+          "bottom": 737.28125,
+          "left": 31
+        },
+        {
+          "x": 98.515625,
+          "y": 693.28125,
+          "width": 60.046875,
+          "height": 44,
+          "top": 693.28125,
+          "right": 158.5625,
+          "bottom": 737.28125,
+          "left": 98.515625
+        },
+        {
+          "x": 166.5625,
+          "y": 693.28125,
+          "width": 95.0625,
+          "height": 44,
+          "top": 693.28125,
+          "right": 261.625,
+          "bottom": 737.28125,
+          "left": 166.5625
+        }
+      ]
+    }
+  },
+  {
+    "case": "landscape-chat",
+    "width": 1366,
+    "height": 768,
+    "data": {
+      "horizontal": false,
+      "composer": {
+        "x": 328,
+        "y": 706,
+        "width": 456.59375,
+        "height": 42,
+        "top": 706,
+        "right": 784.59375,
+        "bottom": 748,
+        "left": 328
+      },
+      "body": 768,
+      "window": 768
+    }
+  },
+  {
+    "case": "landscape-guide",
+    "width": 1366,
+    "height": 768,
+    "data": {
+      "rect": {
+        "x": 12,
+        "y": 510,
+        "width": 360,
+        "height": 246.28125,
+        "top": 510,
+        "right": 372,
+        "bottom": 756.28125,
+        "left": 12
+      },
+      "viewport": [
+        1366,
+        768
+      ],
+      "controls": [
+        {
+          "x": 31,
+          "y": 693.28125,
+          "width": 59.515625,
+          "height": 44,
+          "top": 693.28125,
+          "right": 90.515625,
+          "bottom": 737.28125,
+          "left": 31
+        },
+        {
+          "x": 98.515625,
+          "y": 693.28125,
+          "width": 60.046875,
+          "height": 44,
+          "top": 693.28125,
+          "right": 158.5625,
+          "bottom": 737.28125,
+          "left": 98.515625
+        },
+        {
+          "x": 166.5625,
+          "y": 693.28125,
+          "width": 95.0625,
+          "height": 44,
+          "top": 693.28125,
+          "right": 261.625,
+          "bottom": 737.28125,
+          "left": 166.5625
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,1796 @@
+{
+  "stats": {
+    "https://ui-audit.local/assets/app.css?v=20261013-80": {
+      "rules": 1913,
+      "important": 1369,
+      "repeated_selector_contexts": 141,
+      "media_contexts": 28
+    },
+    "https://ui-audit.local/assets/archive-player.css?v=20261011-79": {
+      "rules": 18,
+      "important": 5,
+      "repeated_selector_contexts": 0,
+      "media_contexts": 2
+    },
+    "https://ui-audit.local/assets/chapters.css?v=20261011-79": {
+      "rules": 37,
+      "important": 4,
+      "repeated_selector_contexts": 2,
+      "media_contexts": 3
+    },
+    "https://ui-audit.local/assets/community.css?v=20261011-79": {
+      "rules": 176,
+      "important": 76,
+      "repeated_selector_contexts": 6,
+      "media_contexts": 4
+    },
+    "https://ui-audit.local/assets/css/guide.css?v=20261013-81": {
+      "rules": 25,
+      "important": 1,
+      "repeated_selector_contexts": 0,
+      "media_contexts": 3
+    },
+    "https://ui-audit.local/assets/design-tokens.css?v=20261011-79": {
+      "rules": 2,
+      "important": 0,
+      "repeated_selector_contexts": 0,
+      "media_contexts": 1
+    },
+    "https://ui-audit.local/assets/home-2.css?v=20261011-79": {
+      "rules": 373,
+      "important": 113,
+      "repeated_selector_contexts": 64,
+      "media_contexts": 4
+    },
+    "https://ui-audit.local/assets/meetings-navigation.css?v=20261011-79": {
+      "rules": 63,
+      "important": 72,
+      "repeated_selector_contexts": 1,
+      "media_contexts": 3
+    },
+    "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79": {
+      "rules": 140,
+      "important": 871,
+      "repeated_selector_contexts": 6,
+      "media_contexts": 4
+    },
+    "inline:": {
+      "rules": 8,
+      "important": 0,
+      "repeated_selector_contexts": 0,
+      "media_contexts": 2
+    },
+    "inline:photoScallopStyle": {
+      "rules": 1,
+      "important": 1,
+      "repeated_selector_contexts": 0,
+      "media_contexts": 1
+    }
+  },
+  "repeated": [
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileImage img",
+      "conditions": [],
+      "count": 6
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileImage",
+      "conditions": [],
+      "count": 5
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "main",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 4
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home",
+      "conditions": [],
+      "count": 4
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTile:hover .photoTileImage",
+      "conditions": [],
+      "count": 4
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".classHotspot",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogKicker",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogActions",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "body",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".top",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".bottom",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityGrid",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .homePad",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .homeStateLine",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .homeWrap",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTile",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".mosaicTitleCard h1",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".eraTvBrand",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Quote",
+      "conditions": [],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav .h2Brand",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 3
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ":root",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".top",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".brand",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".themeBtn",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".status",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "main",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".nav",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".nav.active",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".room",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".bubble",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".linked",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".receiptChecks",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".receiptChecks.read",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".primary",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCard",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCard.featured",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCover img",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogBody",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCard h3",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogSummary",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogPeople",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogStats",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogTags",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCard.featured:first-child",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCard.featured:first-child .storyCatalogCover",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogCard.featured:first-child h3",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogBody",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyCatalogSummary",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personCard",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personCard:hover",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personPortrait",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personNo",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personMeta",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personMeta h3",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personAlbumSub",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personTech",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personMeta",
+      "conditions": [
+        "(max-width: 720px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personMeta h3",
+      "conditions": [
+        "(max-width: 720px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personMeta h3",
+      "conditions": [
+        "(max-width: 430px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyHeroCover",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyHeroCover",
+      "conditions": [
+        "(max-width: 650px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".modalPanel",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".contextEyebrow",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".contextAction",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".contextAction.primary",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityInlinePhoto",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileImage",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".homeWrap",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ":root",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".pad, .archiveList",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".bottomIn",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".mobileSecondary",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".mobileMore, .moreNavMenu, .moreNavShade",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".nav",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".nav b",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".nav:hover",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".nav.active",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoAlbumLead .photoTileBody h3",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoAlbumLead .photoTileDesc",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoGrid",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".visualRegistryGrid",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTile",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileBody",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileBody h3",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileDesc",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTilePeople",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoTileActions",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityCard",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityCardBody",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityCardBody h3",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityExcerpt",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".cityToolbar, .storiesToolbar, .photoToolbar, .peopleToolbar, .questionToolbar",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".filterRail",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#chat",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".chat",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".rooms",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".room",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".messages",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".bubble",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".composer",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".classPeopleLayout",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".modalPanel",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyDetail",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#profile > .pad",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyAssistantPanel",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyAssistantHead",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyAssistantHead h3",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyAssistantDraft",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyAssistantStatus",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyAssistantStatus.busy",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .memoryEntrances",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .memoryArchiveNote",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .memoryEditorStrip",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "html[data-theme=\"dark\"] #home",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#home .homePad",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storySources",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storySourceIntro",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storySourceItem",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storySourceMeta b",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storySourceText",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyProse",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".storyProse",
+      "conditions": [
+        "(max-width: 650px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".personMemoryCount",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".photoPersonLink",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profilePage",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileIdentityCard",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSection",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSection > summary",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSectionText b",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSectionText small",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSectionBody",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSubsection",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSubsection > summary",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSubsectionBody",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".profileSection > summary",
+      "conditions": [
+        "(max-width: 600px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".mosaicTitleCard",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".homeFreshGrid",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".homeFreshCard",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": "#storiesList, #questionsList",
+      "conditions": [
+        "(min-width: 1024px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".homeFreshCard > img",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".eraTvCabinet",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".eraTvPanel",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/app.css?v=20261013-80",
+      "selector": ".eraTvBrand",
+      "conditions": [
+        "(max-width: 560px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/chapters.css?v=20261011-79",
+      "selector": "body.home2App main > .view:not(#home)",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/chapters.css?v=20261011-79",
+      "selector": "body.home2App main > #profile",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/community.css?v=20261011-79",
+      "selector": "#chat .rooms",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/community.css?v=20261011-79",
+      "selector": "#chat .composer",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/community.css?v=20261011-79",
+      "selector": "#chat .messages",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/community.css?v=20261011-79",
+      "selector": ".communityStorySidebar #storyToc",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/community.css?v=20261011-79",
+      "selector": ".communityStorySidebar #storyToc button",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/community.css?v=20261011-79",
+      "selector": "#chat .rooms",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".home2Stage",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav .h2Brand",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Hero",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Paper",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Letter",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2BackSheet",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2RightSheet",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Photo",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Photo img",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Class",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Ticket",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title h1",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title .h2Kicker",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title .h2Rule",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title .h2Motto",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".home2 .h2Button",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Rubric .h2Thumb",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Thumb img",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Week",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2WeekGrid",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2WeekPhoto",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Final",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Final::after",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Version",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": "html[data-theme=\"dark\"] .h2Photo img, html[data-theme=\"dark\"] .h2Thumb img",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2CornerCity",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Quote::after",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title h1",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title .h2Kicker",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title .h2Motto",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Title .h2Rule",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".home2 .h2Button",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Letter",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2RightSheet",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Version",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Final blockquote",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav .h2Profile",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav .h2Icon",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2WeekGrid",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2FreshCard",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv h2",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvPanel",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvNameplate",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvCaption",
+      "conditions": [],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvNameplate",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvSet",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvCabinet",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvDials",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvDials button",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2HomeTv .eraTvDials button:last-child",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav button:not(.h2Icon)",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav .h2Profile",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": "#homeSearchBtn",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav .h2Icon",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/home-2.css?v=20261011-79",
+      "selector": ".h2Nav svg",
+      "conditions": [
+        "(min-width: 761px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/meetings-navigation.css?v=20261011-79",
+      "selector": "body.home2App",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79",
+      "selector": ".bottom",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79",
+      "selector": ".bottomIn",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79",
+      "selector": ".bottom .nav",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79",
+      "selector": ".bottom .mobileSecondary",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79",
+      "selector": ".bottom .mobileMore",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    },
+    {
+      "file": "https://ui-audit.local/assets/mobile-archive.css?v=20261011-79",
+      "selector": ".photoTileBody",
+      "conditions": [
+        "(max-width: 760px)"
+      ],
+      "count": 2
+    }
+  ],
+  "files": [
+    {
+      "file": "assets/app.css",
+      "lines": 3134,
+      "bytes": 184250,
+      "raw_important": 371,
+      "loaded": true,
+      "media_queries": [
+        "(max-width:520px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(min-width:1024px)",
+        "(min-width:1380px)",
+        "(max-width:1023px)",
+        "(max-width:720px)",
+        "(max-width:430px)",
+        "(max-width:650px)",
+        "(min-width:760px)",
+        "(min-width:1180px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:1023px)",
+        "(max-width:1023px)",
+        "(min-width:1024px)",
+        "(min-width:1024px)",
+        "(min-width:1380px)",
+        "(max-width:640px)",
+        "(min-width:760px)",
+        "(prefers-reduced-motion:reduce)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:980px)",
+        "(max-width:620px)",
+        "(max-width:760px)",
+        "(max-width:650px)",
+        "(max-width:720px)",
+        "(max-width:430px)",
+        "(max-width:430px)",
+        "(hover:hover) and (pointer:fine)",
+        "(max-width:980px)",
+        "(max-width:720px)",
+        "(max-width:900px)",
+        "(max-width:600px)",
+        "(max-width:600px)",
+        "(max-width:820px)",
+        "(max-width:520px)",
+        "(max-width:760px)",
+        "(max-width:600px)",
+        "(max-width:380px)",
+        "(max-width:760px)",
+        "(max-width:650px)",
+        "(max-width:600px)",
+        "(max-width:700px)",
+        "(max-width:620px)",
+        "(max-width:650px)",
+        "(max-width:760px)",
+        "(max-width:600px)",
+        "(min-width:761px)",
+        "(max-width:900px)",
+        "(max-width:760px)",
+        "(max-width:430px)",
+        "(max-width:760px)",
+        "(min-width:1024px)",
+        "(min-width:1024px)",
+        "(min-width:1280px)",
+        "(min-width:1560px)",
+        "(min-width:1024px)",
+        "(min-width:1600px)",
+        "(min-width:1024px)",
+        "(min-width:1280px)",
+        "(min-width:1560px)",
+        "(min-width:900px)",
+        "(max-width:899px)",
+        "(max-width:560px)",
+        "(max-width:640px)",
+        "(max-width:650px)",
+        "(max-width:760px)",
+        "(max-width:820px)",
+        "(max-width:560px)",
+        "(max-width:430px)",
+        "(max-width:560px)",
+        "(max-width:560px)",
+        "(max-width:520px)",
+        "(min-width:1024px)",
+        "(max-width:1023px)",
+        "(max-width:820px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:700px)"
+      ]
+    },
+    {
+      "file": "assets/mobile-archive.css",
+      "lines": 334,
+      "bytes": 16895,
+      "raw_important": 305,
+      "loaded": true,
+      "media_queries": [
+        "(max-width:760px)",
+        "(max-width:380px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)"
+      ]
+    },
+    {
+      "file": "assets/home-2.css",
+      "lines": 384,
+      "bytes": 40056,
+      "raw_important": 53,
+      "loaded": true,
+      "media_queries": [
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(min-width:761px)",
+        "(min-width:761px) and (max-width:1100px)"
+      ]
+    },
+    {
+      "file": "assets/home-reference.css",
+      "lines": 526,
+      "bytes": 24603,
+      "raw_important": 586,
+      "loaded": false,
+      "media_queries": [
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(min-width:761px)",
+        "(max-width:900px)"
+      ]
+    },
+    {
+      "file": "assets/design-tokens.css",
+      "lines": 22,
+      "bytes": 1335,
+      "raw_important": 0,
+      "loaded": true,
+      "media_queries": []
+    },
+    {
+      "file": "assets/community.css",
+      "lines": 247,
+      "bytes": 15799,
+      "raw_important": 24,
+      "loaded": true,
+      "media_queries": [
+        "(max-width:1050px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)"
+      ]
+    },
+    {
+      "file": "assets/chapters.css",
+      "lines": 36,
+      "bytes": 4540,
+      "raw_important": 4,
+      "loaded": true,
+      "media_queries": [
+        "(min-width:761px)",
+        "(max-width:760px)"
+      ]
+    },
+    {
+      "file": "assets/css/guide.css",
+      "lines": 26,
+      "bytes": 2839,
+      "raw_important": 1,
+      "loaded": true,
+      "media_queries": [
+        "(max-width:760px)",
+        "(min-width:761px) and (max-width:1023px)"
+      ]
+    },
+    {
+      "file": "assets/meetings-navigation.css",
+      "lines": 71,
+      "bytes": 6694,
+      "raw_important": 42,
+      "loaded": true,
+      "media_queries": [
+        "(min-width:761px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(max-width:760px)",
+        "(min-width:761px)",
+        "(min-width:761px)"
+      ]
+    },
+    {
+      "file": "assets/archive-player.css",
+      "lines": 16,
+      "bytes": 1925,
+      "raw_important": 5,
+      "loaded": true,
+      "media_queries": [
+        "(max-width:760px)"
+      ]
+    }
+  ]
+}

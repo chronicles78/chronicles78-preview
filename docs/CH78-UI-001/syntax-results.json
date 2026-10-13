@@ -1,0 +1,92 @@
+[
+  {
+    "file": "assets/js/archive-player.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/chat.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/city.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/community.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/core.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/home-2-rotation.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/home-2.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/home-collage.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/meetings.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/mobile-navigation.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/people.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/photos.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/questions-admin.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/stories.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/story-assistant.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/traffic.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/videos.js",
+    "ok": true,
+    "error": ""
+  },
+  {
+    "file": "assets/js/guide.js",
+    "ok": true,
+    "error": ""
+  }
+]

@@ -1,7 +1,7 @@
 /* Independent, layered cover. The reference JPEG is never used here. */
 body.home2App:has(#home.active){padding:0!important;background:var(--bg)!important;overflow-x:hidden}
 body.home2App:has(#home.active)>.top{display:none!important}
-@media(min-width:761px){body.home2App:has(#home.active)>.bottom{display:none!important}}
+@media(min-width:1280px){body.home2App:has(#home.active)>.bottom{display:none!important}}
 
 body.home2App:has(#home.active) main{margin:0!important;padding:0!important;max-width:none!important;width:100%!important}
 body.home2App #home.home2{padding:0!important;margin:0!important;width:100%!important;max-width:none!important;background:var(--desk)!important;color:var(--ink)!important}
@@ -169,7 +169,7 @@ html[data-theme="dark"] .h2Final::after{background:linear-gradient(90deg,#171815
 .h2Thumb img{filter:contrast(1.03) saturate(1.05)}
 html[data-theme="dark"] .h2Photo img,html[data-theme="dark"] .h2Thumb img{filter:contrast(1.03) saturate(1.06)}
 html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:var(--ink-muted)}
-@media(max-width:760px){
+@media(max-width:1279px){
  .h2Nav{padding:8px 14px;gap:10px}.h2Nav .h2Brand{font-size:22px}
  .h2Title{padding:24px 14px}.h2Title h1{font-size:clamp(32px,9.5vw,50px)}
  .h2Title .h2Kicker{font-size:11px}.h2Title .h2Motto{font-size:18px;margin-bottom:20px}
@@ -180,10 +180,10 @@ html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:va
  .h2FooterLetter{font-size:13px;width:28%;right:-8%;top:30%}.h2FooterPhoto{width:25%;right:8%;top:45%}
  .h2Final .h2FooterLeaves{width:28%;height:130%;bottom:-35%}.h2Final blockquote{z-index:5}
 }
-@media(min-width:761px){
- html:has(body.home2App #home.active),body.home2App:has(#home.active){height:100%;overflow:hidden!important}
- body.home2App:has(#home.active) main{height:100dvh;display:grid;place-items:center;overflow:hidden!important}
- body.home2App #home.home2.active{height:100dvh;display:grid!important;place-items:center;overflow:hidden!important}
+@media(min-width:1280px){
+ html:has(body.home2App #home.active),body.home2App:has(#home.active){height:auto;overflow-y:auto}
+ body.home2App:has(#home.active) main{height:auto;display:block;overflow:visible}
+ body.home2App #home.home2.active{height:auto;display:block!important;overflow:visible}
 }
 /* A quiet full-width printed band, with three botanical foreground layers. */
 .h2Week{isolation:isolate;z-index:2}
@@ -199,7 +199,7 @@ html[data-theme="dark"] .h2Letter,html[data-theme="dark"] .h2RightSheet{color:va
 html[data-theme="dark"] .h2Week::before{opacity:.1;filter:saturate(.65) brightness(1.2)}
 html[data-theme="dark"] .h2Week::after{background:#ceb88c08;border-color:#d4be9620}
 html[data-theme="dark"] .home2Stage>.h2Leaves,html[data-theme="dark"] .home2Stage>.h2FooterLeaves{filter:contrast(1.12) saturate(1.15) drop-shadow(calc(.3 * var(--home-unit,1cqw)) calc(.4 * var(--home-unit,1cqw)) calc(.25 * var(--home-unit,1cqw)) #0009)}
-@media(max-width:760px){
+@media(max-width:1279px){
  body.home2App #home.home2{overflow:visible!important}
  .home2Stage{width:100%;aspect-ratio:auto;overflow:hidden;padding-bottom:0}
  .h2Nav{position:relative;left:auto;right:auto;height:auto;min-height:58px;gap:12px;padding:10px 16px;flex-wrap:wrap}
@@ -259,7 +259,7 @@ html[data-theme="dark"] .home2Stage>.h2Leaves,html[data-theme="dark"] .home2Stag
 /* The weekly photo takes only the width required by its original proportions. */
 .h2WeekGrid{grid-template-columns:var(--week-photo-width,24%) minmax(0,1.25fr) minmax(0,1fr)}
 .h2WeekPhoto{min-width:0;width:100%;height:var(--week-photo-height,100%);justify-self:start;align-self:start;background:transparent}
-@media(max-width:760px){.h2WeekGrid{grid-template-columns:1fr}.h2WeekPhoto:has(img){width:auto;max-width:100%;height:auto;max-height:320px;aspect-ratio:var(--week-photo-ratio,auto)}.h2WeekPhoto img{width:auto;max-width:100%;height:auto;max-height:320px;object-fit:contain}.h2WeekPhoto:has(.h2ImagePlaceholder){width:100%;height:200px}}
+@media(max-width:1279px){.h2WeekGrid{grid-template-columns:1fr}.h2WeekPhoto:has(img){width:auto;max-width:100%;height:auto;max-height:320px;aspect-ratio:var(--week-photo-ratio,auto)}.h2WeekPhoto img{width:auto;max-width:100%;height:auto;max-height:320px;object-fit:contain}.h2WeekPhoto:has(.h2ImagePlaceholder){width:100%;height:200px}}
 
 /* Compact activity, taller new materials, and the working TV in the right column. */
 .h2HomeTv{position:absolute;top:43.6%;right:6%;width:28.33%;height:28.7%;padding:calc(.7 * var(--home-unit,1cqw)) calc(1 * var(--home-unit,1cqw));border:1px solid #b79c7155;background:linear-gradient(#fffcf4c9,#f8efdfce);z-index:4;display:flex;flex-direction:column;gap:calc(.6 * var(--home-unit,1cqw));overflow:hidden}
@@ -273,23 +273,23 @@ html[data-theme="dark"] .home2Stage>.h2Leaves,html[data-theme="dark"] .home2Stag
 .h2HomeTv .eraTvStart{width:calc(12 * var(--home-unit,1cqw));height:calc(5 * var(--home-unit,1cqw))}.h2HomeTv .eraTvStart span{font-size:calc(1.8 * var(--home-unit,1cqw))}.h2HomeTv .eraTvStart b{font-size:calc(.9 * var(--home-unit,1cqw))}.h2HomeTv .eraTvEmpty{font-size:calc(.9 * var(--home-unit,1cqw));padding:calc(.7 * var(--home-unit,1cqw))}
 .h2HomeTv .eraTvNameplate{font-size:calc(.65 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCaption{padding:calc(.8 * var(--home-unit,1cqw)) 0 0}.h2HomeTv .eraTvCaption b{font-size:calc(1.1 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCaption span{font-size:calc(.8 * var(--home-unit,1cqw));margin-top:calc(.2 * var(--home-unit,1cqw));display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .h2HomeTv .h2TvOpen{font:calc(1 * var(--home-unit,1cqw))/1.2 var(--font-editorial);align-self:start;border:0;background:transparent;padding:0;flex-shrink:0}
-@media(min-width:761px){.h2Week{top:53.5%;right:35.83%;height:18.8%}.h2WeekGrid{grid-template-columns:var(--week-photo-width,24%) minmax(0,1fr)}.h2Week::before,.h2Week::after{left:-10.32%;right:-61.6%}.h2Fresh{top:73.7%;height:15.7%}.h2Fresh .h2SectionHead{height:17%}.h2FreshGrid{height:77%}.h2FreshCard h3{font-size:calc(1.4 * var(--home-unit,1cqw))}.h2FreshCard p{font-size:calc(1 * var(--home-unit,1cqw));-webkit-line-clamp:3}.h2FreshCard small{font-size:calc(.8 * var(--home-unit,1cqw))}}
+@media(min-width:1280px){.h2Week{top:53.5%;right:35.83%;height:18.8%}.h2WeekGrid{grid-template-columns:var(--week-photo-width,24%) minmax(0,1fr)}.h2Week::before,.h2Week::after{left:-10.32%;right:-61.6%}.h2Fresh{top:73.7%;height:15.7%}.h2Fresh .h2SectionHead{height:17%}.h2FreshGrid{height:77%}.h2FreshCard h3{font-size:calc(1.4 * var(--home-unit,1cqw))}.h2FreshCard p{font-size:calc(1 * var(--home-unit,1cqw));-webkit-line-clamp:3}.h2FreshCard small{font-size:calc(.8 * var(--home-unit,1cqw))}}
 html[data-theme=dark] .h2HomeTv{background:#34352cdd}
-@media(max-width:760px){.h2HomeTv{position:relative;top:auto;right:auto;width:auto;height:auto;margin:20px 16px;padding:16px;gap:16px}.h2HomeTv h2{font-size:23px}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) 48px;gap:10px;padding:14px 12px;border-radius:18px}.h2HomeTv .eraTvScreenFrame{padding:7px;border-radius:16px}.h2HomeTv .eraTvDials{gap:9px}.h2HomeTv .eraTvDials button{width:38px;height:38px;font-size:22px}.h2HomeTv .eraTvDials button:last-child{font-size:17px}.h2HomeTv .eraTvStart{width:145px;height:65px}.h2HomeTv .eraTvStart span{font-size:24px}.h2HomeTv .eraTvStart b{font-size:11px}.h2HomeTv .eraTvEmpty{font-size:12px;padding:12px}.h2HomeTv .eraTvCaption{padding:14px 0 0}.h2HomeTv .eraTvCaption b{font-size:17px}.h2HomeTv .eraTvCaption span{font-size:12px}.h2HomeTv .h2TvOpen{font-size:15px}.h2HomeTv .eraTvNameplate{font-size:9px}.h2FreshCard{height:150px}}
+@media(max-width:1279px){.h2HomeTv{position:relative;top:auto;right:auto;width:auto;height:auto;margin:20px 16px;padding:16px;gap:16px}.h2HomeTv h2{font-size:23px}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) 48px;gap:10px;padding:14px 12px;border-radius:18px}.h2HomeTv .eraTvScreenFrame{padding:7px;border-radius:16px}.h2HomeTv .eraTvDials{gap:9px}.h2HomeTv .eraTvDials button{width:38px;height:38px;font-size:22px}.h2HomeTv .eraTvDials button:last-child{font-size:17px}.h2HomeTv .eraTvStart{width:145px;height:65px}.h2HomeTv .eraTvStart span{font-size:24px}.h2HomeTv .eraTvStart b{font-size:11px}.h2HomeTv .eraTvEmpty{font-size:12px;padding:12px}.h2HomeTv .eraTvCaption{padding:14px 0 0}.h2HomeTv .eraTvCaption b{font-size:17px}.h2HomeTv .eraTvCaption span{font-size:12px}.h2HomeTv .h2TvOpen{font-size:15px}.h2HomeTv .eraTvNameplate{font-size:9px}.h2FreshCard{height:150px}}
 
 .h2HomeTv h2{flex-shrink:0}.h2HomeTv .eraTvPanel{min-width:0}.h2HomeTv .eraTvNameplate{padding:calc(.2 * var(--home-unit,1cqw)) calc(.8 * var(--home-unit,1cqw));margin:calc(.1 * var(--home-unit,1cqw)) auto 0}
-@media(min-width:761px){#h2HomeTvHost{justify-content:center}.h2HomeTv .eraTvSet{max-width:calc(21 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCabinet{padding:calc(.6 * var(--home-unit,1cqw));gap:calc(.4 * var(--home-unit,1cqw));grid-template-columns:minmax(0,1fr) calc(2.7 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials{gap:calc(.3 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button{width:calc(2.2 * var(--home-unit,1cqw));height:calc(2.2 * var(--home-unit,1cqw));font-size:calc(1.3 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button:last-child{font-size:calc(1 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCaption{padding:calc(.5 * var(--home-unit,1cqw)) 0 0}.h2HomeTv .eraTvCaption span{display:none}.h2HomeTv .eraTvCaption b{font-size:calc(1 * var(--home-unit,1cqw));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
-@media(max-width:760px){.h2HomeTv .eraTvNameplate{padding:3px 12px;margin:2px auto 0}}
+@media(min-width:1280px){#h2HomeTvHost{justify-content:center}.h2HomeTv .eraTvSet{max-width:calc(21 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCabinet{padding:calc(.6 * var(--home-unit,1cqw));gap:calc(.4 * var(--home-unit,1cqw));grid-template-columns:minmax(0,1fr) calc(2.7 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials{gap:calc(.3 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button{width:calc(2.2 * var(--home-unit,1cqw));height:calc(2.2 * var(--home-unit,1cqw));font-size:calc(1.3 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button:last-child{font-size:calc(1 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCaption{padding:calc(.5 * var(--home-unit,1cqw)) 0 0}.h2HomeTv .eraTvCaption span{display:none}.h2HomeTv .eraTvCaption b{font-size:calc(1 * var(--home-unit,1cqw));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+@media(max-width:1279px){.h2HomeTv .eraTvNameplate{padding:3px 12px;margin:2px auto 0}}
 
 /* The TV uses its complete area, with no heading, navigation link or clip caption. */
 .h2HomeTv{padding:calc(.8 * var(--home-unit,1cqw));gap:0;justify-content:center}
 .h2HomeTv .eraTvCaption{display:none}
-@media(min-width:761px){.h2HomeTv .eraTvSet{max-width:calc(26 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) calc(3.1 * var(--home-unit,1cqw));padding:calc(.8 * var(--home-unit,1cqw));gap:calc(.5 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials{gap:calc(.4 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button{width:calc(2.6 * var(--home-unit,1cqw));height:calc(2.6 * var(--home-unit,1cqw));font-size:calc(1.5 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button:last-child{font-size:calc(1.2 * var(--home-unit,1cqw))}}
-@media(max-width:760px){.h2HomeTv{padding:16px;gap:0}}
+@media(min-width:1280px){.h2HomeTv .eraTvSet{max-width:calc(26 * var(--home-unit,1cqw))}.h2HomeTv .eraTvCabinet{grid-template-columns:minmax(0,1fr) calc(3.1 * var(--home-unit,1cqw));padding:calc(.8 * var(--home-unit,1cqw));gap:calc(.5 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials{gap:calc(.4 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button{width:calc(2.6 * var(--home-unit,1cqw));height:calc(2.6 * var(--home-unit,1cqw));font-size:calc(1.5 * var(--home-unit,1cqw))}.h2HomeTv .eraTvDials button:last-child{font-size:calc(1.2 * var(--home-unit,1cqw))}}
+@media(max-width:1279px){.h2HomeTv{padding:16px;gap:0}}
 
 
 /* v72 — clearer Home 2 top navigation (desktop only) */
-@media(min-width:761px){
+@media(min-width:1280px){
 .h2Nav{
   left:10.5%;
   right:2.5%;
@@ -319,7 +319,7 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
 }
 
 /* v73 — desktop Home 2 uses the full browser width */
-@media(min-width:761px){
+@media(min-width:1280px){
   body.home2App:has(#home.active){
     width:100%!important;
     max-width:none!important;
@@ -372,7 +372,7 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
 }
 
 /* Keep all navigation actions reachable near the desktop breakpoint. */
-@media(min-width:761px) and (max-width:1100px){
+@media(min-width:1280px) and (max-width:1100px){
   .h2Nav{gap:calc(.8 * var(--home-unit,1cqw))!important}
   .h2Nav .accountEntryBtn{
     min-width:0;
@@ -380,4 +380,45 @@ html[data-theme=dark] .h2HomeTv{background:#34352cdd}
     overflow:hidden;
     text-overflow:ellipsis;
   }
+}
+
+/* UI-001B: content flows below the collage; a short window scrolls instead of shrinking text. */
+@media(min-width:1280px){
+ .home2Stage{--home-unit:1cqw;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-rows:auto minmax(360px,1fr) auto auto auto 120px;gap:16px 24px;min-height:100dvh;aspect-ratio:auto}
+ .home2Stage>.h2Nav{position:relative;grid-column:1/-1;left:auto;right:auto;top:auto;height:auto;min-height:54px;padding:6px 4%!important;gap:clamp(8px,1.2vw,24px)!important}
+ .home2Stage>.h2Hero{position:relative;grid-column:1/-1;inset:auto;height:100%;min-height:360px}
+ .h2Title{height:auto;min-height:66%;padding:16px 20px}
+ .h2Title h1{font-size:clamp(42px,4cqw,76px)}
+ .h2Title .h2Kicker{font-size:clamp(14px,1.13cqw,20px);white-space:normal}
+ .h2Title .h2Motto{font-size:clamp(19px,1.55cqw,28px);margin-bottom:12px}
+ .h2Actions{flex-wrap:wrap;gap:8px}
+ .home2 .h2Button{font-size:clamp(15px,.97cqw,20px);min-height:44px;padding:10px 14px;white-space:normal}
+ .home2Stage>.communityHome{position:relative;grid-column:1;grid-row:3;inset:auto;height:auto;min-height:140px;margin:0 0 0 6%;padding:0;gap:16px}
+ .home2Stage>.communityHome .communityPanel{padding:12px 14px;overflow:visible}
+ .home2Stage>.communityHome h3{font-size:clamp(20px,1.4cqw,26px);margin-bottom:8px}
+ .home2Stage>.communityHome .communityPanel>div{font-size:16px;min-height:44px;overflow:visible}
+ .home2Stage>.communityHome button{font-size:15px;min-height:44px;padding:8px 10px;margin-top:8px}
+ .home2Stage>.h2Week{position:relative;grid-column:1;grid-row:4;inset:auto;height:auto;min-height:190px;margin:0 0 0 6%}
+ .h2Week .h2SectionHead{height:auto;min-height:40px;margin-bottom:12px}
+ .h2SectionHead h2{font-size:clamp(23px,1.85cqw,34px)}
+ .h2SectionHead button{font-size:15px;min-height:44px}
+ .h2WeekGrid{height:auto;min-height:140px}
+ .h2WeekText h3{font-size:clamp(22px,1.75cqw,32px)}
+ .h2WeekText p{font-size:clamp(16px,1.15cqw,22px);flex:none}
+ .home2Stage>.h2HomeTv{position:relative;grid-column:2;grid-row:3/5;inset:auto;width:auto;height:auto;margin:0 12% 0 0;padding:16px;gap:12px}
+ .h2HomeTv h2{font-size:24px}
+ .h2HomeTv .h2TvOpen{font-size:15px;min-height:44px}
+ .h2HomeTv .eraTvDials button{width:44px;height:44px;font-size:24px}
+ .h2HomeTv .eraTvCaption b{font-size:16px}
+ .h2HomeTv .eraTvStart b,.h2HomeTv .eraTvEmpty{font-size:14px}
+ .home2Stage>.h2Fresh{position:relative;grid-column:1/-1;grid-row:5;inset:auto;height:auto;min-height:145px;margin:0 4%}
+ .h2Fresh .h2SectionHead{height:auto;min-height:44px;margin-bottom:8px}
+ .h2FreshGrid{height:auto;min-height:110px}
+ .h2FreshCard h3{font-size:clamp(20px,1.4cqw,26px)}
+ .h2FreshCard p{font-size:16px}
+ .h2FreshCard small{font-size:14px}
+ .home2Stage>.h2Final{position:relative;grid-column:1/-1;grid-row:6;inset:auto;height:120px}
+ .h2Final blockquote{font-size:clamp(17px,1.18cqw,23px);margin:18px auto 0}
+ .h2Final cite{font-size:14px}
+ .h2Credits,.h2Version{font-size:11px}
 }

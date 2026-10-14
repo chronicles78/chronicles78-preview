@@ -1,6 +1,7 @@
 """Package the approved v82 frontend for an isolated temporary static site."""
 from pathlib import Path
 import json
+import hashlib
 import os
 import re
 import shutil
@@ -12,9 +13,18 @@ UI_REVISION = '8c6aec7e27eaea69c537ffc5af26c1364ae6e28d'
 PAGES = ('index.html', 'register.html', 'consent.html', 'about.html',
          'privacy.html', 'terms.html', 'home-2.html', 'home-2-sources.html')
 
-# Reject accidental UI changes: this site previews the exact approved PR source.
-subprocess.run(['git', 'diff', '--exit-code', UI_REVISION, '--', *PAGES,
-                'assets', 'manifest.webmanifest'], cwd=ROOT, check=True)
+# Render uses a shallow clone; verify exact source files without needing old Git objects.
+expected = json.loads((ROOT / 'scripts/preview82-files.json').read_text())
+if expected['source_revision'] != UI_REVISION:
+    raise ValueError('Unexpected source revision')
+actual_paths = set(PAGES) | {'manifest.webmanifest'} | {
+    p.relative_to(ROOT).as_posix() for p in (ROOT / 'assets').rglob('*') if p.is_file()
+}
+if actual_paths != set(expected['files']):
+    raise ValueError('Unexpected frontend file set')
+for relative, digest in expected['files'].items():
+    if hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() != digest:
+        raise ValueError(f'Frontend differs from approved v82: {relative}')
 revision = os.environ.get('RENDER_GIT_COMMIT') or subprocess.check_output(
     ['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
 if not re.fullmatch(r'[0-9a-f]{40}', revision):

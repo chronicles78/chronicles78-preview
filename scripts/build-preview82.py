@@ -1,4 +1,4 @@
-"""Package the approved v82 frontend for an isolated temporary static site."""
+"""Package the pinned v82 frontend for an isolated temporary static site."""
 from pathlib import Path
 import json
 import hashlib
@@ -9,7 +9,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'preview-dist'
-UI_REVISION = '8c6aec7e27eaea69c537ffc5af26c1364ae6e28d'
+UI_REVISION = '373b2b25eee7ea6f3c252c8f37031dbb3b987887'
 PAGES = ('index.html', 'register.html', 'consent.html', 'about.html',
          'privacy.html', 'terms.html', 'home-2.html', 'home-2-sources.html')
 
@@ -24,7 +24,7 @@ if actual_paths != set(expected['files']):
     raise ValueError('Unexpected frontend file set')
 for relative, digest in expected['files'].items():
     if hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() != digest:
-        raise ValueError(f'Frontend differs from approved v82: {relative}')
+        raise ValueError(f'Frontend differs from pinned v82: {relative}')
 revision = os.environ.get('RENDER_GIT_COMMIT') or subprocess.check_output(
     ['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
 if not re.fullmatch(r'[0-9a-f]{40}', revision):

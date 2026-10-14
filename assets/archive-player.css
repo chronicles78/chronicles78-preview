@@ -5,9 +5,19 @@
 #archiveMediaPlayer{display:block;width:100%;max-height:45dvh;aspect-ratio:16/9;background:#142536;object-fit:contain}
 .archiveMediaActions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}.archiveMediaActions label{display:flex;gap:6px;align-items:center;font-size:14px;min-height:44px}.archiveMediaActions input{width:20px;height:20px}
 #archiveMediaStop{color:#984d48!important}#archiveMediaState{font-size:13px;line-height:1.4;margin-top:6px}
-#archiveMediaDock.compact #archiveMediaPlayer{width:96px;height:54px;float:left;margin-right:8px;aspect-ratio:auto}
-#archiveMediaDock.compact .archiveMediaActions{margin:0}#archiveMediaDock.compact #archiveMediaState{clear:both}
-body:has(#archiveMediaDock:not([hidden])) #chat .chat{height:calc(100dvh - 64px - var(--archive-dock-height,0px) - env(safe-area-inset-bottom))!important;min-height:0!important}
+/* Compact playback is a single control strip so short chat windows remain usable. */
+#archiveMediaDock.compact{display:flex;align-items:center;gap:8px;padding:8px;max-height:none}
+#archiveMediaDock.compact .archiveMediaHead,#archiveMediaDock.compact .archiveMediaActions{display:contents}
+#archiveMediaDock.compact .archiveMediaHead b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+#archiveMediaDock.compact #archiveMediaPlayer,#archiveMediaDock.compact .archiveMediaActions label{display:none}
+#archiveMediaDock.compact button{width:44px;height:44px;flex-shrink:0;font-size:0;padding:4px}
+#archiveMediaDock.compact button::before{font-size:22px}
+#archiveMediaDock.compact #archiveMediaMinimize::before{content:'▣'}
+#archiveMediaDock.compact #archiveMediaToggle::before{content:'▶'}
+#archiveMediaDock.compact #archiveMediaToggle[aria-label^="Приостановить"]::before{content:'❚❚'}
+#archiveMediaDock.compact #archiveMediaStop::before{content:'×'}
+#archiveMediaDock.compact #archiveMediaRetry::before{content:'↻'}
+#archiveMediaDock.compact #archiveMediaState{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 body:has(#archiveMediaDock:not([hidden])) #chat .messages{min-height:0!important}
 @media(max-width:760px){
  #archiveMediaDock{right:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:calc(100vw - 16px);padding:10px}

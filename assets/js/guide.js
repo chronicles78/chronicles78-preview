@@ -2,7 +2,7 @@
 (()=>{
  'use strict';
  const VERSION='1',STORAGE_KEY='ch78-guide-dismissed-v'+VERSION;
- const mobile=matchMedia('(max-width:760px)'),reduced=matchMedia('(prefers-reduced-motion:reduce)');
+ const mobile=matchMedia('(max-width:1279px)'),reduced=matchMedia('(prefers-reduced-motion:reduce)');
  const descriptions={
   home:['Это главная страница нашего архива. Здесь появляются новые материалы и самые интересные находки.','Здесь начинается наш архив: новые фотографии, интересные материалы и история недели.'],
   people:['Выберите 10А или 10Б, воспользуйтесь поиском по фамилии и откройте сведения об одноклассниках.','Найдите одноклассника, посмотрите фотографии и вспомните тех, с кем учились в 10А и 10Б.'],
@@ -23,7 +23,7 @@
  const menuOpen=()=>byId('moreNavMenu')?.classList.contains('open');
  const ready=()=>typeof appNavEnabled!=='undefined'&&appNavEnabled&& !authSyncPromise;
  const admitted=()=>typeof profile!=='undefined'&&!!profile?.is_active&&!profile?.access_blocked;
- const blocked=()=>!!first('.modalShade.open,.contextShade.open,.meetingShade:not([hidden]),#h2Search:not([hidden])')||!ready();
+ const blocked=()=>!!first('.modalShade.open,.contextShade.open,.storyAssistantShade.open,.meetingShade:not([hidden]),#h2Search:not([hidden])')||!ready();
  const invitationBusy=()=>blocked()||menuOpen()||visible(byId('archiveMediaDock'));
  let dismissed=false;
  try{dismissed=localStorage.getItem(STORAGE_KEY)==='1'}catch{}

@@ -1,0 +1,7 @@
+# Existing project only. No global function authentication override.
+project_id = "fnwpkmjjdhflnqghnogj"
+
+[functions.ch78-max-webhook]
+# MAX supplies its own shared-secret header, not a Supabase user JWT.
+verify_jwt = false
+entrypoint = "./functions/ch78-max-webhook/index.ts"

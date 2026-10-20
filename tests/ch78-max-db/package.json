@@ -1,0 +1,7 @@
+{
+  "name": "ch78-max-ingest-db-tests",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test schema.test.mjs" },
+  "devDependencies": { "@electric-sql/pglite": "0.3.14" }
+}

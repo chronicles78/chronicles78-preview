@@ -47,7 +47,7 @@ test('model can reject irrelevant/test-only sources without invented response',a
  const result=await (await handler(req({action:'answer',q:'танцы'}))).json();assert.equal(result.found,false);assert.ok(!result.answer.includes('Fabricated'));
 });
 test('citation validator rejects nonexistent, missing and mismatched inline references',()=>{
- for(const draft of [{found:true,answer:'Текст [S99]',citations:['S1']},{found:true,answer:'Текст',citations:['S1']},{found:true,answer:'Текст [S1]',citations:[]},{found:true,answer:'Текст [S1]',citations:['S99']}])assert.throws(()=>validateAnswer(draft,[{ref:'S1'}]));
+ for(const draft of [{found:true,answer:'Текст [S99]',citations:['S1']},{found:true,answer:'Текст [S1]',citations:[]},{found:true,answer:'Текст [S1]',citations:['S99']}])assert.throws(()=>validateAnswer(draft,[{ref:'S1'}]));
 });
 test('malformed plan, incomplete model output and refusals are not treated as answers',()=>{
  for(const plan of [{queries:[]},{queries:['good; DROP TABLE']},{queries:['a','b','c','d']}])assert.throws(()=>validatedQueries(plan));
@@ -106,4 +106,17 @@ test('invalid or incomplete planning falls back once without a paid planner retr
   const result=await (await handler(req({action:'answer',q:'Алла'}))).json();
   assert.equal(result.found,true);assert.equal(count,2);assert.equal(searchCount,1);
  }
+});
+
+test('known model-declared citations are rendered when inline markers are absent',()=>{
+ const result=validateAnswer({found:true,answer:'Факт из архива.',citations:['S1']},[{ref:'S1'}]);
+ assert.equal(result.answer,'Факт из архива.\n\nИсточники: [S1]');assert.deepEqual(result.citations,['S1']);
+});
+test('grouped markers normalize; unknown, ambiguous and undeclared IDs still fail',()=>{
+ const sources=[{ref:'S1'},{ref:'S2'}];
+ assert.equal(validateAnswer({found:true,answer:'Факт [S1, S2]',citations:['S1','S2']},sources).answer,'Факт [S1] [S2]');
+ for(const answer of ['Факт [S1, S99]','Факт [S1–S2]','Факт [S2]']){
+  assert.throws(()=>validateAnswer({found:true,answer,citations:['S1']},sources));
+ }
+ assert.throws(()=>validateAnswer({found:true,answer:'Факт',citations:[]},sources));
 });

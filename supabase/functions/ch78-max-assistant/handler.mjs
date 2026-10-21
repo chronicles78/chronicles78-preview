@@ -62,12 +62,26 @@ export function validateAnswer(draft,sources){
   if(typeof draft?.found!=='boolean'||typeof draft.answer!=='string'||draft.answer.length>5000||!Array.isArray(draft.citations))throw new Failure('model_invalid');
   const allowed=new Set(sources.map(s=>s.ref));
   if(draft.citations.some(id=>typeof id!=='string'||!allowed.has(id)))throw new Failure('invalid_citation');
-  const inline=[...draft.answer.matchAll(/\[(S\d+)\]/g)].map(match=>match[1]);
-  if(inline.some(id=>!allowed.has(id)||!draft.citations.includes(id)))throw new Failure('invalid_citation');
-  if(draft.found&&(!inline.length||draft.citations.some(id=>!inline.includes(id))))throw new Failure('uncited_answer');
-  if(draft.found&&(!draft.answer.trim()||draft.citations.length===0))throw new Failure('uncited_answer');
+  const citations=[...new Set(draft.citations)];
+  // Normalize grouped source markers, rejecting unknown or ambiguous groups.
+  let answer=draft.answer.trim();
+  answer=answer.replace(/\[([^\]\n]*\bS\d+\b[^\]\n]*)\]/g,(whole,group)=>{
+    const value=group.trim();
+    if(!/^S\d+(?:[\s,;]+S\d+)*$/.test(value))throw new Failure('invalid_citation');
+    const ids=value.match(/S\d+/g);
+    if(ids.some(id=>!allowed.has(id)||!citations.includes(id)))throw new Failure('invalid_citation');
+    return [...new Set(ids)].map(id=>'['+id+']').join(' ');
+  });
+  const inline=[...answer.matchAll(/\[(S\d+)\]/g)].map(match=>match[1]);
+  if(inline.some(id=>!allowed.has(id)||!citations.includes(id)))throw new Failure('invalid_citation');
   if(!draft.found)return {found:false,answer:'В найденных сообщениях нет достаточного ответа. Уточните вопрос или ключевые слова.',citations:[]};
-  return {found:true,answer:draft.answer.trim(),citations:[...new Set(draft.citations)]};
+  if(!answer||citations.length===0)throw new Failure('uncited_answer');
+  // Model-declared, known sources can be attributed to the answer as a whole.
+  // This repairs presentation only; no source ID is invented or inferred.
+  const missing=citations.filter(id=>!inline.includes(id));
+  if(missing.length)answer+='\n\nИсточники: '+missing.map(id=>'['+id+']').join(' ');
+  if(answer.length>5000)throw new Failure('model_invalid');
+  return {found:true,answer,citations};
 }
 export function createHandler({env,fetchImpl=fetch}){
  return async req=>{

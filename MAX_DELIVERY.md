@@ -146,3 +146,14 @@ sending disabled and no send schedule. Authenticated server-to-worker invocation
 returned HTTP 200 idle=true. This verifies worker/Vault authentication and idle
 execution, not model processing or MAX token validity. Awaiting a real owner
 command and review of its persisted result before enabling delivery.
+
+## Citation presentation fix — 2026-10-21
+
+The first owner /ask job reached the worker/model but failed with uncited_answer.
+The rejected draft was not persisted, so missing-inline vs missing-array cannot
+be distinguished retroactively. Known, nonempty model-declared citation arrays
+now render a source footer if inline markers are absent; grouped markers are
+normalized. Unknown, undeclared, ambiguous or absent source IDs still fail.
+No citation ID is invented, and this is presentation repair, not entailment proof.
+No additional model calls or retries are introduced. The failed job is not requeued;
+a new owner command is needed for live acceptance. Delivery remains disabled.

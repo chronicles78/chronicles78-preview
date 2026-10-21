@@ -201,3 +201,19 @@ This removes the previous 86,400 idle worker invocations per 30 days; database
 polling and incoming archive webhook usage remain. The one-minute response
 scheduling interval is unchanged. Reapply the prior unconditional Cron commands
 to roll back this optimization; do not reset job states or enable flags.
+
+## Faster polling — 2026-10-21
+
+Installed pg_cron 1.6.4 supports second-based intervals. Both queue schedules now
+run every 10 seconds instead of every minute, with the existing SQL eligibility
+gates and lease cleanup unchanged. Empty polling makes no Edge/OpenAI request.
+Each of the two queue waits is typically at most 10 seconds when not backlogged;
+model/network duration and backlog still affect end-to-end latency. Database
+checks happen six times as often; this does not make database work free.
+
+Added one daily ch78-max-log-retention job, deleting only completed Cron execution
+logs older than seven days for the two named queue schedules. Archive messages,
+job records/results and logs of unrelated schedules are not deleted. It runs at
+00:00 UTC. Seven PGlite tests passed, including retention scope and active/null-end
+log preservation. Native scheduling support was checked in Supabase docs:
+https://supabase.com/docs/guides/cron/quickstart

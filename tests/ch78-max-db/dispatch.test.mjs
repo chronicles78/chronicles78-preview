@@ -2,7 +2,7 @@ import {test,before,beforeEach,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-const db=new PGlite();let serial=0;const commands={};
+const db=new PGlite();let serial=0;const commands={};let retention;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
  for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql'])
@@ -15,6 +15,8 @@ before(async()=>{
  const script=await readFile(new URL('../../ops/ch78-max-refresh-dispatch.sql',import.meta.url),'utf8');
  for(const m of script.matchAll(/cron\.schedule\('ch78-max-(generate|send)'[\s\S]*?\$job\$([\s\S]*?)\$job\$\);/g))commands[m[1]]=m[2];
  assert.deepEqual(Object.keys(commands).sort(),['generate','send']);
+ retention=script.match(/\$retention\$([\s\S]*?)\$retention\$/)[1];
+ await db.exec('create schema cron;create table cron.job(jobid integer,jobname text);create table cron.job_run_details(jobid integer,end_time timestamptz);');
 });
 beforeEach(async()=>{await db.exec(`delete from net.calls;delete from ch78_max_jobs;delete from ch78_max_messages;
  update ch78_max_bot_config set generation_enabled=true,sending_enabled=true;`);});
@@ -45,3 +47,12 @@ test('active leases, failed and sent jobs do not wake workers',async()=>{
  assert.deepEqual(await tick(),[]);
 });
 test('another group cannot wake either worker',async()=>{await job('queued','-99');await job('ready','-99');assert.deepEqual(await tick(),[]);});
+test('retention removes only old completed logs of these two jobs',async()=>{
+ await db.exec(`insert into cron.job values(1,'ch78-max-generate'),(2,'ch78-max-send'),(3,'unrelated');
+ insert into cron.job_run_details values(1,clock_timestamp()-interval '8 days'),
+ (2,clock_timestamp()-interval '8 days'),(3,clock_timestamp()-interval '8 days'),
+ (1,clock_timestamp()-interval '1 day'),(2,null);`);
+ await db.exec(retention);
+ assert.deepEqual((await db.query('select jobid from cron.job_run_details order by jobid')).rows.map(r=>r.jobid),[1,2,3]);
+ assert.deepEqual(await tick(),[]);
+});

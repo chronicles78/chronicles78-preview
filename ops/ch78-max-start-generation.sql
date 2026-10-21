@@ -9,7 +9,7 @@ do $$ begin
 end $$;
 create extension if not exists pg_cron with schema pg_catalog;
 create extension if not exists pg_net with schema extensions;
-select cron.schedule('ch78-max-generate','* * * * *', $job$
+select cron.schedule('ch78-max-generate','10 seconds', $job$
  with expired as (
   update public.ch78_max_jobs set state='generation_unknown',error_code='lease_expired',
     lease=null,lease_until=null,updated_at=clock_timestamp()
@@ -26,4 +26,9 @@ select cron.schedule('ch78-max-generate','* * * * *', $job$
  $job$);
 update public.ch78_max_bot_config set commands_enabled=true,generation_enabled=true,
  sending_enabled=false,activated_at=clock_timestamp() where id;
+select cron.schedule('ch78-max-log-retention','0 0 * * *', $retention$
+ delete from cron.job_run_details
+ where jobid in (select jobid from cron.job where jobname in ('ch78-max-generate','ch78-max-send'))
+   and end_time < clock_timestamp()-interval '7 days';
+ $retention$);
 commit;

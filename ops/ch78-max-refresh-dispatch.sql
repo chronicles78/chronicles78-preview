@@ -1,7 +1,7 @@
 -- Update scheduling only; preserve activation, rate limits and all enable flags.
 -- Empty queues perform database maintenance only, without HTTP/model calls.
 begin;
-select cron.schedule('ch78-max-generate','* * * * *', $job$
+select cron.schedule('ch78-max-generate','10 seconds', $job$
  with expired as (
   update public.ch78_max_jobs set state='generation_unknown',error_code='lease_expired',
     lease=null,lease_until=null,updated_at=clock_timestamp()
@@ -16,7 +16,7 @@ select cron.schedule('ch78-max-generate','* * * * *', $job$
  where c.id and c.generation_enabled and exists(
   select 1 from public.ch78_max_jobs j where j.chat_id=c.chat_id and j.state='queued');
  $job$);
-select cron.schedule('ch78-max-send','* * * * *', $job$
+select cron.schedule('ch78-max-send','10 seconds', $job$
  with expired as (
   update public.ch78_max_jobs set state='delivery_unknown',error_code='lease_expired',
     lease=null,lease_until=null,updated_at=clock_timestamp()
@@ -31,4 +31,9 @@ select cron.schedule('ch78-max-send','* * * * *', $job$
  where c.id and c.sending_enabled and exists(
   select 1 from public.ch78_max_jobs j where j.chat_id=c.chat_id and j.state='ready');
  $job$);
+select cron.schedule('ch78-max-log-retention','0 0 * * *', $retention$
+ delete from cron.job_run_details
+ where jobid in (select jobid from cron.job where jobname in ('ch78-max-generate','ch78-max-send'))
+   and end_time < clock_timestamp()-interval '7 days';
+ $retention$);
 commit;

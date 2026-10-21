@@ -1,7 +1,7 @@
 -- Separate explicit owner approval required before applying: publishes responses
 -- to owner /ask and /find commands in the agreed MAX group.
 begin;
-select cron.schedule('ch78-max-send','* * * * *', $job$
+select cron.schedule('ch78-max-send','10 seconds', $job$
  with expired as (
   update public.ch78_max_jobs set state='delivery_unknown',error_code='lease_expired',
     lease=null,lease_until=null,updated_at=clock_timestamp()

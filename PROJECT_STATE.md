@@ -2526,3 +2526,17 @@ https://liveviewer.ru/2020/08/kraya-istorii-fotograficheskij-rezak-hh-veka/
   отправки ответов, вызовов модели или изменений frontend/story-assistant.
 - Локальные проверки: 9 handler + 5 PostgreSQL/PGlite, Deno type check.
   Проверки на живых MAX/Supabase и при выключенном Mac ещё предстоят.
+
+## 2026-10-21 — CH78-MAX-001 развёрнут, доставка MAX ещё не подключена
+
+- С явного разрешения владельца применена миграция ch78_max_ingest,
+  серверная версия истории 20261021170411. Новая таблица ch78_max_messages
+  закрыта для anon/authenticated, RLS и FORCE RLS включены.
+- ch78-max-webhook v1 ACTIVE, verify_jwt=false, исходник совпал с проверенным
+  commit 3f92273bf2ba07e40c3031fc0d8fdad4ca9abb40. Остальные функции не менялись.
+- На живой базе проверена дедупликация 20 вставок в транзакции с откатом;
+  тестовых сообщений не осталось. HTTP GET 405, POST 503 ingest_disabled.
+- Приём отключён: секрет, ID группы и флаг ещё не настроены. Подписки MAX нет.
+  Сквозная доставка и работа при выключенном Mac пока не подтверждены.
+- Следующий шаг — безопасно настроить Supabase Secrets, проверить endpoint,
+  затем отдельно согласовать подписку MAX. Детали: MAX_INGEST.md.

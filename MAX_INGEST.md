@@ -1,6 +1,6 @@
 # CH78-MAX-001 — server archive intake
 
-Status: implementation prepared for review, **not deployed and not subscribed to MAX**.
+Status (2026-10-21): migration applied and receiver deployed v1 with owner approval. **Intake disabled; MAX subscription not registered.**
 Target: existing Supabase `fnwpkmjjdhflnqghnogj` only. Base: `e999eb5af8117d2aa2e5eef52520680bb773b491`.
 
 ## Scope and acceptance
@@ -110,3 +110,29 @@ No UI changes; visual regression testing is not applicable to this stage.
 
 Database 15.19/17.11 breaking changes reviewed: this migration uses no ltree,
 pgcrypto, btree_gist or custom operators.
+
+## Deployment verification — 2026-10-21
+
+Owner approved application and deployment. Applied migration `ch78_max_ingest`
+under remote history version `20261021170411` (the repository filename was
+created earlier by the CLI; match by migration name and SQL, do not apply it twice).
+Function `ch78-max-webhook` v1 ACTIVE, `verify_jwt=false`, source matches tested commit
+`3f92273bf2ba07e40c3031fc0d8fdad4ca9abb40`. Existing functions were not redeployed.
+
+Live checks: RLS and FORCE RLS enabled, anon/authenticated cannot SELECT,
+service_role can INSERT and cannot UPDATE/DELETE. An asserted transaction with
+20 identical inserts produced exactly one row, then was rolled back; count is 0.
+HTTP GET → 405; POST → 503 `ingest_disabled`. No claim of end-to-end MAX delivery.
+
+Security advisor INFO `RLS Enabled No Policy` on this table is intentional:
+backend-only archive with explicit client privilege revocation. Do not add a
+permissive policy merely to clear the advisory. Reference:
+https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+Existing project warnings about SECURITY DEFINER functions and leaked-password
+protection were also reported; they concern other objects and were not changed.
+
+Pending: set `CH78_MAX_WEBHOOK_SECRET`, `CH78_MAX_CHAT_ID`, and enable flag using
+secure Supabase Secrets entry. Available connector does not expose a secret setter;
+no values were embedded in deployment source or requested in chat. Then verify
+wrong-secret rejection and authorized HTTP persistence before separately approved
+MAX subscription. No bot token is needed for this initial server setup.

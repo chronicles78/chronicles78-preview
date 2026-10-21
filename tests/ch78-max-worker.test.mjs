@@ -7,11 +7,11 @@ const job={id:'11111111-1111-1111-1111-111111111111',lease:'22222222-2222-2222-2
 const data={found:true,answer:'Подтверждено [S1]',citations:['S1'],sources:[{ref:'S1',message_ts:1000,author:'Тест',text:'Тестовый источник'}]};
 const response=x=>new Response(JSON.stringify(x),{headers:{'Content-Type':'application/json'}});
 function req(stage='generate',headers={}){return new Request('https://local.test',{method:'POST',headers:{'Content-Type':'application/json','X-CH78-Worker-Secret':secret,...headers},body:JSON.stringify({stage})});}
-function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,modelFailure=null,saveFailure=false,wrongBot=false}={}){
+function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,modelFailure=null,saveFailure=false,wrongBot=false,usage=null}={}){
  const calls=[];let done=false;
  return {calls,handler:createHandler({env:n=>({...config,...overrides})[n],assistantImpl:async r=>{
   calls.push({type:'model',body:await r.json()});if(modelFailure==='network')throw Error('PRIVATE');
-  return modelFailure?new Response(JSON.stringify({error:modelFailure,message:'PRIVATE'}),{status:503}):response(data);
+  return modelFailure?new Response(JSON.stringify({error:modelFailure,message:'PRIVATE',...(usage?{usage}:{})}),{status:503}):response({...data,...(usage?{usage}:{})});
  },fetchImpl:async(url,opts)=>{
   const body=opts.body?JSON.parse(opts.body):{};calls.push({type:'fetch',url,body,headers:opts.headers});
   if(url.endsWith('ch78_max_claim_job'))return response(empty||done?[]:[{...job,state:body.p_stage==='send'?'sending':'generating',...badJob}]);
@@ -98,4 +98,13 @@ test('cited source IDs are preserved and unresolved citations cannot be publishe
  const text=renderReply(result,'answer');assert.ok(text.includes('[S4]'));assert.ok(!text.includes('[S1]'));
  assert.throws(()=>renderReply({...result,citations:['S8']},'answer'));
  assert.throws(()=>renderReply({...result,citations:[]},'answer'));
+});
+
+test('usage is saved for ready and failed generations, without raw error details',async()=>{
+ const usage={version:1,requests:2,reported_requests:1,complete:false,total_tokens:null,reports:[{input_tokens:100,output_tokens:20,total_tokens:120}]};
+ for(const modelFailure of [null,'model_limit']){
+  const x=setup({usage,modelFailure});await x.handler(req());
+  const saved=x.calls.find(c=>c.body?.p_state===(modelFailure?'failed':'ready'));
+  assert.deepEqual(saved.body.p_result.usage,usage);assert.ok(!JSON.stringify(saved.body.p_result).includes('PRIVATE'));
+ }
 });

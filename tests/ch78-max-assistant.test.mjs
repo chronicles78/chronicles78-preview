@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery} from '../supabase/functions/ch78-max-assistant/handler.mjs';
+import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery,readTokenUsage} from '../supabase/functions/ch78-max-assistant/handler.mjs';
 const secret='s'.repeat(40),PROJECT_URL='https://fnwpkmjjdhflnqghnogj.supabase.co';
 const config={SUPABASE_URL:PROJECT_URL,SUPABASE_SERVICE_ROLE_KEY:'db-test-key',CH78_MAX_WEBHOOK_SECRET:secret,CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'model-test-key'};
 const row={message_id:'fiction-1',message_ts:1000,author:'Тестовый автор',content:'На школьной дискотеке танцевали под музыку.',score:0.1};
@@ -119,4 +119,45 @@ test('grouped markers normalize; unknown, ambiguous and undeclared IDs still fai
   assert.throws(()=>validateAnswer({found:true,answer,citations:['S1']},sources));
  }
  assert.throws(()=>validateAnswer({found:true,answer:'Факт',citations:[]},sources));
+});
+
+const tokenUsage={input_tokens:100,output_tokens:20,total_tokens:120,input_tokens_details:{cached_tokens:40},output_tokens_details:{reasoning_tokens:5}};
+test('token parser validates totals and treats absent details as unknown',()=>{
+ assert.deepEqual(readTokenUsage(tokenUsage),{input_tokens:100,output_tokens:20,total_tokens:120,cached_input_tokens:40,reasoning_tokens:5});
+ for(const bad of [null,{...tokenUsage,total_tokens:121},{...tokenUsage,input_tokens:-1}])assert.equal(readTokenUsage(bad),null);
+ assert.equal(readTokenUsage({...tokenUsage,input_tokens_details:{cached_tokens:500}}).cached_input_tokens,null);
+});
+test('ordinary search records zero model calls without unknown consumption',async()=>{
+ const {handler}=setup();const data=await (await handler(req())).json();
+ assert.equal(data.usage.requests,0);assert.equal(data.usage.complete,true);assert.equal(data.usage.total_tokens,0);
+});
+function usageSetup({missing=false,secondFailure=false,incomplete=false}={}){
+ let count=0;
+ const handler=createHandler({env:n=>config[n],fetchImpl:async(url,opts)=>{
+  if(url.startsWith(PROJECT_URL))return res([row]);count++;
+  if(count===2&&secondFailure)throw Error('PRIVATE key');
+  const payload=count===1?{queries:['дискотека']}:{found:true,answer:'Факт [S1]',citations:['S1']};
+  return res({status:count===2&&incomplete?'incomplete':'completed',model:'gpt-5-mini',...(missing?{}:{usage:tokenUsage}),output:[{content:[{type:'output_text',text:JSON.stringify(payload)}]}]});
+ }});
+ return {handler,count:()=>count};
+}
+test('two reported calls are summed once with cached/reasoning subsets separate',async()=>{
+ const x=usageSetup();const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
+ assert.equal(data.usage.requests,2);assert.equal(data.usage.reported_requests,2);assert.equal(data.usage.complete,true);
+ assert.equal(data.usage.input_tokens,200);assert.equal(data.usage.output_tokens,40);assert.equal(data.usage.total_tokens,240);
+ assert.equal(data.usage.cached_input_tokens,80);assert.equal(data.usage.reasoning_tokens,10);
+ assert.deepEqual(data.usage.reports.map(r=>r.phase),['archive_queries','archive_answer']);assert.equal(x.count(),2);
+});
+test('missing provider usage is unknown rather than falsely zero',async()=>{
+ const x=usageSetup({missing:true});const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
+ assert.equal(data.usage.requests,2);assert.equal(data.usage.reported_requests,0);assert.equal(data.usage.complete,false);assert.equal(data.usage.total_tokens,null);
+});
+test('network failure preserves known first-call usage without retrying',async()=>{
+ const x=usageSetup({secondFailure:true});const r=await x.handler(req({action:'answer',q:'дискотека'})),data=await r.json();
+ assert.equal(r.status,503);assert.equal(data.usage.requests,2);assert.equal(data.usage.reported_requests,1);assert.equal(data.usage.complete,false);
+ assert.equal(data.usage.total_tokens,null);assert.equal(data.usage.reports[0].total_tokens,120);assert.equal(x.count(),2);assert.ok(!JSON.stringify(data).includes('PRIVATE'));
+});
+test('incomplete final output still carries provider-reported usage',async()=>{
+ const x=usageSetup({incomplete:true});const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
+ assert.equal(data.error,'model_incomplete');assert.equal(data.usage.total_tokens,240);assert.equal(data.usage.complete,true);
 });

@@ -217,3 +217,29 @@ job records/results and logs of unrelated schedules are not deleted. It runs at
 00:00 UTC. Seven PGlite tests passed, including retention scope and active/null-end
 log preservation. Native scheduling support was checked in Supabase docs:
 https://supabase.com/docs/guides/cron/quickstart
+
+## Per-job observed token usage — 2026-10-21
+
+Worker generation now collects usage from the existing Responses calls, without
+extra model requests. Each persisted result carries versioned usage: attempted
+calls, reported calls, completeness, input/output/total tokens and reported cached
+input/reasoning subsets. Subsets are not added to total a second time. Unknown or
+invalid/missing usage is null/incomplete, not zero. Reported usage is collected
+before output/citation validation, so known usage survives failed final drafts.
+Worker stores safe error+usage for known failures and preserves successful usage
+through delivery. Lost processes/network bodies can still leave unobserved usage;
+this is not an authoritative billing ledger or a guarantee of complete accounting.
+
+Read-only ops/ch78-max-usage-report.sql groups jobs by creation day in Samara,
+reports known provider observations and separately counts legacy/untracked and
+incomplete jobs. It does not estimate money or replace the OpenAI Usage dashboard.
+Historical jobs cannot be reconstructed from their text; the live report currently
+shows two legacy jobs as untracked with null token totals, correctly not zero.
+Only future worker jobs gain stored metrics; standalone owner-client calls are
+outside this job report. Telemetry is not added to public MAX reply text.
+
+Tests cover zero-call search, sums, caching/reasoning subsets, missing/malformed
+usage, partial network failure, incomplete outputs, persistence on ready/failed,
+delivery preservation and read-only report semantics. Official usage behavior:
+https://developers.openai.com/api/docs/guides/token-counting
+https://developers.openai.com/api/docs/guides/reasoning

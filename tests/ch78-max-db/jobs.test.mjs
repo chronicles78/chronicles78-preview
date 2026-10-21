@@ -81,3 +81,29 @@ test('evidence search excludes bot replies and commands while preserving raw row
  const rows=await backend("select * from ch78_max_search('-78143291213122','Алла')");assert.equal(rows.length,1);assert.equal(rows[0].content,'Алла пела в хоре.');
  assert.equal((await db.query('select count(*) n from ch78_max_messages')).rows[0].n,3);
 });
+
+test('persisted usage survives delivery without being counted a second time',async()=>{
+ await enable();await insert();const generation=await claim();
+ const result={usage:{version:1,requests:2,complete:true,input_tokens:200,output_tokens:40,total_tokens:240}};
+ assert.equal(await finish(generation,'ready','Ответ',result),true);
+ await db.exec('update ch78_max_bot_config set sending_enabled=true');const send=await claim('send');
+ assert.equal(await finish(send,'sent',null,null,'mid.saved'),true);
+ assert.deepEqual((await jobs())[0].result,result);assert.equal(await claim('send'),undefined);
+});
+
+async function usageJob(result,action='answer'){
+ const id=await insert();await db.query("insert into ch78_max_jobs(chat_id,message_id,action,question,state,result) values('-78143291213122',$1,$2,'Вопрос','failed',$3)",[id,action,result]);
+}
+async function reportUsage(){return (await db.query(await readFile(new URL('../../ops/ch78-max-usage-report.sql',import.meta.url),'utf8'))).rows;}
+test('usage report exposes unknown legacy and incomplete observations separately',async()=>{
+ await usageJob(null);
+ await usageJob({usage:{version:1,requests:0,complete:true,reports:[]}},'search');
+ await usageJob({usage:{version:1,requests:2,complete:false,reports:[{input_tokens:100,output_tokens:20,total_tokens:120,cached_input_tokens:40,reasoning_tokens:5}]}});
+ const before=await jobs(),r=(await reportUsage())[0];
+ assert.equal(Number(r.jobs),3);assert.equal(Number(r.tracked_jobs),2);assert.equal(Number(r.untracked_jobs),1);assert.equal(Number(r.incomplete_jobs),1);
+ assert.equal(Number(r.tracked_model_attempts),2);assert.equal(Number(r.known_total_tokens),120);assert.deepEqual(await jobs(),before);
+});
+test('usage report returns known zero for search-only tracked work',async()=>{
+ await usageJob({usage:{version:1,requests:0,complete:true,reports:[]}},'search');
+ const r=(await reportUsage())[0];assert.equal(Number(r.known_total_tokens),0);assert.equal(Number(r.untracked_jobs),0);
+});

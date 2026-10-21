@@ -5,3 +5,8 @@ project_id = "fnwpkmjjdhflnqghnogj"
 # MAX supplies its own shared-secret header, not a Supabase user JWT.
 verify_jwt = false
 entrypoint = "./functions/ch78-max-webhook/index.ts"
+
+[functions.ch78-max-assistant]
+# Owner-only shared-secret endpoint, NOT a public archive API.
+verify_jwt = false
+entrypoint = "./functions/ch78-max-assistant/index.ts"

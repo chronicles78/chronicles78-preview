@@ -1,7 +1,6 @@
 # CH78-MAX-003 — подготовка ответов непосредственно в MAX
 
-Статус: реализовано и развёрнуто с выключенными командами, генерацией и отправкой.
-Расписание подготовлено в ops/, но не установлено. Базовый проект: fnwpkmjjdhflnqghnogj; GitHub хранит исходники,
+Статус: команды владельца, генерация и отправка активны. Оба расписания установлены. Базовый проект: fnwpkmjjdhflnqghnogj; GitHub хранит исходники,
 Supabase выполняет код и хранит архив, задания и подготовленные ответы.
 
 ## Первый рабочий сценарий
@@ -157,3 +156,16 @@ normalized. Unknown, undeclared, ambiguous or absent source IDs still fail.
 No citation ID is invented, and this is presentation repair, not entailment proof.
 No additional model calls or retries are introduced. The failed job is not requeued;
 a new owner command is needed for live acceptance. Delivery remains disabled.
+
+## Owner-approved live delivery — 2026-10-21
+
+After review of the prepared answer, owner explicitly approved publishing that
+answer and enabling replies to their /ask and /find commands in Редколлегия.
+Applied ops/ch78-max-enable-sending.sql; commands/generation/sending all true.
+Both named Cron jobs run every minute. The send worker confirmed the expected
+MAX bot identity and returned a real message mid, saved with job state sent and
+no error at 23:02:36 Samara. Actual end-to-end owner command delivery is verified.
+No automatic replay of the earlier failed generation was performed. Scope remains
+owner-only, with existing rate limits, no proactive publishing, notify=false.
+The sent bot message had not appeared in incoming archive at verification time;
+no job was created from it. Incoming self-echo delivery is therefore not proven.

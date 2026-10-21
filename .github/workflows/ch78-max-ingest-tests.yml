@@ -7,6 +7,7 @@ on:
       - 'supabase/config.toml'
       - 'tests/ch78-max*'
       - 'tests/ch78-max-db/**'
+      - 'tools/ask-keeper/**'
       - '.github/workflows/ch78-max-ingest-tests.yml'
   workflow_dispatch:
 permissions:
@@ -20,6 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: python3 -B -m unittest discover -s tools/ask-keeper -p 'test_client.py'
       - run: node --test tests/ch78-max-webhook.test.mjs tests/ch78-max-assistant.test.mjs
       - run: npm ci --ignore-scripts --prefix tests/ch78-max-db
       - run: npm test --prefix tests/ch78-max-db

@@ -155,3 +155,28 @@ Raw error messages, prompts, keys and upstream model identifiers are not returne
 error sanitization; five owner-client tests passed. AskKeeper 1.1 displays the
 safe diagnostics. Actual paid model request remains pending owner rerun.
 Intake, archive, migration and website function were not changed.
+
+## Live retrieval acceptance — 2026-10-21
+
+Owner supplied a successful answer-mode result after v2: OpenAI declined to infer
+school disco memories from a technical test and a book concept. This confirms
+one real model path and an appropriate no-evidence case, not overall quality.
+
+Read-only SQL acceptance on the current 396-record archive (370 nonempty): six
+checks found the expected source in the actual RPC top eight. Topics were karaoke
+booking, singing experience, food at a reunion, a corrected place description,
+an editorial story card and the reunion narrative. A deliberately unrelated
+query returned zero, as did a query for another group. anon/authenticated EXECUTE
+remains false, service_role true. No live archive text is committed here.
+
+Owner client is now version 1.2; source in tools/ask-keeper, nine offline tests
+and a CI step. Menu 3 runs five fixed real-archive questions without manual
+question selection, at most ten model calls, sequentially with no retry. Three
+positive cases check expected source text, found=true and reference consistency.
+Two negative cases expect found=false. Source-marker checks do not prove factual
+entailment or exhaustive recall. A network/provider error stops the batch; a
+missing lexical control skips its paid answer call. The batch has not yet run
+against live OpenAI from this session: owner authentication is held locally.
+
+MAX delivery preparation is specified in MAX_DELIVERY.md. No MAX sending, cron,
+queue schema, server-secret change or further deployment was performed here.

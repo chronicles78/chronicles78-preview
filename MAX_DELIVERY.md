@@ -169,3 +169,15 @@ No automatic replay of the earlier failed generation was performed. Scope remain
 owner-only, with existing rate limits, no proactive publishing, notify=false.
 The sent bot message had not appeared in incoming archive at verification time;
 no job was created from it. Incoming self-echo delivery is therefore not proven.
+
+## Published evidence-list correction — 2026-10-21
+
+Owner identified an unrelated S4 excerpt beneath the singing-experience answer.
+Persisted result confirmed citations=[S1]; renderReply incorrectly listed all
+retrieval candidates as evidence. Answer-mode output now lists only cited source
+IDs, preserving their original labels; absent/unresolved citations fail closed.
+Search mode still lists lexical matches. No-evidence responses show no excerpts.
+13 worker tests and Deno check passed, including unrelated-candidate exclusion,
+nonconsecutive labels and unknown/missing citation rejection. This fixes display,
+not semantic entailment or retrieval recall. Previously sent messages are not
+automatically edited/replayed; no paid model request is introduced by the fix.

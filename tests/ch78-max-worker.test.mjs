@@ -83,3 +83,19 @@ test('token of a different bot cannot send a message',async()=>{
  const x=setup({wrongBot:true});const r=await x.handler(req('send'));assert.equal((await r.json()).state,'failed');
  assert.ok(!x.calls.some(c=>c.url?.includes('/messages?')));assert.equal(x.calls.find(c=>c.body?.p_state==='failed').body.p_error,'max_identity');
 });
+
+test('answer displays only cited sources, excluding unrelated search candidates',()=>{
+ const extra={ref:'S4',message_ts:2000,author:'Другой автор',text:'Постороннее обсуждение сайта'};
+ const result={...data,sources:[...data.sources,extra]};
+ const text=renderReply(result,'answer');
+ assert.ok(text.includes('[S1]'));assert.ok(text.includes('Тестовый источник'));
+ assert.ok(!text.includes('[S4]'));assert.ok(!text.includes(extra.text));
+ const search=renderReply(result,'search');assert.ok(search.includes('[S4]'));assert.ok(search.includes(extra.text));
+});
+test('cited source IDs are preserved and unresolved citations cannot be published',()=>{
+ const fourth={ref:'S4',message_ts:2000,author:'Тест',text:'Подтверждение'};
+ const result={...data,answer:'Факт [S4]',citations:['S4'],sources:[data.sources[0],fourth]};
+ const text=renderReply(result,'answer');assert.ok(text.includes('[S4]'));assert.ok(!text.includes('[S1]'));
+ assert.throws(()=>renderReply({...result,citations:['S8']},'answer'));
+ assert.throws(()=>renderReply({...result,citations:[]},'answer'));
+});

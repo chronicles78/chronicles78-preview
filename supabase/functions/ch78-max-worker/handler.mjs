@@ -9,13 +9,19 @@ const cut=(x,n)=>{const chars=Array.from(clean(x));return chars.length<=n?chars.
 export function renderReply(data,action){
  if(!data||!Array.isArray(data.sources)||data.sources.length>8)throw Error('invalid_result');
  const lines=[action==='answer'?'Хранитель · ответ по архиву':'Хранитель · найденные сообщения'];
+ let visibleSources=data.sources;
  if(action==='answer'){
   if(typeof data.answer!=='string'||typeof data.found!=='boolean')throw Error('invalid_result');
+  if(data.found){
+   if(!Array.isArray(data.citations)||!data.citations.length||data.citations.some(ref=>
+    typeof ref!=='string'||!/^S[1-8]$/.test(ref)||!data.sources.some(s=>s.ref===ref)))throw Error('invalid_citation');
+   visibleSources=data.sources.filter(s=>data.citations.includes(s.ref));
+  }
   lines.push(cut(data.answer,2000));
  }
  // No-evidence responses do not publish a pile of unrelated excerpts.
  if(action==='search'||data.found){
-  for(const source of data.sources){
+  for(const source of visibleSources){
    if(!/^S[1-8]$/.test(source.ref)||typeof source.text!=='string'||!Number.isSafeInteger(source.message_ts))throw Error('invalid_source');
    const date=new Date(source.message_ts).toLocaleString('ru-RU',{timeZone:'Europe/Samara'});
    lines.push('['+source.ref+'] '+date+' · '+cut(source.author,60)+'\n'+cut(source.text,action==='search'?300:100));

@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '24'
       - run: python3 -B -m unittest discover -s tools/ask-keeper -p 'test_client.py'
-      - run: node --test tests/ch78-max-webhook.test.mjs tests/ch78-max-assistant.test.mjs
+      - run: node --test tests/ch78-max-webhook.test.mjs tests/ch78-max-assistant.test.mjs tests/ch78-max-worker.test.mjs
       - run: npm ci --ignore-scripts --prefix tests/ch78-max-db
       - run: npm test --prefix tests/ch78-max-db
-      - run: npm exec --yes --package=deno@2.5.4 -- deno check supabase/functions/ch78-max-webhook/index.ts supabase/functions/ch78-max-assistant/index.ts
+      - run: npm exec --yes --package=deno@2.5.4 -- deno check supabase/functions/ch78-max-webhook/index.ts supabase/functions/ch78-max-assistant/index.ts supabase/functions/ch78-max-worker/index.ts

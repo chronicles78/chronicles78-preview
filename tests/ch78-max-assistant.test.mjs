@@ -64,3 +64,18 @@ test('request and source budgets are enforced',async()=>{
  const h=setup({rows:items}).handler;const result=await (await h(req())).json();
  assert.ok(result.sources.reduce((n,s)=>n+s.text.length,0)<=20000);assert.ok(result.sources.every(s=>s.truncated));
 });
+
+test('configured models retain their name without an incompatible forced reasoning option',async()=>{
+ const {handler,calls}=setup({overrides:{STORY_ASSISTANT_MODEL:'gpt-4.1-mini'}});
+ assert.equal((await handler(req({action:'answer',q:'танцы'}))).status,200);
+ for(const call of calls.filter(c=>c.url.includes('openai.com'))){assert.equal(call.body.model,'gpt-4.1-mini');assert.equal(call.body.reasoning,undefined);}
+});
+test('model HTTP failures carry only allowlisted diagnostics, never raw provider details',async()=>{
+ for(const [status,expected] of [[400,'model_parameters'],[401,'model_key_rejected'],[403,'model_access_denied'],[404,'model_not_found'],[429,'model_limit'],[500,'model_unavailable']]){
+  const handler=createHandler({env:n=>config[n],fetchImpl:async()=>new Response(JSON.stringify({error:{message:'PRIVATE model-test-key',code:'unsupported_parameter',param:'reasoning.effort'}}),{status})});
+  const r=await handler(req({action:'answer',q:'танцы'})),result=await r.json();
+  assert.equal(result.error,expected);assert.deepEqual(result.diagnostic,{http_status:status,code:'unsupported_parameter',param:'reasoning.effort'});assert.ok(!JSON.stringify(result).includes('PRIVATE'));
+ }
+ const handler=createHandler({env:n=>config[n],fetchImpl:async()=>new Response(JSON.stringify({error:{code:'PRIVATE',param:'PRIVATE'}}),{status:400})});
+ const result=await (await handler(req({action:'answer',q:'танцы'}))).json();assert.equal(result.diagnostic.code,'other');assert.equal(result.diagnostic.param,'other');
+});

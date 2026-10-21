@@ -139,3 +139,19 @@ call was performed in this deployment.
 An owner-side AskKeeper helper was prepared with 4 additional synthetic tests.
 Its initial checks call search only. Model usage requires choosing menu option 2;
 no automatic retry or publication in MAX. It does not read the Mac archive.
+
+## OpenAI failure follow-up — 2026-10-21
+
+Owner confirmed authenticated HTTP search; answer mode returned the former generic
+model_unavailable error. Its actual upstream status was discarded, so the cause
+is not established. Assistant v2 is now ACTIVE: preserves STORY_ASSISTANT_MODEL,
+sets reasoning.effort=minimal only for the default gpt-5-mini, and leaves effort
+to other configured models. No automatic retry or model substitution is added.
+HTTP 400/401/403/404/429 failures have distinct codes; only allowlisted provider
+code/parameter plus numeric status may reach the authenticated owner client.
+Raw error messages, prompts, keys and upstream model identifiers are not returned.
+
+21 Node tests and Deno check passed, including model option compatibility and
+error sanitization; five owner-client tests passed. AskKeeper 1.1 displays the
+safe diagnostics. Actual paid model request remains pending owner rerun.
+Intake, archive, migration and website function were not changed.

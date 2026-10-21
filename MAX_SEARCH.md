@@ -1,6 +1,6 @@
 # CH78-MAX-002 — server retrieval and source-grounded drafts
 
-Status: code and migration prepared; **not applied or deployed**.
+Status (2026-10-21): migration applied and ch78-max-assistant v1 deployed with owner approval. Search verified in live database; owner-authenticated HTTP/model acceptance pending.
 Stacked on CH78-MAX-001 branch commit `1550a401c2c41eba680d7dc78f6f02f5f89227d4`.
 The intake is already active in Supabase. This stage does not alter it.
 
@@ -119,3 +119,23 @@ outputs documentation were checked before implementation:
 
 - https://supabase.com/docs/guides/database/full-text-search
 - https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses
+
+## Deployment verification — 2026-10-21
+
+Migration ch78_max_search applied as remote history version 20261021175728.
+ch78-max-assistant v1 ACTIVE, verify_jwt=false, deployed source matches tested
+commit 86836bac23a19c28e1a5d51e8bc5daa5afd32d3e. No intake or website redeploy.
+The intake was already v3 and story-assistant v14 at preflight; do not restore
+older versions from historical notes.
+
+Live SQL: 396 archive messages, 2 results for дискотека, 1 literal control match,
+0 results for a deliberately unrelated query. anon/authenticated cannot execute
+RPC; service_role can. SECURITY DEFINER is false. No new advisor finding on the
+search RPC. HTTP without/with wrong shared secret returns 403. Valid-secret HTTP
+and actual OpenAI processing require the owner-side client because the connector
+cannot use hidden function environment secrets for requests. No real API model
+call was performed in this deployment.
+
+An owner-side AskKeeper helper was prepared with 4 additional synthetic tests.
+Its initial checks call search only. Model usage requires choosing menu option 2;
+no automatic retry or publication in MAX. It does not read the Mac archive.

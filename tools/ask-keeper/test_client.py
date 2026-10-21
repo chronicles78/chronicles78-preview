@@ -71,4 +71,3 @@ class Tests(unittest.TestCase):
         self.assertTrue(c.assess({'found':True,'sources':[],'answer':'Текст [S99]','citations':['S99']},('контроль',),True))
         self.assertTrue(c.assess({'found':True,'sources':[],'answer':'Выдумка','citations':[]},(),False))
 if __name__=='__main__':unittest.main()
-

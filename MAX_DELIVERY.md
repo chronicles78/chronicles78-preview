@@ -181,3 +181,23 @@ Search mode still lists lexical matches. No-evidence responses show no excerpts.
 nonconsecutive labels and unknown/missing citation rejection. This fixes display,
 not semantic entailment or retrieval recall. Previously sent messages are not
 automatically edited/replayed; no paid model request is introduced by the fix.
+
+## Empty-queue dispatch optimization — 2026-10-21
+
+Both Cron commands now gate worker HTTP requests on matching queued/ready jobs
+and their stage flag. Empty queues cause database checks/maintenance only; no
+worker invocation or model request. Expired generating/sending leases are parked
+as unknown in SQL even with no new work, preserving recovery without replay.
+
+Applied ops/ch78-max-refresh-dispatch.sql; enable flags and activation timestamp
+are preserved. Bootstrap scripts use the same conditions. Six PGlite tests run
+the actual scheduled SQL against a mock pg_net sink: empty, eligible, disabled,
+expired, already active/terminal and another-group cases. Live Cron at 23:17
+Samara succeeded for both stages with 0 rows and no new HTTP responses. Positive
+dispatch was verified in a rolled-back live transaction; pg_net sends only after
+commit, so no test HTTP/model/MAX message occurred. No residual fixture remains.
+
+This removes the previous 86,400 idle worker invocations per 30 days; database
+polling and incoming archive webhook usage remain. The one-minute response
+scheduling interval is unchanged. Reapply the prior unconditional Cron commands
+to roll back this optimization; do not reset job states or enable flags.

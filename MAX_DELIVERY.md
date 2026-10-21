@@ -136,3 +136,13 @@ ops/ch78-max-enable-sending.sql. Первая генерация может жд
 в ch78_max_bot_config, удалить только ch78-max-generate/ch78-max-send из Cron.
 Уже начавшийся внешний HTTP-запрос отменить этим флагом невозможно. Не удалять
 архив, задания и результаты.
+
+## Generation-only activation — 2026-10-21
+
+Owner completed secret setup. Vault existence/format check passed without exposing
+values. Added pg_cron/pg_net support migration 20261021185435; activated only
+ch78-max-generate, once per minute. Commands/generation enabled at 18:54:59 UTC;
+sending disabled and no send schedule. Authenticated server-to-worker invocation
+returned HTTP 200 idle=true. This verifies worker/Vault authentication and idle
+execution, not model processing or MAX token validity. Awaiting a real owner
+command and review of its persisted result before enabling delivery.

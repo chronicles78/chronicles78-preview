@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createHandler,validateAnswer,validatedQueries,outputJSON} from '../supabase/functions/ch78-max-assistant/handler.mjs';
+import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery} from '../supabase/functions/ch78-max-assistant/handler.mjs';
 const secret='s'.repeat(40),PROJECT_URL='https://fnwpkmjjdhflnqghnogj.supabase.co';
 const config={SUPABASE_URL:PROJECT_URL,SUPABASE_SERVICE_ROLE_KEY:'db-test-key',CH78_MAX_WEBHOOK_SECRET:secret,CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'model-test-key'};
 const row={message_id:'fiction-1',message_ts:1000,author:'Тестовый автор',content:'На школьной дискотеке танцевали под музыку.',score:0.1};
@@ -78,4 +78,32 @@ test('model HTTP failures carry only allowlisted diagnostics, never raw provider
  }
  const handler=createHandler({env:n=>config[n],fetchImpl:async()=>new Response(JSON.stringify({error:{code:'PRIVATE',param:'PRIVATE'}}),{status:400})});
  const result=await (await handler(req({action:'answer',q:'танцы'}))).json();assert.equal(result.diagnostic.code,'other');assert.equal(result.diagnostic.param,'other');
+});
+
+test('original question retrieval survives over-specific zero-hit plans',async()=>{
+ const calls=[];
+ const handler=createHandler({env:n=>config[n],fetchImpl:async(url,opts)=>{
+  const body=JSON.parse(opts.body);calls.push({url,body});
+  if(url.startsWith(PROJECT_URL))return res(body.p_query===questionQuery('Какой певческий опыт был у Аллы?')?[row]:[]);
+  return body.text.format.name==='archive_queries'?model({queries:['редкое сочетание отсутствующее']}):model({found:true,answer:'В источнике есть ответ [S1].',citations:['S1']});
+ }});
+ const result=await (await handler(req({action:'answer',q:'Какой певческий опыт был у Аллы?',mode:'literal'}))).json();
+ assert.equal(result.found,true);assert.equal(result.sources[0].message_id,row.message_id);
+ assert.ok(calls.filter(c=>c.url.startsWith(PROJECT_URL)).every(c=>c.body.p_mode==='forms'));
+});
+test('quoted names and punctuated planner keywords are safe OR terms',()=>{
+ assert.deepEqual(validatedQueries({queries:['«Танин Шанхай»','Алла, хоровой ансамбль']}),['"Танин" OR "Шанхай"','"Алла" OR "хоровой" OR "ансамбль"']);
+ assert.ok(questionQuery('слово '.repeat(150)).length<=300);
+ assert.ok(!questionQuery('" OR; DROP TABLE').includes(';'));
+});
+test('invalid or incomplete planning falls back once without a paid planner retry',async()=>{
+ for(const bad of [{status:'completed',output:[{content:[{type:'output_text',text:'not JSON'}]}]},{status:'completed',output:[{content:[{type:'output_text',text:'{"queries":[]}'}]}]},{status:'incomplete',output:[]}]){
+  let count=0,searchCount=0;
+  const handler=createHandler({env:n=>config[n],fetchImpl:async(url)=>{
+   if(url.startsWith(PROJECT_URL)){searchCount++;return res([row])}
+   count++;return count===1?res(bad):model({found:true,answer:'Ответ [S1]',citations:['S1']});
+  }});
+  const result=await (await handler(req({action:'answer',q:'Алла'}))).json();
+  assert.equal(result.found,true);assert.equal(count,2);assert.equal(searchCount,1);
+ }
 });

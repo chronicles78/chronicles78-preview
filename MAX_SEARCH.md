@@ -180,3 +180,28 @@ against live OpenAI from this session: owner authentication is held locally.
 
 MAX delivery preparation is specified in MAX_DELIVERY.md. No MAX sending, cron,
 queue schema, server-secret change or further deployment was performed here.
+
+## Retrieval recall fix — 2026-10-21
+
+Owner batch: booking passed; singing-experience answer lost the known source;
+place-correction question stopped with model_invalid. The old error did not
+identify the stage, so its exact cause cannot be proven retroactively. Code
+inspection found two concrete weaknesses: planner-only retrieval and rejection
+of ordinary punctuation in generated keywords.
+
+The answer path now always includes a safe OR query of original-question lexical
+tokens. Planner keywords also become quoted OR terms; ordinary punctuation is
+normalized, not interpreted as search operators. Up to three planned queries
+plus one original-question query; deduplication, source limits, scope and citation
+validation remain. Answer retrieval always uses forms mode; explicit literal
+search retains its prior semantics. A malformed/incomplete planner response can
+fall back to original-question retrieval without another planner call. Provider
+HTTP errors/refusals still stop processing. Malformed final answers are not shown.
+
+15 assistant tests and Deno check passed, including zero-hit plans, quoted names,
+original-question recovery and no planner retry. Live SQL for the original
+questions returned the expected singing and place-correction sources in top 8.
+This does not prove all relevant messages survive combined ranking. Budget now:
+5s input + 45s planner + 4x8s searches + 45s draft (127s); client timeout 140s.
+At most two model calls, no automatic retries. Owner can rerun menu 3 using the
+existing AskKeeper 1.2. Real model batch acceptance remains pending.

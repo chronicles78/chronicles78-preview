@@ -1,14 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery} from '../supabase/functions/ch78-max-assistant/handler.mjs';
+import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery,readTokenUsage,samaraDate} from '../supabase/functions/ch78-max-assistant/handler.mjs';
 const secret='s'.repeat(40),PROJECT_URL='https://fnwpkmjjdhflnqghnogj.supabase.co';
 const config={SUPABASE_URL:PROJECT_URL,SUPABASE_SERVICE_ROLE_KEY:'db-test-key',CH78_MAX_WEBHOOK_SECRET:secret,CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'model-test-key'};
 const row={message_id:'fiction-1',message_ts:1000,author:'Тестовый автор',content:'На школьной дискотеке танцевали под музыку.',score:0.1};
 const res=data=>new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
 const model=data=>res({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(data)}]}]});
-function setup({rows=[row],plan={queries:['дискотека','танцы']},draft={found:true,answer:'Вспоминали танцы на школьной дискотеке [S1].',citations:['S1']},overrides={},failure=null}={}){
+function setup({rows=[row],plan={queries:['дискотека','танцы']},draft={found:true,answer:'Вспоминали танцы на школьной дискотеке [S1].',citations:['S1']},overrides={},failure=null,now=()=>Date.now()}={}){
  const calls=[];let modelCalls=0;
- return {calls,handler:createHandler({env:n=>({...config,...overrides})[n],fetchImpl:async(url,opts)=>{
+ return {calls,handler:createHandler({env:n=>({...config,...overrides})[n],now,fetchImpl:async(url,opts)=>{
    calls.push({url,body:JSON.parse(opts.body),headers:opts.headers});
    if(failure)return new Response('PRIVATE_ERROR_DETAIL',{status:failure});
    if(url.startsWith(PROJECT_URL))return res(rows);
@@ -47,7 +47,7 @@ test('model can reject irrelevant/test-only sources without invented response',a
  const result=await (await handler(req({action:'answer',q:'танцы'}))).json();assert.equal(result.found,false);assert.ok(!result.answer.includes('Fabricated'));
 });
 test('citation validator rejects nonexistent, missing and mismatched inline references',()=>{
- for(const draft of [{found:true,answer:'Текст [S99]',citations:['S1']},{found:true,answer:'Текст',citations:['S1']},{found:true,answer:'Текст [S1]',citations:[]},{found:true,answer:'Текст [S1]',citations:['S99']}])assert.throws(()=>validateAnswer(draft,[{ref:'S1'}]));
+ for(const draft of [{found:true,answer:'Текст [S99]',citations:['S1']},{found:true,answer:'Текст [S1]',citations:[]},{found:true,answer:'Текст [S1]',citations:['S99']}])assert.throws(()=>validateAnswer(draft,[{ref:'S1'}]));
 });
 test('malformed plan, incomplete model output and refusals are not treated as answers',()=>{
  for(const plan of [{queries:[]},{queries:['good; DROP TABLE']},{queries:['a','b','c','d']}])assert.throws(()=>validatedQueries(plan));
@@ -59,7 +59,7 @@ test('upstream errors are sanitized; missing key does not trigger a model call',
  const {handler,calls}=setup({overrides:{OPENAI_API_KEY:''}});assert.equal((await handler(req({action:'answer',q:'танцы'}))).status,503);assert.equal(calls.length,0);
 });
 test('request and source budgets are enforced',async()=>{
- const {handler}=setup();assert.equal((await handler(req({action:'search',q:'x'.repeat(9000)}))).status,413);
+ const {handler}=setup();assert.equal((await handler(req({action:'search',q:'x'.repeat(40000)}))).status,413);
  const items=Array.from({length:8},(_,i)=>({...row,message_id:String(i),content:'a'.repeat(12000)}));
  const h=setup({rows:items}).handler;const result=await (await h(req())).json();
  assert.ok(result.sources.reduce((n,s)=>n+s.text.length,0)<=20000);assert.ok(result.sources.every(s=>s.truncated));
@@ -105,5 +105,120 @@ test('invalid or incomplete planning falls back once without a paid planner retr
   }});
   const result=await (await handler(req({action:'answer',q:'Алла'}))).json();
   assert.equal(result.found,true);assert.equal(count,2);assert.equal(searchCount,1);
+ }
+});
+
+test('known model-declared citations are rendered when inline markers are absent',()=>{
+ const result=validateAnswer({found:true,answer:'Факт из архива.',citations:['S1']},[{ref:'S1'}]);
+ assert.equal(result.answer,'Факт из архива.\n\nИсточники: [S1]');assert.deepEqual(result.citations,['S1']);
+});
+test('grouped markers normalize; unknown, ambiguous and undeclared IDs still fail',()=>{
+ const sources=[{ref:'S1'},{ref:'S2'}];
+ assert.equal(validateAnswer({found:true,answer:'Факт [S1, S2]',citations:['S1','S2']},sources).answer,'Факт [S1] [S2]');
+ for(const answer of ['Факт [S1, S99]','Факт [S1–S2]','Факт [S2]']){
+  assert.throws(()=>validateAnswer({found:true,answer,citations:['S1']},sources));
+ }
+ assert.throws(()=>validateAnswer({found:true,answer:'Факт',citations:[]},sources));
+});
+
+const tokenUsage={input_tokens:100,output_tokens:20,total_tokens:120,input_tokens_details:{cached_tokens:40},output_tokens_details:{reasoning_tokens:5}};
+test('token parser validates totals and treats absent details as unknown',()=>{
+ assert.deepEqual(readTokenUsage(tokenUsage),{input_tokens:100,output_tokens:20,total_tokens:120,cached_input_tokens:40,reasoning_tokens:5});
+ for(const bad of [null,{...tokenUsage,total_tokens:121},{...tokenUsage,input_tokens:-1}])assert.equal(readTokenUsage(bad),null);
+ assert.equal(readTokenUsage({...tokenUsage,input_tokens_details:{cached_tokens:500}}).cached_input_tokens,null);
+});
+test('ordinary search records zero model calls without unknown consumption',async()=>{
+ const {handler}=setup();const data=await (await handler(req())).json();
+ assert.equal(data.usage.requests,0);assert.equal(data.usage.complete,true);assert.equal(data.usage.total_tokens,0);
+});
+function usageSetup({missing=false,secondFailure=false,incomplete=false}={}){
+ let count=0;
+ const handler=createHandler({env:n=>config[n],fetchImpl:async(url,opts)=>{
+  if(url.startsWith(PROJECT_URL))return res([row]);count++;
+  if(count===2&&secondFailure)throw Error('PRIVATE key');
+  const payload=count===1?{queries:['дискотека']}:{found:true,answer:'Факт [S1]',citations:['S1']};
+  return res({status:count===2&&incomplete?'incomplete':'completed',model:'gpt-5-mini',...(missing?{}:{usage:tokenUsage}),output:[{content:[{type:'output_text',text:JSON.stringify(payload)}]}]});
+ }});
+ return {handler,count:()=>count};
+}
+test('two reported calls are summed once with cached/reasoning subsets separate',async()=>{
+ const x=usageSetup();const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
+ assert.equal(data.usage.requests,2);assert.equal(data.usage.reported_requests,2);assert.equal(data.usage.complete,true);
+ assert.equal(data.usage.input_tokens,200);assert.equal(data.usage.output_tokens,40);assert.equal(data.usage.total_tokens,240);
+ assert.equal(data.usage.cached_input_tokens,80);assert.equal(data.usage.reasoning_tokens,10);
+ assert.deepEqual(data.usage.reports.map(r=>r.phase),['archive_queries','archive_answer']);assert.equal(x.count(),2);
+});
+test('missing provider usage is unknown rather than falsely zero',async()=>{
+ const x=usageSetup({missing:true});const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
+ assert.equal(data.usage.requests,2);assert.equal(data.usage.reported_requests,0);assert.equal(data.usage.complete,false);assert.equal(data.usage.total_tokens,null);
+});
+test('network failure preserves known first-call usage without retrying',async()=>{
+ const x=usageSetup({secondFailure:true});const r=await x.handler(req({action:'answer',q:'дискотека'})),data=await r.json();
+ assert.equal(r.status,503);assert.equal(data.usage.requests,2);assert.equal(data.usage.reported_requests,1);assert.equal(data.usage.complete,false);
+ assert.equal(data.usage.total_tokens,null);assert.equal(data.usage.reports[0].total_tokens,120);assert.equal(x.count(),2);assert.ok(!JSON.stringify(data).includes('PRIVATE'));
+});
+test('incomplete final output still carries provider-reported usage',async()=>{
+ const x=usageSetup({incomplete:true});const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
+ assert.equal(data.error,'model_incomplete');assert.equal(data.usage.total_tokens,240);assert.equal(data.usage.complete,true);
+});
+
+
+test('Samara source dates cross UTC midnight correctly and reject invalid timestamps',()=>{
+ assert.equal(samaraDate(Date.parse('2026-09-08T21:30:00Z')),'2026-09-09 01:30');
+ assert.equal(samaraDate(Date.parse('2026-09-08T20:00:00Z')),'2026-09-09 00:00');
+ assert.throws(()=>samaraDate(9000000000000000));
+});
+test('both model phases get the same trusted question date, not a body override',async()=>{
+ const fixed=Date.parse('2026-10-23T21:10:00Z');
+ const x=setup({now:()=>fixed,rows:[{...row,message_ts:Date.parse('2026-09-08T21:30:00Z')}]});
+ const r=await x.handler(req({action:'answer',q:'Когда мы встречались этой осенью?',time_context:{question_date:'1999-01-01'}}));
+ assert.equal(r.status,200);
+ const calls=x.calls.filter(c=>c.url.includes('openai.com'));assert.equal(calls.length,2);
+ for(const c of calls){const input=JSON.parse(c.body.input);assert.deepEqual(input.time_context,{question_date:'2026-10-24',time_zone:'Europe/Samara'});}
+ const input=JSON.parse(calls[1].body.input);assert.equal(input.sources[0].posted_at,'2026-09-09 01:30');
+ assert.equal(input.sources[0].message_ts,Date.parse('2026-09-08T21:30:00Z'));
+ assert.ok(calls[1].body.instructions.includes('дата публикации, не дата описанного события'));
+ assert.ok(calls[1].body.instructions.includes('бронирование'));
+ assert.ok(!calls[0].body.instructions.includes('Алла'));
+});
+test('invalid archive dates cannot reach the answer generator',async()=>{
+ const x=setup({rows:[{...row,message_ts:9000000000000000}]});
+ const r=await x.handler(req({action:'answer',q:'Когда встречались?'}));assert.equal(r.status,503);
+ assert.equal((await r.json()).error,'archive_invalid');assert.equal(x.calls.filter(c=>c.url.includes('openai.com')).length,1);
+});
+test('ordinary search adds readable publication dates without model calls',async()=>{
+ const x=setup();const r=await (await x.handler(req())).json();assert.equal(r.sources[0].posted_at,samaraDate(row.message_ts));
+ assert.equal(r.sources[0].time_zone,'Europe/Samara');assert.equal(r.usage.requests,0);
+});
+
+const post={message_id:'new-post',message_ts:Date.parse('2026-10-23T10:00:00Z'),content:'Помню школьный двор и нашу встречу у Волги.'};
+function reactionBody(extra={}){return {action:'reaction',q:'школьный двор',post,context:[{message_ts:post.message_ts-1000,content:'А где встречались?'}],...extra};}
+test('reaction uses one decision-and-draft call with post, prior context and dated archive',async()=>{
+ const x=setup({plan:{found:true,answer:'А где именно в школьном дворе вы собирались?',citations:[]}});
+ const r=await x.handler(req(reactionBody()));assert.equal(r.status,200);const data=await r.json();assert.equal(data.found,true);assert.equal(data.mode,'reaction');
+ const calls=x.calls.filter(c=>c.url.includes('openai.com'));assert.equal(calls.length,1);
+ const input=JSON.parse(calls[0].body.input);assert.equal(input.new_post.text,post.content);assert.equal(input.conversation_context[0].text,'А где встречались?');
+ assert.equal(input.archive_sources[0].message_id,row.message_id);assert.equal(data.usage.requests,1);
+});
+test('model silence returns no text and no candidate excerpts',async()=>{
+ const x=setup({plan:{found:false,answer:'Не публиковать',citations:[]}});
+ const r=await (await x.handler(req(reactionBody()))).json();assert.equal(r.found,false);assert.equal(r.answer,'');assert.deepEqual(r.sources,[]);
+});
+test('reaction rejects unknown citations and excessive or malformed drafts without retries',async()=>{
+ for(const plan of [{found:true,answer:'Факт [S99]',citations:['S99']},{found:true,answer:'Факт [S1]',citations:[]},{found:true,answer:'а'.repeat(601),citations:[]}]){
+  const x=setup({plan});const r=await x.handler(req(reactionBody()));assert.equal(r.status,502);assert.equal(x.calls.filter(c=>c.url.includes('openai.com')).length,1);
+ }
+});
+test('reaction context bounds fail before data/model calls; current post is not retrieved as old evidence',async()=>{
+ const x=setup();assert.equal((await x.handler(req(reactionBody({context:[{content:'а'.repeat(501),message_ts:1}]})))).status,400);assert.equal(x.calls.length,0);
+ const y=setup({rows:[{...row,message_id:post.message_id}],plan:{found:true,answer:'А кто ещё помнит эту встречу?',citations:[]}});
+ const r=await y.handler(req(reactionBody()));assert.equal(r.status,200);assert.deepEqual(JSON.parse(y.calls.find(c=>c.url.includes('openai.com')).body.input).archive_sources,[]);
+});
+
+test('reactive archive claims require valid citations; an uncited response must be one question',async()=>{
+ const valid=setup({plan:{found:true,answer:'В архиве есть воспоминание о школьной дискотеке [S1]. А вы помните музыку?',citations:['S1']}});
+ assert.equal((await valid.handler(req(reactionBody()))).status,200);
+ for(const answer of ['Нужно помнить нашу школу.','Факт [S1, S2]?','Кто пришёл? Где были?']){
+  const x=setup({plan:{found:true,answer,citations:[]}});assert.equal((await x.handler(req(reactionBody()))).status,502);
  }
 });

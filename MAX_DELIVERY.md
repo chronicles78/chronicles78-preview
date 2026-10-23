@@ -1,7 +1,6 @@
 # CH78-MAX-003 — подготовка ответов непосредственно в MAX
 
-Статус: технический план следующего этапа. Код отправки, миграция и расписание
-ещё не реализованы. Базовый проект: fnwpkmjjdhflnqghnogj; GitHub хранит исходники,
+Статус: команды владельца, генерация и отправка активны. Оба расписания установлены. Базовый проект: fnwpkmjjdhflnqghnogj; GitHub хранит исходники,
 Supabase выполняет код и хранит архив, задания и подготовленные ответы.
 
 ## Первый рабочий сценарий
@@ -11,7 +10,7 @@ Supabase выполняет код и хранит архив, задания и
 группе. Обычные сообщения продолжают поступать в архив. Ответы остальных ботов
 и свои сообщения не создают заданий. Команда содержит от 1 до 300 символов.
 
-Первую проверку провести с подготовкой ответа в закрытой очереди. После приёмки
+Первую проверку провести с подготовкой ответа в закрытой очереди (generation-only). После приёмки
 включить отправку и выполнить одну согласованную команду в группе. Расширение
 круга участников и самостоятельные тематические публикации — отдельные этапы.
 
@@ -78,3 +77,290 @@ MAX требует HTTP 200 от Webhook за 30 секунд. Ожидать г
 - https://dev.max.ru/docs-api/methods/POST/messages
 - https://supabase.com/docs/guides/functions/background-tasks
 - https://supabase.com/docs/guides/functions/schedule-functions
+
+## Реализация и проверка — 21.10.2026
+
+- Миграция 20261021183218_ch78_max_jobs.sql применена к существующему проекту
+  как remote 20261021184024. Таблицы config/jobs, AFTER INSERT trigger и RPC
+  SECURITY INVOKER. Публичного доступа и клиентских политик нет намеренно.
+- Приёмник MAX v3 не заменялся; существующая атомарная вставка запускает trigger.
+  Архив сохраняет команды и ответы бота, поиск исключает их из доказательных
+  источников, чтобы бот не ссылался на собственные реплики или формулировку вопроса.
+- Новый ch78-max-worker v1 ACTIVE. Собственный секрет, потоковые ограничения,
+  проверка группы/аренды/флага, отдельные стадии generate/send, сохранение результата.
+  Перед отправкой GET /me проверяет user_id 531401311 и is_bot=true.
+- Генерация вызывает проверенный assistant внутри процесса с прежними OPENAI_API_KEY
+  и STORY_ASSISTANT_MODEL, без нового платного сервиса. Для worker OpenAI timeout
+  снижен до 35 секунд на вызов; максимум два вызова, без автоматических повторов.
+  Бюджет генерации с RPC — до ~136 секунд, аренда 180 секунд, HTTP Cron 145 секунд.
+- Отправка — один POST, plain text, notify=false, disable_link_preview=true, reply
+  на исходную команду; подтверждённый mid сохраняется. Неопределённая отправка
+  остаётся delivery_unknown. Отказ/неверный результат модели не публикуется.
+- Дополнительный официальный Russian Trusted Root CA применяется только к точному
+  HTTPS origin platform-api2.max.ru. SHA256 D26D2D0231B7C39F92CC738512BA54103519E4405D68B5BD703E9788CA8ECF31.
+  Сертификат загружен с gu-st.ru по проверенному HTTPS; TLS не отключался.
+- 35 Node тестов (9 intake, 15 assistant, 11 worker), 22 PostgreSQL/PGlite и
+  9 Python клиента = 66. Deno check и diff check пройдены. PGlite параллельные
+  запросы проходят через один экземпляр, независимые живые транзакции не проверены.
+- Живая транзакционная проверка прошла: приём → одно задание → lease → ready;
+  send заблокирован. Транзакция откачена, тестовых строк не осталось. Архив 396,
+  очередь 0, все три флага false. Worker HTTP без настройки секрета — 503
+  worker_configuration, без доступа к данным и эффектов. Новые advisor findings —
+  только ожидаемые INFO RLS Enabled No Policy для серверных закрытых таблиц.
+- Владелец ранее подтвердил 5/5 реальных вопросов OpenAI, включая три ответа
+  по фактам и два отказа без доказательств. Доставка worker/Cron/MAX ещё не принята.
+
+## Настройка владельцем (значения не передавать в переписке)
+
+В Supabase Edge Functions Secrets существующего проекта добавить:
+
+1. CH78_MAX_TOKEN — токен именно «Хранителя Хроник-78».
+2. CH78_MAX_WORKER_SECRET — новый случайный секрет, 64 шестнадцатеричных символа,
+   отличный от CH78_MAX_WEBHOOK_SECRET. Создать на Mac: openssl rand -hex 32.
+
+В Supabase Vault сохранить тот же worker secret под именем ch78_max_worker_secret.
+Не вставлять секреты в SQL-скрипты или GitHub. Connector не умеет устанавливать
+Edge Secrets; шаг ввода выполняет владелец в интерфейсе Supabase.
+
+После настройки применить ops/ch78-max-start-generation.sql. Он проверяет наличие
+секрета в Vault без его вывода, включает pg_cron/pg_net и только генерацию раз
+в минуту. Команды сработают только с момента активации, старый импорт не оживает.
+Попросить владельца отправить /find или /ask и проверить готовую запись через
+закрытый SQL. Отправка в MAX остаётся выключенной. Для неё отдельно подтвердить
+публикацию ответов, проверить право бота писать в группе и применить
+ops/ch78-max-enable-sending.sql. Первая генерация может ждать до минуты; первая
+отправка — ещё до минуты. Код и архив работают без запущенной программы на Mac.
+
+Остановка: установить commands_enabled/generation_enabled/sending_enabled=false
+в ch78_max_bot_config, удалить только ch78-max-generate/ch78-max-send из Cron.
+Уже начавшийся внешний HTTP-запрос отменить этим флагом невозможно. Не удалять
+архив, задания и результаты.
+
+## Generation-only activation — 2026-10-21
+
+Owner completed secret setup. Vault existence/format check passed without exposing
+values. Added pg_cron/pg_net support migration 20261021185435; activated only
+ch78-max-generate, once per minute. Commands/generation enabled at 18:54:59 UTC;
+sending disabled and no send schedule. Authenticated server-to-worker invocation
+returned HTTP 200 idle=true. This verifies worker/Vault authentication and idle
+execution, not model processing or MAX token validity. Awaiting a real owner
+command and review of its persisted result before enabling delivery.
+
+## Citation presentation fix — 2026-10-21
+
+The first owner /ask job reached the worker/model but failed with uncited_answer.
+The rejected draft was not persisted, so missing-inline vs missing-array cannot
+be distinguished retroactively. Known, nonempty model-declared citation arrays
+now render a source footer if inline markers are absent; grouped markers are
+normalized. Unknown, undeclared, ambiguous or absent source IDs still fail.
+No citation ID is invented, and this is presentation repair, not entailment proof.
+No additional model calls or retries are introduced. The failed job is not requeued;
+a new owner command is needed for live acceptance. Delivery remains disabled.
+
+## Owner-approved live delivery — 2026-10-21
+
+After review of the prepared answer, owner explicitly approved publishing that
+answer and enabling replies to their /ask and /find commands in Редколлегия.
+Applied ops/ch78-max-enable-sending.sql; commands/generation/sending all true.
+Both named Cron jobs run every minute. The send worker confirmed the expected
+MAX bot identity and returned a real message mid, saved with job state sent and
+no error at 23:02:36 Samara. Actual end-to-end owner command delivery is verified.
+No automatic replay of the earlier failed generation was performed. Scope remains
+owner-only, with existing rate limits, no proactive publishing, notify=false.
+The sent bot message had not appeared in incoming archive at verification time;
+no job was created from it. Incoming self-echo delivery is therefore not proven.
+
+## Published evidence-list correction — 2026-10-21
+
+Owner identified an unrelated S4 excerpt beneath the singing-experience answer.
+Persisted result confirmed citations=[S1]; renderReply incorrectly listed all
+retrieval candidates as evidence. Answer-mode output now lists only cited source
+IDs, preserving their original labels; absent/unresolved citations fail closed.
+Search mode still lists lexical matches. No-evidence responses show no excerpts.
+13 worker tests and Deno check passed, including unrelated-candidate exclusion,
+nonconsecutive labels and unknown/missing citation rejection. This fixes display,
+not semantic entailment or retrieval recall. Previously sent messages are not
+automatically edited/replayed; no paid model request is introduced by the fix.
+
+## Empty-queue dispatch optimization — 2026-10-21
+
+Both Cron commands now gate worker HTTP requests on matching queued/ready jobs
+and their stage flag. Empty queues cause database checks/maintenance only; no
+worker invocation or model request. Expired generating/sending leases are parked
+as unknown in SQL even with no new work, preserving recovery without replay.
+
+Applied ops/ch78-max-refresh-dispatch.sql; enable flags and activation timestamp
+are preserved. Bootstrap scripts use the same conditions. Six PGlite tests run
+the actual scheduled SQL against a mock pg_net sink: empty, eligible, disabled,
+expired, already active/terminal and another-group cases. Live Cron at 23:17
+Samara succeeded for both stages with 0 rows and no new HTTP responses. Positive
+dispatch was verified in a rolled-back live transaction; pg_net sends only after
+commit, so no test HTTP/model/MAX message occurred. No residual fixture remains.
+
+This removes the previous 86,400 idle worker invocations per 30 days; database
+polling and incoming archive webhook usage remain. The one-minute response
+scheduling interval is unchanged. Reapply the prior unconditional Cron commands
+to roll back this optimization; do not reset job states or enable flags.
+
+## Faster polling — 2026-10-21
+
+Installed pg_cron 1.6.4 supports second-based intervals. Both queue schedules now
+run every 10 seconds instead of every minute, with the existing SQL eligibility
+gates and lease cleanup unchanged. Empty polling makes no Edge/OpenAI request.
+Each of the two queue waits is typically at most 10 seconds when not backlogged;
+model/network duration and backlog still affect end-to-end latency. Database
+checks happen six times as often; this does not make database work free.
+
+Added one daily ch78-max-log-retention job, deleting only completed Cron execution
+logs older than seven days for the two named queue schedules. Archive messages,
+job records/results and logs of unrelated schedules are not deleted. It runs at
+00:00 UTC. Seven PGlite tests passed, including retention scope and active/null-end
+log preservation. Native scheduling support was checked in Supabase docs:
+https://supabase.com/docs/guides/cron/quickstart
+
+## Per-job observed token usage — 2026-10-21
+
+Worker generation now collects usage from the existing Responses calls, without
+extra model requests. Each persisted result carries versioned usage: attempted
+calls, reported calls, completeness, input/output/total tokens and reported cached
+input/reasoning subsets. Subsets are not added to total a second time. Unknown or
+invalid/missing usage is null/incomplete, not zero. Reported usage is collected
+before output/citation validation, so known usage survives failed final drafts.
+Worker stores safe error+usage for known failures and preserves successful usage
+through delivery. Lost processes/network bodies can still leave unobserved usage;
+this is not an authoritative billing ledger or a guarantee of complete accounting.
+
+Read-only ops/ch78-max-usage-report.sql groups jobs by creation day in Samara,
+reports known provider observations and separately counts legacy/untracked and
+incomplete jobs. It does not estimate money or replace the OpenAI Usage dashboard.
+Historical jobs cannot be reconstructed from their text; the live report currently
+shows two legacy jobs as untracked with null token totals, correctly not zero.
+Only future worker jobs gain stored metrics; standalone owner-client calls are
+outside this job report. Telemetry is not added to public MAX reply text.
+
+Tests cover zero-call search, sums, caching/reasoning subsets, missing/malformed
+usage, partial network failure, incomplete outputs, persistence on ready/failed,
+delivery preservation and read-only report semantics. Official usage behavior:
+https://developers.openai.com/api/docs/guides/token-counting
+https://developers.openai.com/api/docs/guides/reasoning
+
+
+## Group conversation — prepared 2026-10-23, pending installation
+
+The tested change opens explicit requests to all human participants of the
+configured Redkollegiya group only. It accepts /ask, /find, /help, /start,
+commands qualified with this bot's username, Russian “Хранитель, …” addresses,
+and replies referencing a recorded sent bot message in the same group. Ordinary
+ambient messages and other bots do not start jobs. Reply questions carry the
+previous question within the existing 300-character bound; oversized threads ask
+for a complete question rather than silently discarding context. This is bounded
+question context, not a complete conversational memory or factual verification.
+
+Help, greetings, thanks, length guidance, cooldown and daily-limit notices enter
+the existing ready/send queue without OpenAI. Service messages have zero observed
+model calls. They are capped at 60/group/day and one per person per 30 seconds;
+excess is silently suppressed against floods. Archive requests retain the global
+20/day allowance (search included), with the 30-second interval now per person.
+No change to schedules, enabled flags, existing job states or activation date.
+
+The shared parser and delivered-reply lookup exclude questions and bot exchanges
+from archive evidence even when a flooded request did not create a job. Original
+archive rows remain intact. Service tables/RPCs retain private service-only grants,
+RLS and invoker privileges. No other chat or website data becomes available.
+
+Known model failures, timeouts and invalid/citation-unusable output prepare a
+plain failure notice instead of publishing an unchecked draft or silently failing.
+No model retry is added; available usage is retained and unknown usage is not
+fabricated. Delivery uncertainty and expired leases still park without replay.
+
+Validation: 98 automated tests (43 database, 46 Node handler, 9 owner client),
+Deno checks on all three entrypoints and git diff whitespace check. Tests use
+fixtures and mocks; this does not establish live multi-person MAX delivery or
+semantic accuracy. No test messages/model calls, remote push or production changes
+were made for this prepared update. Installation requires explicit user confirmation.
+
+
+### Installation confirmed — 2026-10-23
+
+User explicitly authorized installation. Applied ch78_max_group_conversation and
+deployed ch78-max-worker v6 ACTIVE, with all four uploaded source files verified
+against the fetched deployment. Commands/generation/sending stay enabled for the
+same group. A rolled-back production transaction verified admission of another
+human participant, free ready help, ambient-message isolation and private grants.
+No fixture was committed, so the scheduler could not dispatch a test job. No MAX
+message or paid model request was made during installation. Live multi-person
+client delivery and answer quality still require observation of normal usage.
+
+
+## Temporal grounding — prepared 2026-10-23, pending approval
+
+Read-only inspection confirmed three new archive answers and a help response were
+sent after group activation. One archive answer came from another participant and
+completed in about 20 seconds. This confirms recorded MAX acceptance, not that a
+person read the reply or that every answer was correct. The question about when
+the class met this autumn lacked a precise date in its retrieved source set.
+
+Prepared assistant changes attach a single server-derived Samara question date to
+both planning and drafting, and explicit readable Samara posting dates to sources.
+Body-supplied time context is ignored. Invalid Date-range timestamps are rejected
+before answer drafting. The planner no longer contains a fixed example using a
+real member's name; date/place queries also seek planning or booking evidence.
+Drafting distinguishes publication dates, relative dates in source messages,
+planned events and confirmed events; it must preserve uncertainty rather than
+invent an exact date from nearby posts. No extra retrieval/model phase or retry.
+Token input increases modestly due to date metadata and instructions; limits and
+usage accounting remain unchanged.
+
+Validation: 102 tests pass (43 database, 50 Node handlers, 9 client), all three Deno
+entrypoints and whitespace check pass. Four new tests verify Samara midnight,
+shared trusted date in both phases, ignored body override, source-date metadata,
+invalid timestamp rejection and zero model calls in ordinary search. These are
+contract tests with model mocks; they do not prove better semantic accuracy.
+Prepared locally; worker production remains v6. No new paid requests, publication
+or deployment performed for this change. Await explicit installation approval.
+
+
+### Temporal context installed — 2026-10-23
+
+After explicit authorization, deployed worker v7 ACTIVE with the updated embedded
+assistant module. Fetched deployment matches all four uploaded files. The other
+worker modules, archive schema, schedules, limits and switches were preserved.
+The standalone owner-client assistant endpoint was not replaced. This change
+applies to subsequent bot questions, not retroactively to stored answers.
+No paid model test or MAX publication was made during installation. The 102
+passing contract tests do not establish semantic accuracy on live model output.
+
+
+## Reply presentation — prepared 2026-10-23, not deployed
+
+User deferred avatar/description changes until mini-app setup. Prepared safe HTML
+rendering with bold headings, answer-first layout, author/publication date labels,
+and blockquote excerpts of cited sources only. All untrusted text is escaped;
+clipping budgets encoded text without splitting entities or Unicode code points.
+Raw HTML remains within 4000 UTF-16 units including tags/entities, conservatively
+within the MAX message limit. Excerpts can use up to 450 units when space permits;
+8-source messages share the remaining budget. No evidence => no unrelated quotes.
+
+New successful generation persists reply_format=html alongside rendered text.
+Sending uses that marker only; legacy saved replies, help and error notices stay
+plain text. Generation/delivery remain separate; no new model calls or retries.
+Standalone fictional preview: previews/keeper-replies-v1.html. This is a design
+mockup, not an observed MAX client rendering. Actual client typography, themes and
+quote display need verification after authorized installation.
+
+Validation: 106 tests (43 DB, 54 handlers, 9 client), Deno worker check and whitespace
+check passed. Added adversarial markup/escaping, encoded size with 8 sources,
+format persistence/legacy compatibility and longer excerpt tests. No deployment,
+MAX posts or paid model calls performed. Await explicit installation approval.
+Official formatting: https://dev.max.ru/docs-api/use-cases/sending-messages/text-formatting
+
+
+### Reply presentation installed — 2026-10-23
+
+User explicitly approved installation. Worker v8 ACTIVE now renders new successful
+search/answer jobs as escaped HTML, with the stored reply_format marker controlling
+sending. Fetched deployment matches all four uploaded files. Other worker modules,
+archive tables, schedules and limits were preserved. Avatar and description remain
+deferred by user until mini-app submission. No paid calls or test MAX posts were
+made. 106 automated tests passed; actual MAX client rendering remains to be observed
+on subsequent normal requests.

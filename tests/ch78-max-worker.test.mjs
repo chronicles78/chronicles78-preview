@@ -16,6 +16,7 @@ function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,mo
   const body=opts.body?JSON.parse(opts.body):{};calls.push({type:'fetch',url,body,headers:opts.headers});
   if(url.endsWith('ch78_max_claim_job'))return response(empty||done?[]:[{...job,state:body.p_stage==='send'?'sending':'generating',...badJob}]);
   if(url.endsWith('ch78_max_reaction_context'))return response([{message_id:job.message_id,message_ts:1000,content:'Воспоминание о школе',author:'Тест'}]);
+  if(url.endsWith('ch78_max_typing_gate'))return response(false);
   if(url.endsWith('ch78_max_buttons_enabled'))return response(buttons);
   if(url.endsWith('ch78_max_job_gate'))return response(gate);
   if(url.endsWith('ch78_max_finish_job')){if(saveFailure)throw Error('PRIVATE');done=true;return response(true);}
@@ -174,4 +175,13 @@ test('enabled buttons add source/help/examples/site controls without generation'
 
 test('UI configuration stage keeps dedicated secret protection and does not claim archive jobs',async()=>{
  const x=setup();const r=await x.handler(req('configure_ui',{'X-CH78-Worker-Secret':'wrong'}));assert.equal(r.status,403);assert.equal(x.calls.length,0);
+});
+
+test('only answer generation checks typing; searches, drafts and send never start it',async()=>{
+ for(const [action,stage] of [['answer','generate'],['search','generate'],['reaction','generate'],['answer','send']]){
+  const x=setup({badJob:{action,review_required:true},assistantData:action==='reaction'?{found:false,answer:'',citations:[],sources:[]}:null});
+  assert.equal((await x.handler(req(stage))).status,200);
+  assert.equal(x.calls.filter(c=>c.url?.endsWith('ch78_max_typing_gate')).length,action==='answer'&&stage==='generate'?1:0);
+  assert.equal(x.calls.filter(c=>c.url?.endsWith('/actions')).length,0);
+ }
 });

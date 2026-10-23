@@ -1,3 +1,4 @@
+import {withTyping} from './typing.mjs';
 import {keyboard} from '../ch78-max-ui/controls.mjs';
 import {configureUI} from '../ch78-max-ui/configure.mjs';
 import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
@@ -78,8 +79,8 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    const b=await bodyJSON(req,8192,5000);
    if(!b||!['generate','send','configure_ui'].includes(b.stage))throw Error();stage=b.stage;
   }catch{return json(400,{error:'invalid_request'});}
-  const rpc=async(name,body)=>{
-   const r=await fetchImpl(PROJECT+'/rest/v1/rpc/'+name,{method:'POST',redirect:'error',signal:AbortSignal.timeout(8000),
+  const rpc=async(name,body,signal)=>{
+   const r=await fetchImpl(PROJECT+'/rest/v1/rpc/'+name,{method:'POST',redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(8000),...(signal?[signal]:[])]),
     headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(body)});
    if(!r.ok){r.body?.cancel().catch(()=>{});throw Error('database_unavailable');}return bodyJSON(r);
   };
@@ -112,9 +113,10 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
       if(!Array.isArray(context)||!context.length||context.length>5||context[0].message_id!==job.message_id) return await fail('reaction_context');
       extra={post:context[0],context:context.slice(1)};
      }
-     const response=await runAssistant(new Request(PROJECT+'/functions/v1/ch78-max-assistant',{method:'POST',
+     const generate=()=>runAssistant(new Request(PROJECT+'/functions/v1/ch78-max-assistant',{method:'POST',
       headers:{'Content-Type':'application/json','X-Max-Bot-Api-Secret':env('CH78_MAX_WEBHOOK_SECRET')??''},
       body:JSON.stringify({action:job.action,q:job.question,...extra})}));
+     const response=job.action==='answer'?await withTyping(generate,{env,fetchImpl,gate:signal=>rpc('ch78_max_typing_gate',{p_id:job.id,p_lease:job.lease},signal)}):await generate();
      data=await bodyJSON(response);
      if(!response.ok){
       const allowed=new Set(['model_not_configured','model_key_rejected','model_access_denied','model_not_found','model_parameters','model_limit','model_unavailable','model_incomplete','model_invalid','model_refused','archive_unavailable','invalid_citation','uncited_answer']);

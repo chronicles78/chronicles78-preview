@@ -1889,3 +1889,22 @@ reaction_mode remains draft and limit five/day. Rolled-back live SQL confirmed
 cited-only source access, dedupe, child binding, draft isolation and private grants.
 No test records committed or test MAX/model calls. 146 tests passed locally.
 Actual client rendering/clicks remain to be observed; profile changes deferred.
+
+### CH78 typing indicator — prepared 2026-10-23, not installed
+
+Stage 4 worker helper sends best-effort MAX typing_on only for active explicit
+answer jobs under a private live lease/config gate. Identity verified; bounded
+refreshes, abort/cleanup on completion, failure never retries or interrupts the
+model. No status for idle/search/callback/reaction draft. Migration defaults off;
+activation SQL prepared. 156 tests and Deno checks passed. See MAX_TYPING.md.
+Await separate installation approval; production worker remains v10. 394 messages
+are the TEST archive; main group 2–3k import is a later separate operation.
+
+### CH78 typing indicator — installed 2026-10-23
+
+User approved installation. Applied ch78_max_typing migration and deployed worker
+v11 ACTIVE; all eight fetched modules exactly match uploaded sources. Enabled
+typing_enabled for test group only; reaction_mode remains draft. Rolled-back
+live SQL verified private grants, default off, enabled answer, wrong lease,
+search/draft denial and expired lease. No fixtures committed or test MAX/model
+calls. Client display awaits an ordinary live question. Main chat not imported.

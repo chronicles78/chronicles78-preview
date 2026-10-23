@@ -5,11 +5,11 @@ import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite();let serial=0;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
- for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql'])
+ for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql','20261023182008_ch78_max_typing.sql'])
   await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
 });
 beforeEach(async()=>{
- await db.exec("reset role;delete from ch78_max_jobs;delete from ch78_max_messages;update ch78_max_bot_config set commands_enabled=false,generation_enabled=false,sending_enabled=false,reaction_mode='off',activated_at=clock_timestamp()-interval '1 minute'");
+ await db.exec("reset role;delete from ch78_max_jobs;delete from ch78_max_messages;update ch78_max_bot_config set commands_enabled=false,generation_enabled=false,sending_enabled=false,reaction_mode='off',typing_enabled=false,activated_at=clock_timestamp()-interval '1 minute'");
 });
 after(()=>db.close());
 async function backend(sql,args=[]){await db.exec('set role service_role');try{return (await db.query(sql,args)).rows;}finally{await db.exec('reset role')}}
@@ -243,4 +243,19 @@ test('human replies to an unsolicited reaction remain memories, not implicit com
  await insert({user:'102',text:'Мы тогда слушали школьный ансамбль.',link:{type:'reply',message:{mid:'mid.reaction'}}});
  assert.equal((await jobs()).length,1);
  const results=await backend("select * from ch78_max_search('-78143291213122','ансамбль')");assert.equal(results.length,1);assert.equal(results[0].content,'Мы тогда слушали школьный ансамбль.');
+});
+
+test('typing requires enabled answer, current lease and all effect switches',async()=>{
+ await enable();await insert();const job=await claim();
+ const gate=async(lease=job.lease)=>(await backend('select ch78_max_typing_gate($1,$2) allowed',[job.id,lease]))[0].allowed;
+ assert.equal(await gate(),false);
+ await db.exec('update ch78_max_bot_config set typing_enabled=true,sending_enabled=true');assert.equal(await gate(),true);
+ assert.equal(await gate('00000000-0000-0000-0000-000000000000'),false);
+ for(const field of ['typing_enabled','commands_enabled','generation_enabled','sending_enabled']){
+  await db.exec(`update ch78_max_bot_config set ${field}=false`);assert.equal(await gate(),false);
+  await db.exec(`update ch78_max_bot_config set ${field}=true`);
+ }
+ for(const action of ['search','reaction']){await db.exec(`update ch78_max_jobs set action='${action}'`);assert.equal(await gate(),false);}
+ await db.exec("update ch78_max_jobs set action='answer',lease_until=clock_timestamp()-interval '1 second'");assert.equal(await gate(),false);
+ await assert.rejects(db.exec('set role anon;select ch78_max_typing_gate(null,null)'),/permission denied/);
 });

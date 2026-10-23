@@ -1,3 +1,5 @@
+import {keyboard} from '../ch78-max-ui/controls.mjs';
+import {configureUI} from '../ch78-max-ui/configure.mjs';
 import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
 const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co';
 const CHAT='-78143291213122';
@@ -74,15 +76,16 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    if(req.headers.get('content-type')?.split(';')[0]!=='application/json')throw Error();
    // Stream/time bounds apply before any claim or paid/network effect.
    const b=await bodyJSON(req,8192,5000);
-   if(!b||!['generate','send'].includes(b.stage))throw Error();stage=b.stage;
+   if(!b||!['generate','send','configure_ui'].includes(b.stage))throw Error();stage=b.stage;
   }catch{return json(400,{error:'invalid_request'});}
   const rpc=async(name,body)=>{
    const r=await fetchImpl(PROJECT+'/rest/v1/rpc/'+name,{method:'POST',redirect:'error',signal:AbortSignal.timeout(8000),
     headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(body)});
    if(!r.ok){r.body?.cancel().catch(()=>{});throw Error('database_unavailable');}return bodyJSON(r);
   };
-  if(stage==='send'&&!env('CH78_MAX_TOKEN'))return json(503,{error:'max_token_missing'});
+  if(['send','configure_ui'].includes(stage)&&!env('CH78_MAX_TOKEN'))return json(503,{error:'max_token_missing'});
   try{
+   if(stage==='configure_ui')return json(200,await configureUI({env,fetchImpl}));
    const rows=await rpc('ch78_max_claim_job',{p_stage:stage});
    if(!Array.isArray(rows)||rows.length>1)throw Error('invalid_claim');
    if(!rows.length)return json(200,{ok:true,idle:true});
@@ -133,6 +136,8 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    if(typeof job.reply_text!=='string'||!job.reply_text.length||Array.from(job.reply_text).length>4000){
     await finish('failed',{p_error:'invalid_reply'});return json(200,{ok:true,state:'failed'});
    }
+   const showButtons=await rpc('ch78_max_buttons_enabled',{});
+   const attachments=showButtons===true?keyboard(job):null;
    // Refuse an accidentally configured token of another bot (e.g. IT HAB).
    try{
     const me=await fetchImpl('https://platform-api2.max.ru/me',{method:'GET',redirect:'error',signal:AbortSignal.timeout(8000),headers:{Authorization:env('CH78_MAX_TOKEN')}});
@@ -145,7 +150,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    try{
     const r=await fetchImpl('https://platform-api2.max.ru/messages?chat_id='+CHAT+'&disable_link_preview=true',{
      method:'POST',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:env('CH78_MAX_TOKEN'),'Content-Type':'application/json'},
-     body:JSON.stringify({text:job.reply_text,attachments:null,link:{type:'reply',mid:job.message_id},notify:false,...(job.result?.reply_format==='html'?{format:'html'}:{})})});
+     body:JSON.stringify({text:job.reply_text,attachments,link:{type:'reply',mid:job.message_id},notify:false,...(job.result?.reply_format==='html'?{format:'html'}:{})})});
     if(!r.ok){const state=r.status>=500?'delivery_unknown':'failed';r.body?.cancel().catch(()=>{});
      await finish(state,{p_error:'max_rejected'});return json(200,{ok:true,state});}
     sent=await bodyJSON(r);

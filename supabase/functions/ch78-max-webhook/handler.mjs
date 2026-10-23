@@ -1,5 +1,7 @@
+import {handleCallback} from './callbacks.mjs';
 // CH78-MAX-001: authenticated, insert-only message_created receiver.
-// No MAX/OpenAI client, user-facing archive API, or background work here.
+// message_created remains insert-only. Authenticated callbacks use a separate
+// bounded, deduplicated MAX reply branch; no OpenAI calls in this function.
 export const PROJECT_URL = 'https://fnwpkmjjdhflnqghnogj.supabase.co';
 export const MAX_BYTES = 262144;
 const encoder = new TextEncoder();
@@ -105,7 +107,9 @@ export function createHandler({ env, fetchImpl = fetch }) {
       return reply(415, { error: 'json_required' });
     }
     try {
-      const row = await normalize(await readBody(req), chatId);
+      const update=await readBody(req);
+      if(update?.update_type==='message_callback')return await handleCallback(update,{env,fetchImpl});
+      const row = await normalize(update, chatId);
       if (row === null) return reply(200, { ok: true, ignored: true });
       // A single atomic INSERT + composite PK gives idempotence even under races.
       // Do not ACK until PostgREST confirms the commit. Do not return message data.

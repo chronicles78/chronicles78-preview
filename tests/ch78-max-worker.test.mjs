@@ -7,7 +7,7 @@ const job={id:'11111111-1111-1111-1111-111111111111',lease:'22222222-2222-2222-2
 const data={found:true,answer:'Подтверждено [S1]',citations:['S1'],sources:[{ref:'S1',message_ts:1000,author:'Тест',text:'Тестовый источник'}]};
 const response=x=>new Response(JSON.stringify(x),{headers:{'Content-Type':'application/json'}});
 function req(stage='generate',headers={}){return new Request('https://local.test',{method:'POST',headers:{'Content-Type':'application/json','X-CH78-Worker-Secret':secret,...headers},body:JSON.stringify({stage})});}
-function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,modelFailure=null,saveFailure=false,wrongBot=false,usage=null,assistantData=null}={}){
+function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,modelFailure=null,saveFailure=false,wrongBot=false,usage=null,assistantData=null,buttons=false}={}){
  const calls=[];let done=false;
  return {calls,handler:createHandler({env:n=>({...config,...overrides})[n],assistantImpl:async r=>{
   calls.push({type:'model',body:await r.json()});if(modelFailure==='network')throw Error('PRIVATE');
@@ -16,6 +16,7 @@ function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,mo
   const body=opts.body?JSON.parse(opts.body):{};calls.push({type:'fetch',url,body,headers:opts.headers});
   if(url.endsWith('ch78_max_claim_job'))return response(empty||done?[]:[{...job,state:body.p_stage==='send'?'sending':'generating',...badJob}]);
   if(url.endsWith('ch78_max_reaction_context'))return response([{message_id:job.message_id,message_ts:1000,content:'Воспоминание о школе',author:'Тест'}]);
+  if(url.endsWith('ch78_max_buttons_enabled'))return response(buttons);
   if(url.endsWith('ch78_max_job_gate'))return response(gate);
   if(url.endsWith('ch78_max_finish_job')){if(saveFailure)throw Error('PRIVATE');done=true;return response(true);}
   if(url==='https://platform-api2.max.ru/me')return response({user_id:wrongBot?99:531401311,is_bot:true});
@@ -161,4 +162,16 @@ test('automatic reaction prepares one ready reply; errors stay silent instead of
   const y=setup({badJob:{action:'reaction',review_required:false},modelFailure});assert.equal((await (await y.handler(req())).json()).state,'failed');
   assert.ok(!y.calls.some(c=>c.body?.p_state==='ready'));assert.equal(y.calls.filter(c=>c.type==='model').length,1);
  }
+});
+
+test('enabled buttons add source/help/examples/site controls without generation',async()=>{
+ const x=setup({buttons:true,badJob:{result:data}});await x.handler(req('send'));
+ const sent=x.calls.find(c=>c.url?.includes('/messages?'));assert.equal(sent.body.attachments[0].type,'inline_keyboard');
+ const all=sent.body.attachments[0].payload.buttons.flat();assert.ok(all.some(b=>b.text==='Показать источники'));
+ assert.ok(all.some(b=>b.text==='Как пользоваться'));assert.ok(all.some(b=>b.type==='link'));
+ assert.ok(!x.calls.some(c=>c.type==='model'));
+});
+
+test('UI configuration stage keeps dedicated secret protection and does not claim archive jobs',async()=>{
+ const x=setup();const r=await x.handler(req('configure_ui',{'X-CH78-Worker-Secret':'wrong'}));assert.equal(r.status,403);assert.equal(x.calls.length,0);
 });

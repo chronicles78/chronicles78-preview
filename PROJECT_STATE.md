@@ -1863,3 +1863,29 @@ All four deployed files match uploaded sources. Rolled-back live SQL verified dr
 admission/context/search preservation, ready-state denial and review/send isolation
 even after a temporary mode change. No fixtures committed and no test model/MAX
 calls. 125 automated checks passed; semantic quality awaits normal live candidates.
+
+
+### CH78 buttons/commands — prepared 2026-10-23, not installed
+
+Prepared stage 3 controls for cited-source detail, help, examples and verified
+GitHub Pages site URL, plus registration of /ask /find /help without deleting other
+commands. Private callback claim/finish table and RPCs enforce actual sent-parent
+binding, cited-only sources, group scope, dedupe and rate limits; no model calls.
+Webhook message_created stays insert-only, callbacks separately reply through MAX
+after token identity/config checks; no repeat after uncertain effects. Configuration
+stage preserves the current webhook URL and other update types and verifies writes.
+146 tests, Deno checks and whitespace pass. MAX_BUTTONS.md and fictional preview
+document the reviewable result. Await installation approval; production stays worker
+v9, reaction_mode=draft. Profile/mini-app deferred; typing indicator next.
+
+
+### CH78 buttons/commands — installed 2026-10-23
+
+Explicit user approval received. Applied ch78_max_buttons migration, deployed
+webhook v5 ACTIVE and worker v10 ACTIVE; six/seven bundled files respectively
+match fetched deployment sources. configure_ui HTTP 200 verified three commands
+and callback subscription through real MAX GET endpoints. buttons_enabled=true;
+reaction_mode remains draft and limit five/day. Rolled-back live SQL confirmed
+cited-only source access, dedupe, child binding, draft isolation and private grants.
+No test records committed or test MAX/model calls. 146 tests passed locally.
+Actual client rendering/clicks remain to be observed; profile changes deferred.

@@ -5,7 +5,7 @@ import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite();let serial=0;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
- for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql'])
+ for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql'])
   await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
 });
 beforeEach(async()=>{
@@ -13,9 +13,9 @@ beforeEach(async()=>{
 });
 after(()=>db.close());
 async function backend(sql,args=[]){await db.exec('set role service_role');try{return (await db.query(sql,args)).rows;}finally{await db.exec('reset role')}}
-async function insert({chat='-78143291213122',id='message-'+(++serial),text='/ask Вопрос',user='17770818',bot=false,age=0}={}){
- await backend('insert into ch78_max_messages(chat_id,message_id,message_ts,event_ts,text,sender,source_message) values($1,$2,$3,$3,$4,$5,\'{}\') on conflict do nothing',
-  [chat,id,Date.now()+age,text,JSON.stringify({user_id:Number(user),is_bot:bot})]);return id;
+async function insert({chat='-78143291213122',id='message-'+(++serial),text='/ask Вопрос',user='17770818',bot=false,age=0,link=null}={}){
+ await backend('insert into ch78_max_messages(chat_id,message_id,message_ts,event_ts,text,sender,linked_message,source_message) values($1,$2,$3,$3,$4,$5,$6,\'{}\') on conflict do nothing',
+  [chat,id,Date.now()+age,text,JSON.stringify({user_id:Number(user),is_bot:bot}),link]);return id;
 }
 async function enable(){await db.exec('update ch78_max_bot_config set commands_enabled=true,generation_enabled=true');}
 const jobs=async()=> (await db.query('select * from ch78_max_jobs order by created_at')).rows;
@@ -29,14 +29,14 @@ test('new owner command atomically creates one job; duplicate delivery creates n
  const rows=await jobs();assert.equal(rows.length,1);assert.equal(rows[0].action,'answer');assert.equal(rows[0].question,'Какой опыт у Аллы?');
 });
 test('other group, sender, bot, old import, future event and malformed commands only archive',async()=>{
- await enable();for(const item of [{chat:'-99'},{user:'99'},{bot:true},{age:-120000},{age:60000},{text:'Обычное сообщение'},{text:'/ask '},{text:'/ask '+ 'а'.repeat(301)},{text:'/asking вопрос'}])await insert(item);
+ await enable();for(const item of [{chat:'-99'},{user:'0'},{bot:true},{age:-120000},{age:60000},{text:'Обычное сообщение'},{text:'/other '},{text:'а'.repeat(301)},{text:'/asking вопрос'}])await insert(item);
  assert.equal((await jobs()).length,0);assert.equal((await db.query('select count(*) n from ch78_max_messages')).rows[0].n,9);
 });
 test('admission enforces interval and daily budget, preserving all source messages',async()=>{
- await enable();await insert({text:'/find школа'});await insert();assert.equal((await jobs()).length,1);
+ await enable();await insert({text:'/find школа'});await insert();assert.equal((await jobs()).length,2);
  for(let i=1;i<20;i++){await db.exec("update ch78_max_jobs set created_at=clock_timestamp()-interval '1 minute'");await insert();}
  await db.exec("update ch78_max_jobs set created_at=clock_timestamp()-interval '1 minute'");await insert();
- assert.equal((await jobs()).length,20);assert.equal((await db.query('select count(*) n from ch78_max_messages')).rows[0].n,22);
+ assert.equal((await jobs()).filter(j=>!j.result?.kind).length,20);assert.equal((await jobs()).at(-1).result.kind,'daily_limit');assert.equal((await db.query('select count(*) n from ch78_max_messages')).rows[0].n,22);
 });
 test('claim leases once; wrong lease cannot save; valid generation saves ready before send',async()=>{
  await enable();await insert();const job=await claim();assert.ok(job.lease);assert.equal(await claim(),undefined);
@@ -106,4 +106,74 @@ test('usage report exposes unknown legacy and incomplete observations separately
 test('usage report returns known zero for search-only tracked work',async()=>{
  await usageJob({usage:{version:1,requests:0,complete:true,reports:[]}},'search');
  const r=(await reportUsage())[0];assert.equal(Number(r.known_total_tokens),0);assert.equal(Number(r.untracked_jobs),0);
+});
+
+
+test('all human members can ask independently; same-person flood gets one free notice',async()=>{
+ await enable();await insert({user:'101'});await insert({user:'102'});await insert({user:'101'});await insert({user:'101'});
+ const rows=await jobs();assert.equal(rows.length,3);assert.equal(rows.filter(j=>j.state==='queued').length,2);
+ assert.equal(rows[2].result.kind,'cooldown');assert.equal(rows[2].result.usage.requests,0);
+});
+test('Russian address and bot-qualified commands route without ordinary chatter',async()=>{
+ await enable();await insert({text:'Хранитель, что вспомнили о школе?',user:'101'});
+ await insert({text:'/find@id631934518295_1_bot школа',user:'102'});
+ await insert({text:'Наш хранитель архива вспомнил школу',user:'103'});
+ await insert({text:'/ask@other_bot вопрос',user:'104'});
+ const rows=await jobs();assert.equal(rows.length,2);assert.equal(rows[0].question,'что вспомнили о школе?');assert.equal(rows[1].action,'search');
+});
+test('help, greetings, thanks and malformed addressed questions skip generation',async()=>{
+ await enable();for(const [i,text] of ['/help','Хранитель, привет!','Хранитель, спасибо','/ask','Хранитель, '+ 'я'.repeat(301)].entries())await insert({text,user:String(200+i)});
+ const rows=await jobs();assert.equal(rows.length,5);assert.ok(rows.every(j=>j.state==='ready'&&j.result.usage.requests===0));
+ assert.equal(rows[2].result.kind,'thanks');assert.ok(rows[0].reply_text.includes('/find'));assert.equal(await claim(),undefined);
+});
+test('only a reply to a recorded delivered bot message can start a follow-up',async()=>{
+ await enable();await insert({text:'/ask Что пела Алла?',user:'101'});const first=(await jobs())[0];
+ await db.query("update ch78_max_jobs set state='sent',sent_message_id='mid.real',result='{}' where id=$1",[first.id]);
+ await insert({user:'102',text:'А где она выступала?',link:{type:'reply',message:{mid:'mid.real'}}});
+ await insert({user:'103',text:'Поддельный ответ',link:{type:'reply',sender:{user_id:531401311},message:{mid:'mid.fake'}}});
+ await insert({user:'104',text:'Пересылка',link:{type:'forward',message:{mid:'mid.real'}}});
+ const rows=await jobs();assert.equal(rows.length,2);assert.ok(rows[1].question.includes('Что пела Алла?'));assert.ok(rows[1].question.includes('А где она выступала?'));
+});
+test('addressed questions and recorded follow-ups never become archive evidence',async()=>{
+ await enable();await insert({text:'Алла пела в хоре.',user:'101'});await insert({text:'Хранитель, Алла пела?',user:'102'});
+ const rows=await backend("select * from ch78_max_search('-78143291213122','Алла')");assert.equal(rows.length,1);assert.equal(rows[0].content,'Алла пела в хоре.');
+});
+test('service reply flood is bounded separately from archive allowance',async()=>{
+ await enable();for(let i=0;i<61;i++)await insert({text:'/help',user:String(1000+i)});
+ assert.equal((await jobs()).length,60);await insert({user:'2000',text:'/ask школа'});
+ assert.equal((await jobs()).filter(j=>j.state==='queued').length,1);
+});
+
+test('thanks after a question gets a free acknowledgement, repeated help is bounded',async()=>{
+ await enable();await insert({user:'101'});await insert({user:'101',text:'Хранитель, спасибо!'});await insert({user:'101',text:'/help'});
+ const rows=await jobs();assert.equal(rows.length,2);assert.equal(rows[1].result.kind,'thanks');
+});
+test('long reply threads request a complete question instead of losing context',async()=>{
+ await enable();await insert({user:'101',text:'/ask '+ 'а'.repeat(280)});
+ await db.exec("update ch78_max_jobs set state='sent',sent_message_id='mid.long',result='{}'");
+ await insert({user:'102',text:'А в каком году это происходило?',link:{type:'reply',message:{mid:'mid.long'}}});
+ const rows=await jobs();assert.equal(rows[1].result.kind,'clarification');assert.equal(rows[1].state,'ready');
+});
+
+test('reply to a help message accepts a full question without adding help as context',async()=>{
+ await enable();await insert({user:'101',text:'/help'});
+ await db.exec("update ch78_max_jobs set state='sent',sent_message_id='mid.help'");
+ await insert({user:'102',text:'Что пела Алла?',link:{type:'reply',message:{mid:'mid.help'}}});
+ const rows=await jobs();assert.equal(rows.length,2);assert.equal(rows[1].question,'Что пела Алла?');assert.equal(rows[1].state,'queued');
+});
+test('explicit address inside a reply keeps the prior question as context',async()=>{
+ await enable();await insert({user:'101',text:'/ask Что пела Алла?'});
+ await db.exec("update ch78_max_jobs set state='sent',sent_message_id='mid.context',result='{}'");
+ await insert({user:'102',text:'Хранитель, а где она выступала?',link:{type:'reply',message:{mid:'mid.context'}}});
+ const row=(await jobs())[1];assert.ok(row.question.includes('Что пела Алла?'));assert.ok(row.question.includes('а где она выступала?'));
+ const evidence=await backend("select * from ch78_max_search('-78143291213122','выступала')");assert.equal(evidence.length,0);
+});
+
+test('suppressed reply flood is excluded from evidence even when no job is created',async()=>{
+ await enable();await insert({user:'101',text:'/ask Алла'});
+ await db.exec("update ch78_max_jobs set state='sent',sent_message_id='mid.flood',result='{}'");
+ const link={type:'reply',message:{mid:'mid.flood'}};
+ for(let i=0;i<3;i++)await insert({user:'102',text:'Алла выступала?',link});
+ assert.equal((await jobs()).length,3);
+ const rows=await backend("select * from ch78_max_search('-78143291213122','выступала')");assert.equal(rows.length,0);
 });

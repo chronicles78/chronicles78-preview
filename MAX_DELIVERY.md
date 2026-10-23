@@ -243,3 +243,50 @@ usage, partial network failure, incomplete outputs, persistence on ready/failed,
 delivery preservation and read-only report semantics. Official usage behavior:
 https://developers.openai.com/api/docs/guides/token-counting
 https://developers.openai.com/api/docs/guides/reasoning
+
+
+## Group conversation — prepared 2026-10-23, pending installation
+
+The tested change opens explicit requests to all human participants of the
+configured Redkollegiya group only. It accepts /ask, /find, /help, /start,
+commands qualified with this bot's username, Russian “Хранитель, …” addresses,
+and replies referencing a recorded sent bot message in the same group. Ordinary
+ambient messages and other bots do not start jobs. Reply questions carry the
+previous question within the existing 300-character bound; oversized threads ask
+for a complete question rather than silently discarding context. This is bounded
+question context, not a complete conversational memory or factual verification.
+
+Help, greetings, thanks, length guidance, cooldown and daily-limit notices enter
+the existing ready/send queue without OpenAI. Service messages have zero observed
+model calls. They are capped at 60/group/day and one per person per 30 seconds;
+excess is silently suppressed against floods. Archive requests retain the global
+20/day allowance (search included), with the 30-second interval now per person.
+No change to schedules, enabled flags, existing job states or activation date.
+
+The shared parser and delivered-reply lookup exclude questions and bot exchanges
+from archive evidence even when a flooded request did not create a job. Original
+archive rows remain intact. Service tables/RPCs retain private service-only grants,
+RLS and invoker privileges. No other chat or website data becomes available.
+
+Known model failures, timeouts and invalid/citation-unusable output prepare a
+plain failure notice instead of publishing an unchecked draft or silently failing.
+No model retry is added; available usage is retained and unknown usage is not
+fabricated. Delivery uncertainty and expired leases still park without replay.
+
+Validation: 98 automated tests (43 database, 46 Node handler, 9 owner client),
+Deno checks on all three entrypoints and git diff whitespace check. Tests use
+fixtures and mocks; this does not establish live multi-person MAX delivery or
+semantic accuracy. No test messages/model calls, remote push or production changes
+were made for this prepared update. Installation requires explicit user confirmation.
+
+
+### Installation confirmed — 2026-10-23
+
+User explicitly authorized installation. Applied ch78_max_group_conversation and
+deployed ch78-max-worker v6 ACTIVE, with all four uploaded source files verified
+against the fetched deployment. Commands/generation/sending stay enabled for the
+same group. A rolled-back production transaction verified admission of another
+human participant, free ready help, ambient-message isolation and private grants.
+No fixture was committed, so the scheduler could not dispatch a test job. No MAX
+message or paid model request was made during installation. Live multi-person
+client delivery and answer quality still require observation of normal usage.

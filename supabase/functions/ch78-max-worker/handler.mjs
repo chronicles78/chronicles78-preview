@@ -91,14 +91,14 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
      if(!response.ok){
       const allowed=new Set(['model_not_configured','model_key_rejected','model_access_denied','model_not_found','model_parameters','model_limit','model_unavailable','model_incomplete','model_invalid','model_refused','archive_unavailable','invalid_citation','uncited_answer']);
       const code=allowed.has(data?.error)?data.error:'generation_uncertain';
-      await finish(code==='generation_uncertain'?'generation_unknown':'failed',{p_error:code,p_result:{error:code,...(data?.usage?{usage:data.usage}:{})}});
-      return json(200,{ok:true,state:code==='generation_uncertain'?'generation_unknown':'failed'});
+      await finish('ready',{p_reply:'Сейчас не удалось подготовить надёжный ответ. Попробуйте позже или используйте /find и ключевые слова для поиска по архиву.',p_error:code,p_result:{error:code,...(data?.usage?{usage:data.usage}:{})}});
+      return json(200,{ok:true,state:'ready'});
      }
     }catch{
      // Leave lease to expire if persistence is also unavailable. Never retry model calls.
-     await finish('generation_unknown',{p_error:'generation_uncertain'});return json(200,{ok:true,state:'generation_unknown'});
+     await finish('ready',{p_reply:'Не удалось дождаться ответа модели. Повтор автоматически не выполняю. Можно попробовать позже или написать /find и ключевые слова.',p_error:'generation_uncertain',p_result:{error:'generation_uncertain'}});return json(200,{ok:true,state:'ready'});
     }
-    let text;try{text=renderReply(data,job.action)}catch{await finish('failed',{p_error:'invalid_result',p_result:{error:'invalid_result',...(data?.usage?{usage:data.usage}:{})}});return json(200,{ok:true,state:'failed'});}
+    let text;try{text=renderReply(data,job.action)}catch{await finish('ready',{p_reply:'Не удалось проверить ответ и его источники. Попробуйте переформулировать вопрос или используйте /find и ключевые слова.',p_error:'invalid_result',p_result:{error:'invalid_result',...(data?.usage?{usage:data.usage}:{})}});return json(200,{ok:true,state:'ready'});}
     await finish('ready',{p_reply:text,p_result:data});return json(200,{ok:true,state:'ready'});
    }
    if(typeof job.reply_text!=='string'||!job.reply_text.length||Array.from(job.reply_text).length>4000){

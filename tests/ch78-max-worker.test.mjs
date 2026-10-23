@@ -62,10 +62,11 @@ test('ambiguous send is parked as unknown with no retry',async()=>{
 test('known provider rejection is failed without raw error data',async()=>{
  const x=setup({sendFailure:403});const text=await (await x.handler(req('send'))).text();assert.ok(!text.includes('PRIVATE'));assert.equal(JSON.parse(text).state,'failed');
 });
-test('model error cannot publish and never retries a paid request',async()=>{
+test('model error prepares an honest notice and never retries a paid request',async()=>{
  for(const modelFailure of ['network','model_limit']){
-  const x=setup({modelFailure});const r=await x.handler(req());assert.equal((await r.json()).state,modelFailure==='network'?'generation_unknown':'failed');
+  const x=setup({modelFailure});const r=await x.handler(req());assert.equal((await r.json()).state,'ready');
   await x.handler(req());assert.equal(x.calls.filter(c=>c.type==='model').length,1);assert.ok(!x.calls.some(c=>c.url?.includes('platform-api2')));
+  const saved=x.calls.find(c=>c.body?.p_state==='ready');assert.ok(saved.body.p_reply.includes('/find'));assert.ok(!saved.body.p_reply.includes('PRIVATE'));assert.ok(saved.body.p_result.error);
  }
 });
 test('loss of database confirmation after send does not cause another send',async()=>{
@@ -100,11 +101,11 @@ test('cited source IDs are preserved and unresolved citations cannot be publishe
  assert.throws(()=>renderReply({...result,citations:[]},'answer'));
 });
 
-test('usage is saved for ready and failed generations, without raw error details',async()=>{
+test('usage is saved for successful answers and error notices, without raw error details',async()=>{
  const usage={version:1,requests:2,reported_requests:1,complete:false,total_tokens:null,reports:[{input_tokens:100,output_tokens:20,total_tokens:120}]};
  for(const modelFailure of [null,'model_limit']){
   const x=setup({usage,modelFailure});await x.handler(req());
-  const saved=x.calls.find(c=>c.body?.p_state===(modelFailure?'failed':'ready'));
+  const saved=x.calls.find(c=>c.body?.p_state==='ready');
   assert.deepEqual(saved.body.p_result.usage,usage);assert.ok(!JSON.stringify(saved.body.p_result).includes('PRIVATE'));
  }
 });

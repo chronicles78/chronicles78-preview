@@ -1799,3 +1799,23 @@ files. Rolled-back live SQL assertions passed for non-owner admission, free help
 ambient isolation and private grants; no test records were committed. Actual MAX
 delivery for additional members has not yet been observed. The 98 passing tests,
 20 archive jobs/day, per-person 30-second interval and no-paid-retry controls remain.
+
+
+### CH78 temporal grounding — prepared 2026-10-23, not installed
+
+Live read-only checks confirmed an additional member's archive question reached
+sent state in ~20 seconds. Prepared readable source dates and server-derived
+Samara question-date context for both model phases; source/event date distinction,
+booking vs actual-event uncertainty and general planning prompts documented in
+MAX_DELIVERY.md. 102 tests, Deno checks and whitespace pass. No extra model phase;
+input tokens increase modestly. Semantic gains remain unverified. Production stays
+worker v6; await explicit approval to publish/install this prepared change.
+
+
+### CH78 temporal grounding — installed 2026-10-23
+
+User approved installation. Worker v7 ACTIVE now embeds the temporal-context
+assistant module; exact fetched-source equality verified for all four bundle
+files. Existing schedules, limits and flags unchanged. Standalone owner-client
+endpoint unchanged. No paid verification calls or test MAX posts. 102 contract
+tests passed; live answer quality remains to be observed on subsequent questions.

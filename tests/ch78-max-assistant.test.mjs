@@ -1,14 +1,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery,readTokenUsage} from '../supabase/functions/ch78-max-assistant/handler.mjs';
+import {createHandler,validateAnswer,validatedQueries,outputJSON,questionQuery,readTokenUsage,samaraDate} from '../supabase/functions/ch78-max-assistant/handler.mjs';
 const secret='s'.repeat(40),PROJECT_URL='https://fnwpkmjjdhflnqghnogj.supabase.co';
 const config={SUPABASE_URL:PROJECT_URL,SUPABASE_SERVICE_ROLE_KEY:'db-test-key',CH78_MAX_WEBHOOK_SECRET:secret,CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'model-test-key'};
 const row={message_id:'fiction-1',message_ts:1000,author:'Тестовый автор',content:'На школьной дискотеке танцевали под музыку.',score:0.1};
 const res=data=>new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
 const model=data=>res({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(data)}]}]});
-function setup({rows=[row],plan={queries:['дискотека','танцы']},draft={found:true,answer:'Вспоминали танцы на школьной дискотеке [S1].',citations:['S1']},overrides={},failure=null}={}){
+function setup({rows=[row],plan={queries:['дискотека','танцы']},draft={found:true,answer:'Вспоминали танцы на школьной дискотеке [S1].',citations:['S1']},overrides={},failure=null,now=()=>Date.now()}={}){
  const calls=[];let modelCalls=0;
- return {calls,handler:createHandler({env:n=>({...config,...overrides})[n],fetchImpl:async(url,opts)=>{
+ return {calls,handler:createHandler({env:n=>({...config,...overrides})[n],now,fetchImpl:async(url,opts)=>{
    calls.push({url,body:JSON.parse(opts.body),headers:opts.headers});
    if(failure)return new Response('PRIVATE_ERROR_DETAIL',{status:failure});
    if(url.startsWith(PROJECT_URL))return res(rows);
@@ -160,4 +160,33 @@ test('network failure preserves known first-call usage without retrying',async()
 test('incomplete final output still carries provider-reported usage',async()=>{
  const x=usageSetup({incomplete:true});const data=await (await x.handler(req({action:'answer',q:'дискотека'}))).json();
  assert.equal(data.error,'model_incomplete');assert.equal(data.usage.total_tokens,240);assert.equal(data.usage.complete,true);
+});
+
+
+test('Samara source dates cross UTC midnight correctly and reject invalid timestamps',()=>{
+ assert.equal(samaraDate(Date.parse('2026-09-08T21:30:00Z')),'2026-09-09 01:30');
+ assert.equal(samaraDate(Date.parse('2026-09-08T20:00:00Z')),'2026-09-09 00:00');
+ assert.throws(()=>samaraDate(9000000000000000));
+});
+test('both model phases get the same trusted question date, not a body override',async()=>{
+ const fixed=Date.parse('2026-10-23T21:10:00Z');
+ const x=setup({now:()=>fixed,rows:[{...row,message_ts:Date.parse('2026-09-08T21:30:00Z')}]});
+ const r=await x.handler(req({action:'answer',q:'Когда мы встречались этой осенью?',time_context:{question_date:'1999-01-01'}}));
+ assert.equal(r.status,200);
+ const calls=x.calls.filter(c=>c.url.includes('openai.com'));assert.equal(calls.length,2);
+ for(const c of calls){const input=JSON.parse(c.body.input);assert.deepEqual(input.time_context,{question_date:'2026-10-24',time_zone:'Europe/Samara'});}
+ const input=JSON.parse(calls[1].body.input);assert.equal(input.sources[0].posted_at,'2026-09-09 01:30');
+ assert.equal(input.sources[0].message_ts,Date.parse('2026-09-08T21:30:00Z'));
+ assert.ok(calls[1].body.instructions.includes('дата публикации, не дата описанного события'));
+ assert.ok(calls[1].body.instructions.includes('бронирование'));
+ assert.ok(!calls[0].body.instructions.includes('Алла'));
+});
+test('invalid archive dates cannot reach the answer generator',async()=>{
+ const x=setup({rows:[{...row,message_ts:9000000000000000}]});
+ const r=await x.handler(req({action:'answer',q:'Когда встречались?'}));assert.equal(r.status,503);
+ assert.equal((await r.json()).error,'archive_invalid');assert.equal(x.calls.filter(c=>c.url.includes('openai.com')).length,1);
+});
+test('ordinary search adds readable publication dates without model calls',async()=>{
+ const x=setup();const r=await (await x.handler(req())).json();assert.equal(r.sources[0].posted_at,samaraDate(row.message_ts));
+ assert.equal(r.sources[0].time_zone,'Europe/Samara');assert.equal(r.usage.requests,0);
 });

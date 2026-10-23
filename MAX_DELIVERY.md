@@ -290,3 +290,42 @@ human participant, free ready help, ambient-message isolation and private grants
 No fixture was committed, so the scheduler could not dispatch a test job. No MAX
 message or paid model request was made during installation. Live multi-person
 client delivery and answer quality still require observation of normal usage.
+
+
+## Temporal grounding — prepared 2026-10-23, pending approval
+
+Read-only inspection confirmed three new archive answers and a help response were
+sent after group activation. One archive answer came from another participant and
+completed in about 20 seconds. This confirms recorded MAX acceptance, not that a
+person read the reply or that every answer was correct. The question about when
+the class met this autumn lacked a precise date in its retrieved source set.
+
+Prepared assistant changes attach a single server-derived Samara question date to
+both planning and drafting, and explicit readable Samara posting dates to sources.
+Body-supplied time context is ignored. Invalid Date-range timestamps are rejected
+before answer drafting. The planner no longer contains a fixed example using a
+real member's name; date/place queries also seek planning or booking evidence.
+Drafting distinguishes publication dates, relative dates in source messages,
+planned events and confirmed events; it must preserve uncertainty rather than
+invent an exact date from nearby posts. No extra retrieval/model phase or retry.
+Token input increases modestly due to date metadata and instructions; limits and
+usage accounting remain unchanged.
+
+Validation: 102 tests pass (43 database, 50 Node handlers, 9 client), all three Deno
+entrypoints and whitespace check pass. Four new tests verify Samara midnight,
+shared trusted date in both phases, ignored body override, source-date metadata,
+invalid timestamp rejection and zero model calls in ordinary search. These are
+contract tests with model mocks; they do not prove better semantic accuracy.
+Prepared locally; worker production remains v6. No new paid requests, publication
+or deployment performed for this change. Await explicit installation approval.
+
+
+### Temporal context installed — 2026-10-23
+
+After explicit authorization, deployed worker v7 ACTIVE with the updated embedded
+assistant module. Fetched deployment matches all four uploaded files. The other
+worker modules, archive schema, schedules, limits and switches were preserved.
+The standalone owner-client assistant endpoint was not replaced. This change
+applies to subsequent bot questions, not retroactively to stored answers.
+No paid model test or MAX publication was made during installation. The 102
+passing contract tests do not establish semantic accuracy on live model output.

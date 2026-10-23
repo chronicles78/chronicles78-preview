@@ -14,23 +14,23 @@ function escapedClip(value,budget){
  return out+'…';
 }
 export function renderReply(data,action){
- if(!data||!Array.isArray(data.sources)||data.sources.length>8||!['answer','search'].includes(action))throw Error('invalid_result');
+ if(!data||!Array.isArray(data.sources)||data.sources.length>8||!['answer','search','reaction'].includes(action))throw Error('invalid_result');
  let visibleSources=data.sources;
- const title=action==='answer'?'Ответ по архиву':'Найдено в архиве';
+ const title=action==='reaction'?'К слову о воспоминаниях':action==='answer'?'Ответ по архиву':'Найдено в архиве';
  const lines=['<b>'+title+'</b>'];
- if(action==='answer'){
+ if(action!=='search'){
   if(typeof data.answer!=='string'||typeof data.found!=='boolean')throw Error('invalid_result');
   if(data.found){
-   if(!Array.isArray(data.citations)||!data.citations.length||data.citations.some(ref=>
+   if(!Array.isArray(data.citations)||(action==='answer'&&!data.citations.length)||data.citations.some(ref=>
     typeof ref!=='string'||!/^S[1-8]$/.test(ref)||!data.sources.some(s=>s.ref===ref)))throw Error('invalid_citation');
    visibleSources=data.sources.filter(s=>data.citations.includes(s.ref));
   }else visibleSources=[];
-  lines.push(escapedClip(data.answer,1800));
+  lines.push(escapedClip(data.answer,action==='reaction'?650:1800));
  }
- const footer='\n\n<i>'+(action==='answer'?'По сообщениям архива. Детали могут требовать уточнения.':'Совпадение слов не гарантирует ответа на вопрос.')+' Даты сообщений — по Самаре.</i>';
+ const footer='\n\n<i>'+(action==='reaction'?'Отклик Хранителя. Уточнения участников приветствуются.':action!=='search'?'По сообщениям архива. Детали могут требовать уточнения.':'Совпадение слов не гарантирует ответа на вопрос.')+' Даты сообщений — по Самаре.</i>';
  let text=lines.join('\n\n');
  if(visibleSources.length){
-  const heading='\n\n<b>'+(action==='answer'?'Источники':'Сообщения')+'</b>';
+  const heading='\n\n<b>'+(action!=='search'?'Источники':'Сообщения')+'</b>';
   const blocks=visibleSources.map(source=>{
    if(!/^S[1-8]$/.test(source.ref)||typeof source.text!=='string'||!Number.isSafeInteger(source.message_ts)||!Number.isFinite(new Date(source.message_ts).getTime()))throw Error('invalid_source');
    const date=new Date(source.message_ts).toLocaleString('ru-RU',{timeZone:'Europe/Samara',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -88,7 +88,8 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    if(!rows.length)return json(200,{ok:true,idle:true});
    const job=rows[0];
    if(!uuid(job.id)||!uuid(job.lease)||job.chat_id!==CHAT||typeof job.message_id!=='string'||!job.message_id.length||job.message_id.length>512||
-    !['search','answer'].includes(job.action)||typeof job.question!=='string'||!job.question.trim()||job.question.length>300||
+    !['search','answer','reaction'].includes(job.action)||typeof job.question!=='string'||!job.question.trim()||job.question.length>300||
+    (job.action==='reaction'&&typeof job.review_required!=='boolean')||
     job.state!==(stage==='generate'?'generating':'sending'))throw Error('invalid_claim');
    const finish=async(state,extra={})=>{
     const saved=await rpc('ch78_max_finish_job',{p_id:job.id,p_lease:job.lease,p_state:state,...extra});
@@ -99,23 +100,35 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    }
    if(stage==='generate'){
     let data;
+    const reaction=job.action==='reaction';
+    const fail=async(code,usage)=>{await finish('failed',{p_error:code,p_result:{error:code,...(usage?{usage}:{})}});return json(200,{ok:true,state:'failed'});};
     try{
+     let extra={};
+     if(reaction){
+      const context=await rpc('ch78_max_reaction_context',{p_message_id:job.message_id});
+      if(!Array.isArray(context)||!context.length||context.length>5||context[0].message_id!==job.message_id) return await fail('reaction_context');
+      extra={post:context[0],context:context.slice(1)};
+     }
      const response=await runAssistant(new Request(PROJECT+'/functions/v1/ch78-max-assistant',{method:'POST',
       headers:{'Content-Type':'application/json','X-Max-Bot-Api-Secret':env('CH78_MAX_WEBHOOK_SECRET')??''},
-      body:JSON.stringify({action:job.action,q:job.question})}));
+      body:JSON.stringify({action:job.action,q:job.question,...extra})}));
      data=await bodyJSON(response);
      if(!response.ok){
       const allowed=new Set(['model_not_configured','model_key_rejected','model_access_denied','model_not_found','model_parameters','model_limit','model_unavailable','model_incomplete','model_invalid','model_refused','archive_unavailable','invalid_citation','uncited_answer']);
       const code=allowed.has(data?.error)?data.error:'generation_uncertain';
+      if(reaction)return await fail(code,data?.usage);
       await finish('ready',{p_reply:'Сейчас не удалось подготовить надёжный ответ. Попробуйте позже или используйте /find и ключевые слова для поиска по архиву.',p_error:code,p_result:{error:code,...(data?.usage?{usage:data.usage}:{})}});
       return json(200,{ok:true,state:'ready'});
      }
     }catch{
+     if(reaction)return await fail('generation_uncertain');
      // Leave lease to expire if persistence is also unavailable. Never retry model calls.
      await finish('ready',{p_reply:'Не удалось дождаться ответа модели. Повтор автоматически не выполняю. Можно попробовать позже или написать /find и ключевые слова.',p_error:'generation_uncertain',p_result:{error:'generation_uncertain'}});return json(200,{ok:true,state:'ready'});
     }
-    let text;try{text=renderReply(data,job.action)}catch{await finish('ready',{p_reply:'Не удалось проверить ответ и его источники. Попробуйте переформулировать вопрос или используйте /find и ключевые слова.',p_error:'invalid_result',p_result:{error:'invalid_result',...(data?.usage?{usage:data.usage}:{})}});return json(200,{ok:true,state:'ready'});}
-    await finish('ready',{p_reply:text,p_result:{...data,reply_format:'html'}});return json(200,{ok:true,state:'ready'});
+    if(reaction&&data?.found===false){await finish('skipped',{p_result:data});return json(200,{ok:true,state:'skipped'});}
+    let text;try{text=renderReply(data,job.action)}catch{if(reaction)return await fail('invalid_result',data?.usage);await finish('ready',{p_reply:'Не удалось проверить ответ и его источники. Попробуйте переформулировать вопрос или используйте /find и ключевые слова.',p_error:'invalid_result',p_result:{error:'invalid_result',...(data?.usage?{usage:data.usage}:{})}});return json(200,{ok:true,state:'ready'});}
+    const next=reaction&&job.review_required?'review':'ready';
+    await finish(next,{p_reply:text,p_result:{...data,reply_format:'html'}});return json(200,{ok:true,state:next});
    }
    if(typeof job.reply_text!=='string'||!job.reply_text.length||Array.from(job.reply_text).length>4000){
     await finish('failed',{p_error:'invalid_reply'});return json(200,{ok:true,state:'failed'});

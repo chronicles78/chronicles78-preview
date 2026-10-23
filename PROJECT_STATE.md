@@ -1838,3 +1838,28 @@ files match uploaded source. New answers use safe HTML headings, quotes and sour
 labels; legacy/plain service replies retain their saved format. 106 tests pass.
 Profile changes remain deferred until mini-app submission. No paid verification
 calls or test MAX messages sent; actual client appearance remains to be observed.
+
+
+### CH78 contextual reactions — prepared 2026-10-23, not deployed
+
+User requested AI reactions to new participant posts. Prepared off/draft/auto modes,
+private bounded context retrieval, one-call decision/draft, five evaluations/day
+and 30-minute admission interval. Explicit commands retain separate quotas/priority.
+Drafts never become auto publications; model silence and stale work are terminal
+skips; errors remain silent in MAX. Human memories and replies to autonomous bot
+questions stay searchable. Conditional Cron changes avoid disabled-worker polling.
+125 automated tests and Deno checks pass; no live model/semantic verification.
+MAX_REACTIONS.md documents scope, costs and staged activation. Production stays
+worker v8 with reactions absent. Await explicit approval to install and enable draft
+evaluation (paid, no MAX publications). No remote push, migration or deployment yet.
+
+
+### CH78 contextual reactions — installed 2026-10-23 in draft mode
+
+User explicitly approved paid draft evaluation. Migration applied, worker v9 ACTIVE
+and conditional dispatch updated. reaction_mode=draft, limit five evaluations/day;
+normal command/generation/sending flags remain enabled. No auto reaction publishing.
+All four deployed files match uploaded sources. Rolled-back live SQL verified draft
+admission/context/search preservation, ready-state denial and review/send isolation
+even after a temporary mode change. No fixtures committed and no test model/MAX
+calls. 125 automated checks passed; semantic quality awaits normal live candidates.

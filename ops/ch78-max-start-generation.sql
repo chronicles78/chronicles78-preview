@@ -22,7 +22,7 @@ select cron.schedule('ch78-max-generate','10 seconds', $job$
   body:='{"stage":"generate"}'::jsonb,timeout_milliseconds:=145000)
  from public.ch78_max_bot_config c
  where c.id and c.generation_enabled and exists(
-  select 1 from public.ch78_max_jobs j where j.chat_id=c.chat_id and j.state='queued');
+  select 1 from public.ch78_max_jobs j where j.chat_id=c.chat_id and j.state='queued' and (j.action<>'reaction' or c.reaction_mode<>'off'));
  $job$);
 update public.ch78_max_bot_config set commands_enabled=true,generation_enabled=true,
  sending_enabled=false,activated_at=clock_timestamp() where id;

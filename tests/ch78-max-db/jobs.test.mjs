@@ -5,11 +5,11 @@ import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite();let serial=0;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
- for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql'])
+ for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql'])
   await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
 });
 beforeEach(async()=>{
- await db.exec("reset role;delete from ch78_max_jobs;delete from ch78_max_messages;update ch78_max_bot_config set commands_enabled=false,generation_enabled=false,sending_enabled=false,activated_at=clock_timestamp()-interval '1 minute'");
+ await db.exec("reset role;delete from ch78_max_jobs;delete from ch78_max_messages;update ch78_max_bot_config set commands_enabled=false,generation_enabled=false,sending_enabled=false,reaction_mode='off',activated_at=clock_timestamp()-interval '1 minute'");
 });
 after(()=>db.close());
 async function backend(sql,args=[]){await db.exec('set role service_role');try{return (await db.query(sql,args)).rows;}finally{await db.exec('reset role')}}
@@ -176,4 +176,71 @@ test('suppressed reply flood is excluded from evidence even when no job is creat
  for(let i=0;i<3;i++)await insert({user:'102',text:'Алла выступала?',link});
  assert.equal((await jobs()).length,3);
  const rows=await backend("select * from ch78_max_search('-78143291213122','выступала')");assert.equal(rows.length,0);
+});
+
+const story='Помню, как после уроков в школе мы всем классом собирались во дворе и долго обсуждали планы на летние каникулы. А потом шли к Волге.';
+async function reactions(mode='draft'){
+ await enable();await db.query("update ch78_max_bot_config set reaction_mode=$1,reactions_activated_at=clock_timestamp()-interval '1 minute'",[mode]);
+}
+test('reactions are off by default and never enqueue paid work',async()=>{
+ await enable();await insert({text:story});assert.equal((await jobs()).length,0);
+});
+test('draft admission is bounded, human-only, fresh and group-scoped',async()=>{
+ await reactions();for(const item of [{chat:'-99'},{bot:true},{user:'0'},{age:-120000},{text:'Помню школу'},{text:'Обычный длинный текст '.repeat(8)},{link:{type:'forward'}}])await insert({text:story,...item});
+ assert.equal((await jobs()).length,0);const id=await insert({text:story});await insert({text:story,id});await insert({text:story});
+ const rows=await jobs();assert.equal(rows.length,1);assert.equal(rows[0].action,'reaction');assert.equal(rows[0].review_required,true);
+});
+test('model-declined and failed reactions still consume the bounded evaluation allowance',async()=>{
+ await reactions();for(let i=0;i<5;i++){
+  await db.exec("update ch78_max_jobs set created_at=clock_timestamp()-interval '31 minutes'");await insert({text:story});
+ }
+ await db.exec("update ch78_max_jobs set created_at=clock_timestamp()-interval '31 minutes'");await insert({text:story});
+ assert.equal((await jobs()).length,5);
+});
+test('reaction drafts never dispatch, even after auto mode is enabled later',async()=>{
+ await reactions();await insert({text:story});const j=await claim();assert.equal(j.action,'reaction');
+ assert.equal(await finish(j,'ready','Нельзя',{}),false);assert.equal(await finish(j,'review','Черновик',{found:true}),true);
+ await db.exec("update ch78_max_bot_config set sending_enabled=true,reaction_mode='auto'");assert.equal(await claim('send'),undefined);
+});
+test('silence is a terminal skipped decision, not a reply or retry',async()=>{
+ await reactions();await insert({text:story});const j=await claim();assert.equal(await finish(j,'skipped',null,{found:false}),true);assert.equal(await claim(),undefined);
+});
+test('reaction kill switch works after leasing and stale ready reactions cannot send',async()=>{
+ await reactions('auto');await insert({text:story});const j=await claim();
+ await db.exec("update ch78_max_bot_config set reaction_mode='off'");assert.equal((await backend('select ch78_max_job_gate($1,$2) allowed',[j.id,j.lease]))[0].allowed,false);
+ await db.exec("update ch78_max_bot_config set reaction_mode='auto',sending_enabled=true");await finish(j,'ready','Реакция',{});
+ await db.exec("update ch78_max_jobs set created_at=clock_timestamp()-interval '31 minutes'");assert.equal(await claim('send'),undefined);assert.equal((await jobs())[0].state,'skipped');
+});
+test('explicit questions have priority and their own quota; reaction posts stay searchable',async()=>{
+ await reactions();await insert({text:story,user:'101'});await insert({text:'/ask Что было в школе?',user:'101'});
+ const j=await claim();assert.equal(j.action,'answer');
+ const found=await backend("select * from ch78_max_search('-78143291213122','каникулы')");assert.equal(found.length,1);assert.equal(found[0].content,story);
+});
+test('context includes the anchor and preceding human messages only in the same group',async()=>{
+ await reactions();await insert({text:'Короткая реплика',age:-5000});await insert({text:'Бот',bot:true,age:-4000});await insert({text:'Чужая группа',chat:'-99',age:-3000});
+ const id=await insert({text:story,age:-1000});await insert({text:'Позже',age:1000});
+ const context=await backend('select * from ch78_max_reaction_context($1)',[id]);
+ assert.equal(context.length,2);assert.equal(context[0].message_id,id);assert.equal(context[1].content,'Короткая реплика');
+ for(const role of ['anon','authenticated']){
+  await db.exec('set role '+role);try{await assert.rejects(db.query('select * from ch78_max_reaction_context($1)',[id]),/permission denied/);}finally{await db.exec('reset role');}
+ }
+});
+
+test('auto reactions can be sent only once and the mode gate blocks a leased send',async()=>{
+ await reactions('auto');await insert({text:story});const generation=await claim();
+ assert.equal(await finish(generation,'ready','Реакция',{found:true}),true);
+ await db.exec("update ch78_max_bot_config set sending_enabled=true");const send=await claim('send');assert.equal(send.action,'reaction');
+ await db.exec("update ch78_max_bot_config set reaction_mode='draft'");assert.equal((await backend('select ch78_max_job_gate($1,$2) allowed',[send.id,send.lease]))[0].allowed,false);
+ await db.exec("update ch78_max_bot_config set reaction_mode='auto'");assert.equal(await finish(send,'sent',null,null,'mid.once'),true);assert.equal(await claim('send'),undefined);
+});
+test('switching queued auto work into draft latches review permanently',async()=>{
+ await reactions('auto');await insert({text:story});await db.exec("update ch78_max_bot_config set reaction_mode='draft'");const j=await claim();assert.equal(j.review_required,true);
+ assert.equal(await finish(j,'review','Черновик',{}),true);await db.exec("update ch78_max_bot_config set reaction_mode='auto',sending_enabled=true");assert.equal(await claim('send'),undefined);
+});
+
+test('human replies to an unsolicited reaction remain memories, not implicit commands',async()=>{
+ await reactions('auto');await insert({text:story});await db.exec("update ch78_max_jobs set state='sent',sent_message_id='mid.reaction'");
+ await insert({user:'102',text:'Мы тогда слушали школьный ансамбль.',link:{type:'reply',message:{mid:'mid.reaction'}}});
+ assert.equal((await jobs()).length,1);
+ const results=await backend("select * from ch78_max_search('-78143291213122','ансамбль')");assert.equal(results.length,1);assert.equal(results[0].content,'Мы тогда слушали школьный ансамбль.');
 });

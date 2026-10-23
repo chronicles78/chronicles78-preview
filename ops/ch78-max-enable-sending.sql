@@ -14,7 +14,7 @@ select cron.schedule('ch78-max-send','10 seconds', $job$
   body:='{"stage":"send"}'::jsonb,timeout_milliseconds:=60000)
  from public.ch78_max_bot_config c
  where c.id and c.sending_enabled and exists(
-  select 1 from public.ch78_max_jobs j where j.chat_id=c.chat_id and j.state='ready');
+  select 1 from public.ch78_max_jobs j where j.chat_id=c.chat_id and j.state='ready' and (j.action<>'reaction' or (c.reaction_mode='auto' and not j.review_required)));
  $job$);
 update public.ch78_max_bot_config set sending_enabled=true where id;
 commit;

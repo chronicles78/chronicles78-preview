@@ -59,7 +59,7 @@ test('upstream errors are sanitized; missing key does not trigger a model call',
  const {handler,calls}=setup({overrides:{OPENAI_API_KEY:''}});assert.equal((await handler(req({action:'answer',q:'танцы'}))).status,503);assert.equal(calls.length,0);
 });
 test('request and source budgets are enforced',async()=>{
- const {handler}=setup();assert.equal((await handler(req({action:'search',q:'x'.repeat(9000)}))).status,413);
+ const {handler}=setup();assert.equal((await handler(req({action:'search',q:'x'.repeat(40000)}))).status,413);
  const items=Array.from({length:8},(_,i)=>({...row,message_id:String(i),content:'a'.repeat(12000)}));
  const h=setup({rows:items}).handler;const result=await (await h(req())).json();
  assert.ok(result.sources.reduce((n,s)=>n+s.text.length,0)<=20000);assert.ok(result.sources.every(s=>s.truncated));
@@ -189,4 +189,36 @@ test('invalid archive dates cannot reach the answer generator',async()=>{
 test('ordinary search adds readable publication dates without model calls',async()=>{
  const x=setup();const r=await (await x.handler(req())).json();assert.equal(r.sources[0].posted_at,samaraDate(row.message_ts));
  assert.equal(r.sources[0].time_zone,'Europe/Samara');assert.equal(r.usage.requests,0);
+});
+
+const post={message_id:'new-post',message_ts:Date.parse('2026-10-23T10:00:00Z'),content:'Помню школьный двор и нашу встречу у Волги.'};
+function reactionBody(extra={}){return {action:'reaction',q:'школьный двор',post,context:[{message_ts:post.message_ts-1000,content:'А где встречались?'}],...extra};}
+test('reaction uses one decision-and-draft call with post, prior context and dated archive',async()=>{
+ const x=setup({plan:{found:true,answer:'А где именно в школьном дворе вы собирались?',citations:[]}});
+ const r=await x.handler(req(reactionBody()));assert.equal(r.status,200);const data=await r.json();assert.equal(data.found,true);assert.equal(data.mode,'reaction');
+ const calls=x.calls.filter(c=>c.url.includes('openai.com'));assert.equal(calls.length,1);
+ const input=JSON.parse(calls[0].body.input);assert.equal(input.new_post.text,post.content);assert.equal(input.conversation_context[0].text,'А где встречались?');
+ assert.equal(input.archive_sources[0].message_id,row.message_id);assert.equal(data.usage.requests,1);
+});
+test('model silence returns no text and no candidate excerpts',async()=>{
+ const x=setup({plan:{found:false,answer:'Не публиковать',citations:[]}});
+ const r=await (await x.handler(req(reactionBody()))).json();assert.equal(r.found,false);assert.equal(r.answer,'');assert.deepEqual(r.sources,[]);
+});
+test('reaction rejects unknown citations and excessive or malformed drafts without retries',async()=>{
+ for(const plan of [{found:true,answer:'Факт [S99]',citations:['S99']},{found:true,answer:'Факт [S1]',citations:[]},{found:true,answer:'а'.repeat(601),citations:[]}]){
+  const x=setup({plan});const r=await x.handler(req(reactionBody()));assert.equal(r.status,502);assert.equal(x.calls.filter(c=>c.url.includes('openai.com')).length,1);
+ }
+});
+test('reaction context bounds fail before data/model calls; current post is not retrieved as old evidence',async()=>{
+ const x=setup();assert.equal((await x.handler(req(reactionBody({context:[{content:'а'.repeat(501),message_ts:1}]})))).status,400);assert.equal(x.calls.length,0);
+ const y=setup({rows:[{...row,message_id:post.message_id}],plan:{found:true,answer:'А кто ещё помнит эту встречу?',citations:[]}});
+ const r=await y.handler(req(reactionBody()));assert.equal(r.status,200);assert.deepEqual(JSON.parse(y.calls.find(c=>c.url.includes('openai.com')).body.input).archive_sources,[]);
+});
+
+test('reactive archive claims require valid citations; an uncited response must be one question',async()=>{
+ const valid=setup({plan:{found:true,answer:'В архиве есть воспоминание о школьной дискотеке [S1]. А вы помните музыку?',citations:['S1']}});
+ assert.equal((await valid.handler(req(reactionBody()))).status,200);
+ for(const answer of ['Нужно помнить нашу школу.','Факт [S1, S2]?','Кто пришёл? Где были?']){
+  const x=setup({plan:{found:true,answer,citations:[]}});assert.equal((await x.handler(req(reactionBody()))).status,502);
+ }
 });

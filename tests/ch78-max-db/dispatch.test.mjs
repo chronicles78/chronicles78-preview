@@ -5,7 +5,7 @@ import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite();let serial=0;const commands={};let retention;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
- for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql'])
+ for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql'])
   await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
  await db.exec(`create schema vault;create table vault.decrypted_secrets(name text,decrypted_secret text);
  insert into vault.decrypted_secrets values('ch78_max_worker_secret','fictional-worker-secret');
@@ -55,4 +55,11 @@ test('retention removes only old completed logs of these two jobs',async()=>{
  await db.exec(retention);
  assert.deepEqual((await db.query('select jobid from cron.job_run_details order by jobid')).rows.map(r=>r.jobid),[1,2,3]);
  assert.deepEqual(await tick(),[]);
+});
+
+test('disabled reactions and draft reviews do not wake HTTP workers',async()=>{
+ await job('queued');await db.exec("update ch78_max_jobs set action='reaction'");assert.deepEqual(await tick(),[]);
+ await db.exec("update ch78_max_bot_config set reaction_mode='draft'");assert.deepEqual(await tick(),['generate']);
+ await db.exec("delete from net.calls;update ch78_max_jobs set state='review',review_required=true");assert.deepEqual(await tick(),[]);
+ await db.exec("update ch78_max_bot_config set reaction_mode='auto';update ch78_max_jobs set state='ready'");assert.deepEqual(await tick(),[]);
 });

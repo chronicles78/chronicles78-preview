@@ -1819,3 +1819,22 @@ assistant module; exact fetched-source equality verified for all four bundle
 files. Existing schedules, limits and flags unchanged. Standalone owner-client
 endpoint unchanged. No paid verification calls or test MAX posts. 102 contract
 tests passed; live answer quality remains to be observed on subsequent questions.
+
+
+### CH78 presentation stage 2 — prepared 2026-10-23
+
+Avatar/description approved but deferred by user until mini-app changes can be
+submitted together. Prepared safe HTML answer presentation, quotes and readable
+source labels; legacy/plain service compatibility retained via stored format marker.
+MAX_DESIGN.md and previews/keeper-replies-v1.html document the reviewable result.
+106 tests pass; production stays worker v7. Await explicit installation approval.
+No remote publication, model call or MAX message made for this preparation.
+
+
+### CH78 presentation stage 2 — installed 2026-10-23
+
+After explicit authorization, deployed worker v8 ACTIVE. All four fetched bundle
+files match uploaded source. New answers use safe HTML headings, quotes and source
+labels; legacy/plain service replies retain their saved format. 106 tests pass.
+Profile changes remain deferred until mini-app submission. No paid verification
+calls or test MAX messages sent; actual client appearance remains to be observed.

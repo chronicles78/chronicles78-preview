@@ -329,3 +329,38 @@ The standalone owner-client assistant endpoint was not replaced. This change
 applies to subsequent bot questions, not retroactively to stored answers.
 No paid model test or MAX publication was made during installation. The 102
 passing contract tests do not establish semantic accuracy on live model output.
+
+
+## Reply presentation — prepared 2026-10-23, not deployed
+
+User deferred avatar/description changes until mini-app setup. Prepared safe HTML
+rendering with bold headings, answer-first layout, author/publication date labels,
+and blockquote excerpts of cited sources only. All untrusted text is escaped;
+clipping budgets encoded text without splitting entities or Unicode code points.
+Raw HTML remains within 4000 UTF-16 units including tags/entities, conservatively
+within the MAX message limit. Excerpts can use up to 450 units when space permits;
+8-source messages share the remaining budget. No evidence => no unrelated quotes.
+
+New successful generation persists reply_format=html alongside rendered text.
+Sending uses that marker only; legacy saved replies, help and error notices stay
+plain text. Generation/delivery remain separate; no new model calls or retries.
+Standalone fictional preview: previews/keeper-replies-v1.html. This is a design
+mockup, not an observed MAX client rendering. Actual client typography, themes and
+quote display need verification after authorized installation.
+
+Validation: 106 tests (43 DB, 54 handlers, 9 client), Deno worker check and whitespace
+check passed. Added adversarial markup/escaping, encoded size with 8 sources,
+format persistence/legacy compatibility and longer excerpt tests. No deployment,
+MAX posts or paid model calls performed. Await explicit installation approval.
+Official formatting: https://dev.max.ru/docs-api/use-cases/sending-messages/text-formatting
+
+
+### Reply presentation installed — 2026-10-23
+
+User explicitly approved installation. Worker v8 ACTIVE now renders new successful
+search/answer jobs as escaped HTML, with the stored reply_format marker controlling
+sending. Fetched deployment matches all four uploaded files. Other worker modules,
+archive tables, schedules and limits were preserved. Avatar and description remain
+deferred by user until mini-app submission. No paid calls or test MAX posts were
+made. 106 automated tests passed; actual MAX client rendering remains to be observed
+on subsequent normal requests.

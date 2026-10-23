@@ -5,31 +5,47 @@ const encoder=new TextEncoder();
 const json=(status,data)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(x);
 const clean=x=>String(x??'').replace(/[\x00-\x08\x0b-\x1f\x7f\u202a-\u202e\u2066-\u2069]/g,'');
-const cut=(x,n)=>{const chars=Array.from(clean(x));return chars.length<=n?chars.join(''):chars.slice(0,n-14).join('')+'… [сокращено]';};
+const escape=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+// Budget escaped text, never cutting an HTML entity or a Unicode code point.
+function escapedClip(value,budget){
+ const pieces=Array.from(clean(value)).map(escape);
+ if(pieces.reduce((n,p)=>n+p.length,0)<=budget)return pieces.join('');
+ let out='';for(const piece of pieces){if(out.length+piece.length>budget-1)break;out+=piece;}
+ return out+'…';
+}
 export function renderReply(data,action){
- if(!data||!Array.isArray(data.sources)||data.sources.length>8)throw Error('invalid_result');
- const lines=[action==='answer'?'Хранитель · ответ по архиву':'Хранитель · найденные сообщения'];
+ if(!data||!Array.isArray(data.sources)||data.sources.length>8||!['answer','search'].includes(action))throw Error('invalid_result');
  let visibleSources=data.sources;
+ const title=action==='answer'?'Ответ по архиву':'Найдено в архиве';
+ const lines=['<b>'+title+'</b>'];
  if(action==='answer'){
   if(typeof data.answer!=='string'||typeof data.found!=='boolean')throw Error('invalid_result');
   if(data.found){
    if(!Array.isArray(data.citations)||!data.citations.length||data.citations.some(ref=>
     typeof ref!=='string'||!/^S[1-8]$/.test(ref)||!data.sources.some(s=>s.ref===ref)))throw Error('invalid_citation');
    visibleSources=data.sources.filter(s=>data.citations.includes(s.ref));
-  }
-  lines.push(cut(data.answer,2000));
+  }else visibleSources=[];
+  lines.push(escapedClip(data.answer,1800));
  }
- // No-evidence responses do not publish a pile of unrelated excerpts.
- if(action==='search'||data.found){
-  for(const source of visibleSources){
-   if(!/^S[1-8]$/.test(source.ref)||typeof source.text!=='string'||!Number.isSafeInteger(source.message_ts))throw Error('invalid_source');
-   const date=new Date(source.message_ts).toLocaleString('ru-RU',{timeZone:'Europe/Samara'});
-   lines.push('['+source.ref+'] '+date+' · '+cut(source.author,60)+'\n'+cut(source.text,action==='search'?300:100));
+ const footer='\n\n<i>'+(action==='answer'?'По сообщениям архива. Детали могут требовать уточнения.':'Совпадение слов не гарантирует ответа на вопрос.')+' Даты сообщений — по Самаре.</i>';
+ let text=lines.join('\n\n');
+ if(visibleSources.length){
+  const heading='\n\n<b>'+(action==='answer'?'Источники':'Сообщения')+'</b>';
+  const blocks=visibleSources.map(source=>{
+   if(!/^S[1-8]$/.test(source.ref)||typeof source.text!=='string'||!Number.isSafeInteger(source.message_ts)||!Number.isFinite(new Date(source.message_ts).getTime()))throw Error('invalid_source');
+   const date=new Date(source.message_ts).toLocaleString('ru-RU',{timeZone:'Europe/Samara',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+   return {before:'\n\n<b>['+source.ref+'] '+escapedClip(source.author||'Автор не указан',80)+'</b> · '+escape(date)+'\n<blockquote>',after:'</blockquote>',source};
+  });
+  let remaining=4000-text.length-heading.length-footer.length-blocks.reduce((n,b)=>n+b.before.length+b.after.length,0);
+  if(remaining<blocks.length)throw Error('reply_too_large');
+  text+=heading;
+  for(const [i,b] of blocks.entries()){
+   const quote=escapedClip(b.source.text,Math.min(450,Math.floor(remaining/(blocks.length-i))));
+   remaining-=quote.length;text+=b.before+quote+b.after;
   }
- }
- if(!data.sources.length&&action==='search')lines.push('Подходящих сообщений не найдено.');
- lines.push(action==='answer'?'Черновик по источникам. Проверяйте факты.':'Совпадение слов не гарантирует ответа на вопрос.');
- const text=lines.join('\n\n');if(Array.from(text).length>4000)throw Error('reply_too_large');return text;
+ }else if(action==='search')text+='\n\nПодходящих сообщений не найдено. Попробуйте другие слова.';
+ text+=footer;
+ if(text.length>4000)throw Error('reply_too_large');return text;
 }
 async function bodyJSON(response,max=262144,timeout=0){
  const reader=response.body?.getReader();if(!reader)throw Error('invalid_response');
@@ -99,7 +115,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
      await finish('ready',{p_reply:'Не удалось дождаться ответа модели. Повтор автоматически не выполняю. Можно попробовать позже или написать /find и ключевые слова.',p_error:'generation_uncertain',p_result:{error:'generation_uncertain'}});return json(200,{ok:true,state:'ready'});
     }
     let text;try{text=renderReply(data,job.action)}catch{await finish('ready',{p_reply:'Не удалось проверить ответ и его источники. Попробуйте переформулировать вопрос или используйте /find и ключевые слова.',p_error:'invalid_result',p_result:{error:'invalid_result',...(data?.usage?{usage:data.usage}:{})}});return json(200,{ok:true,state:'ready'});}
-    await finish('ready',{p_reply:text,p_result:data});return json(200,{ok:true,state:'ready'});
+    await finish('ready',{p_reply:text,p_result:{...data,reply_format:'html'}});return json(200,{ok:true,state:'ready'});
    }
    if(typeof job.reply_text!=='string'||!job.reply_text.length||Array.from(job.reply_text).length>4000){
     await finish('failed',{p_error:'invalid_reply'});return json(200,{ok:true,state:'failed'});
@@ -116,7 +132,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    try{
     const r=await fetchImpl('https://platform-api2.max.ru/messages?chat_id='+CHAT+'&disable_link_preview=true',{
      method:'POST',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:env('CH78_MAX_TOKEN'),'Content-Type':'application/json'},
-     body:JSON.stringify({text:job.reply_text,attachments:null,link:{type:'reply',mid:job.message_id},notify:false})});
+     body:JSON.stringify({text:job.reply_text,attachments:null,link:{type:'reply',mid:job.message_id},notify:false,...(job.result?.reply_format==='html'?{format:'html'}:{})})});
     if(!r.ok){const state=r.status>=500?'delivery_unknown':'failed';r.body?.cancel().catch(()=>{});
      await finish(state,{p_error:'max_rejected'});return json(200,{ok:true,state});}
     sent=await bodyJSON(r);

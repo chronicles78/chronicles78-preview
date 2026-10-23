@@ -109,3 +109,37 @@ test('usage is saved for successful answers and error notices, without raw error
   assert.deepEqual(saved.body.p_result.usage,usage);assert.ok(!JSON.stringify(saved.body.p_result).includes('PRIVATE'));
  }
 });
+
+
+test('HTML reply escapes model, author and archive text instead of executing markup',()=>{
+ const x={...data,answer:'<b>Факт</b> & [S1]',sources:[{...data.sources[0],author:'<a href="max://user/1">Автор</a>',text:'<script>alert(1)</script> & «цитата»'}]};
+ const html=renderReply(x,'answer');assert.ok(html.startsWith('<b>Ответ по архиву</b>'));
+ assert.ok(html.includes('&lt;b&gt;Факт&lt;/b&gt; &amp; [S1]'));assert.ok(html.includes('&lt;script&gt;'));
+ assert.ok(!html.includes('<script>'));assert.ok(!html.includes('<a href='));assert.ok(html.includes('<blockquote>'));
+ assert.ok(html.includes('Даты сообщений — по Самаре'));
+});
+test('escaping-heavy eight-source replies stay within raw MAX size with balanced markup',()=>{
+ const sources=Array.from({length:8},(_,i)=>({ref:'S'+(i+1),message_ts:1000,author:'<&😀'.repeat(100),text:'&<😀>'.repeat(2000)}));
+ for(const action of ['answer','search']){
+  const html=renderReply({...data,answer:'<&😀>'.repeat(2000),citations:sources.map(s=>s.ref),sources},action);
+  assert.ok(html.length<=4000);assert.equal((html.match(/<blockquote>/g)||[]).length,8);
+  assert.equal((html.match(/<\/blockquote>/g)||[]).length,8);
+  assert.ok(!/&(?!amp;|lt;|gt;|quot;|#39;)/.test(html));
+  for(const s of sources)assert.ok(html.includes('['+s.ref+']'));
+ }
+});
+test('format is persisted with new generated answers and sent only for marked jobs',async()=>{
+ const generation=setup();await generation.handler(req());
+ assert.equal(generation.calls.find(c=>c.body?.p_state==='ready').body.p_result.reply_format,'html');
+ const formatted=setup({badJob:{result:{reply_format:'html'}}});await formatted.handler(req('send'));
+ assert.equal(formatted.calls.find(c=>c.url?.includes('/messages?')).body.format,'html');
+ for(const result of [null,{kind:'help'},{reply_format:'markdown'}]){
+  const legacy=setup({badJob:{result}});await legacy.handler(req('send'));
+  assert.equal(legacy.calls.find(c=>c.url?.includes('/messages?')).body.format,undefined);
+ }
+});
+test('a single cited excerpt gets room for a readable quote without unrelated sources',()=>{
+ const x={...data,sources:[{...data.sources[0],text:'Рассказ '.repeat(100)}]};
+ const html=renderReply(x,'answer');assert.ok(html.includes('Рассказ '.repeat(20)));assert.ok(html.includes('…</blockquote>'));
+ const no=renderReply({...x,found:false},'answer');assert.ok(!no.includes('<blockquote>'));assert.ok(!no.includes('<b>Источники</b>'));
+});

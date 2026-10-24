@@ -4,6 +4,8 @@ import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
 const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co',CHAT='-78143291213122',ORIGIN='https://chronicles78.github.io';
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(x);
 const hex=bytes=>Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
+// Store only known internal codes, never upstream text, inputs or credentials.
+const assistantCodes=new Set(['invalid_request','json_required','request_timeout','request_too_large','archive_unavailable','archive_invalid','model_not_configured','model_incomplete','model_refused','model_invalid','invalid_citation','uncited_answer','model_key_rejected','model_access_denied','model_not_found','model_parameters','model_limit','model_unavailable','upstream_invalid','processing_unavailable','server_configuration','forbidden','method_not_allowed']);
 async function inputJSON(req){
  if(req.headers.get('Content-Type')?.split(';')[0].trim()!=='application/json')throw Error('invalid_request');
  const reader=req.body?.getReader();if(!reader)throw Error('invalid_request');let timer,total=0;const chunks=[];
@@ -13,11 +15,11 @@ async function inputJSON(req){
  }finally{clearTimeout(timer);reader.cancel().catch(()=>{});}
 }
 function publicResult(data,action){
- if(!data||typeof data.found!=='boolean'||!Array.isArray(data.sources)||data.sources.length>8)throw Error('invalid_result');
+ if(!data||typeof data.found!=='boolean'||!Array.isArray(data.sources)||data.sources.length>8)throw Error('result_shape');
  const citations=action==='answer'?data.citations:[];
- if(action==='answer'&&(typeof data.answer!=='string'||data.answer.length>5000||!Array.isArray(citations)||citations.some(id=>!/^S[1-8]$/.test(id)||!data.sources.some(s=>s.ref===id))||(data.found&&!citations.length)))throw Error('invalid_result');
+ if(action==='answer'&&(typeof data.answer!=='string'||data.answer.length>5000||!Array.isArray(citations)||citations.some(id=>typeof id!=='string'||!/^S[1-8]$/.test(id)||!data.sources.some(s=>s?.ref===id))||(data.found&&!citations.length)))throw Error('answer_shape');
  const sources=(action==='search'?data.sources:data.found?data.sources.filter(s=>citations.includes(s.ref)):[]).map(s=>{
-  if(!/^S[1-8]$/.test(s.ref)||typeof s.text!=='string'||s.text.length>4000||typeof s.author!=='string'||s.author.length>1000||!Number.isSafeInteger(s.message_ts)||!Number.isFinite(new Date(s.message_ts).getTime()))throw Error('invalid_result');
+  if(!s||!/^S[1-8]$/.test(s.ref)||typeof s.text!=='string'||s.text.length>4000||typeof s.author!=='string'||s.author.length>1000||!Number.isSafeInteger(s.message_ts)||!Number.isFinite(new Date(s.message_ts).getTime()))throw Error('source_shape');
   return {ref:s.ref,text:s.text,author:s.author,message_ts:s.message_ts,truncated:s.truncated===true};
  });
  return {found:data.found,...(action==='answer'?{answer:data.answer,citations}:{}),sources};
@@ -57,17 +59,22 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null,now=()=>Da
    if(b.action==='status')return reply(200,{messages:status.messages,test_archive:true,ai_enabled:status.ai_enabled===true,ai_daily_limit:status.ai_daily_limit});
    const fingerprint=hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([b.action,b.q.trim(),b.mode??'forms']))));
    const claim=await rpc('ch78_max_miniapp_claim',{p_id:b.request_id,p_user_id:identity.userId,p_action:b.action,p_fingerprint:fingerprint});
-   if(['done','failed'].includes(claim?.kind))return reply(200,{state:claim.kind,result:claim.result});
+   if(['done','failed'].includes(claim?.kind))return reply(200,{state:claim.kind,result:claim.kind==='failed'?{error:'answer_unavailable'}:publicResult(claim.result,b.action)});
    if(['processing','unknown'].includes(claim?.kind))return reply(200,{state:claim.kind});
    if(claim?.kind!=='claimed'||!uuid(claim.lease))return reply(['rate_limit','daily_limit'].includes(claim?.kind)?429:409,{error:['disabled','ai_disabled','rate_limit','daily_limit','conflict'].includes(claim?.kind)?claim.kind:'unavailable'});
-   let result,ok=false,usage;
+   let result,ok=false,usage,diagnostic,stage='assistant_call',httpStatus;
    try{
     const r=await run(new Request(PROJECT+'/functions/v1/ch78-max-assistant',{method:'POST',headers:{'Content-Type':'application/json','X-Max-Bot-Api-Secret':env('CH78_MAX_WEBHOOK_SECRET')},body:JSON.stringify({action:b.action,q:b.q.trim(),mode:b.mode??'forms'})}));
+    httpStatus=r.status;stage='assistant_decode';
     const data=await readJSON(r);usage=data?.usage;
-    if(!r.ok)throw Error('answer_unavailable');
+    if(!r.ok){diagnostic={stage:'assistant_response',code:assistantCodes.has(data?.error)?data.error:'assistant_failed',http_status:r.status};throw Error('answer_unavailable');}
+    stage='result_validation';
     result=publicResult(data,b.action);ok=true;
-   }catch{result={error:'answer_unavailable'};}
-   const saved=await rpc('ch78_max_miniapp_finish',{p_id:b.request_id,p_lease:claim.lease,p_ok:ok,p_result:{...result,...(usage?{usage}:{})}});
+   }catch(error){
+    diagnostic??={stage,code:stage==='result_validation'&&['result_shape','answer_shape','source_shape'].includes(error?.message)?error.message:stage==='assistant_decode'?'invalid_response':'processing_failed',...(httpStatus?{http_status:httpStatus}:{})};
+    result={error:'answer_unavailable'};
+   }
+   const saved=await rpc('ch78_max_miniapp_finish',{p_id:b.request_id,p_lease:claim.lease,p_ok:ok,p_result:{...result,...(usage?{usage}:{}),...(diagnostic?{diagnostic}:{})}});
    if(saved!==true)return reply(503,{error:'result_unknown'});
    return reply(200,{state:ok?'done':'failed',result});
   }catch{return reply(503,{error:'connection_unavailable'});}

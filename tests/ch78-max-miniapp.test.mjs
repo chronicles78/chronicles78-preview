@@ -15,16 +15,17 @@ const requestId='11111111-1111-4111-8111-111111111111',lease='22222222-2222-4222
 const source={ref:'S4',author:'Тест',text:'Сообщение <script>PRIVATE</script>',message_ts:1000};
 const answer={found:true,answer:'Факт [S4]',citations:['S4'],sources:[{...source,ref:'S1',text:'Не процитировано'},source]};
 function req(body={},options={}){return new Request('https://local.test',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,...options.headers},body:JSON.stringify({action:'answer',q:'Вопрос',request_id:requestId,init_data:signed(),...body})});}
-function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=false,save=false,network=false,realAssistant=false}={}){
+function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=false,save=false,network=false,realAssistant=false,assistantResponse=null,openAIAnswer=null}={}){
  const calls=[],stored=new Map();let models=0;
- const env=n=>({CH78_MAX_TOKEN:token,SUPABASE_SERVICE_ROLE_KEY:'PRIVATE_DB',CH78_MAX_WEBHOOK_SECRET:'x'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',CH78_MAX_CHAT_ID:'-78143291213122'})[n];
- const handler=createHandler({env,now:()=>now,assistantImpl:realAssistant?null:async r=>{models++;calls.push({model:await r.json()});if(modelError)throw Error('PRIVATE_ERROR');return Response.json(answer);},fetchImpl:async(url,opts)=>{
+ const env=n=>({CH78_MAX_TOKEN:token,SUPABASE_SERVICE_ROLE_KEY:'PRIVATE_DB',CH78_MAX_WEBHOOK_SECRET:'x'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'PRIVATE_OPENAI'})[n];
+ const handler=createHandler({env,now:()=>now,assistantImpl:realAssistant?null:async r=>{models++;calls.push({model:await r.json()});if(modelError)throw Error('PRIVATE_ERROR');return assistantResponse?assistantResponse():Response.json(answer);},fetchImpl:async(url,opts)=>{
   const body=opts.body?JSON.parse(opts.body):{};calls.push({url,body});if(network)throw Error('PRIVATE_NETWORK');
   if(url.endsWith('ch78_max_miniapp_status'))return Response.json({enabled,ai_enabled:true,messages:394,ai_daily_limit:5});
   if(url.endsWith('/me'))return Response.json({user_id:wrongBot?99:531401311,is_bot:true});
   if(url.includes('/members?user_ids='))return Response.json({members:member?[{user_id:uid,is_bot:false}]:[]});
   if(url.endsWith('ch78_max_miniapp_claim')){if(claim)return Response.json(claim);if(stored.has(body.p_id))return Response.json(stored.get(body.p_id));stored.set(body.p_id,{kind:'processing'});return Response.json({kind:'claimed',lease});}
   if(url.endsWith('ch78_max_search'))return Response.json([{message_id:'mid.fixture',message_ts:1000,author:'Тест',content:'Архивный текст',score:1}]);
+  if(url==='https://api.openai.com/v1/responses'&&openAIAnswer){models++;const value=body.text.format.name==='archive_queries'?{queries:['архив']}:openAIAnswer;return Response.json({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(value)}]}],usage:{input_tokens:10,output_tokens:5,total_tokens:15}});}
   if(url.endsWith('ch78_max_miniapp_finish')){if(save)throw Error('PRIVATE_SAVE');stored.set(body.p_id,{kind:body.p_ok?'done':'failed',result:body.p_result});return Response.json(true);}
   throw Error('unexpected');
  }});return {handler,calls,get models(){return models}};
@@ -80,4 +81,33 @@ test('real search path retrieves sources without any OpenAI call',async()=>{
  const s=setup({realAssistant:true});const r=await s.handler(req({action:'search',q:'архив'}));const d=await r.json();
  assert.equal(d.state,'done');assert.equal(d.result.sources[0].text,'Архивный текст');
  assert.ok(!s.calls.some(c=>c.url?.includes('api.openai.com')));
+});
+
+test('assistant error code is stored privately; first and cached failures hide diagnostics and usage',async()=>{
+ const s=setup({assistantResponse:()=>Response.json({error:'invalid_citation',diagnostic:{secret:'PRIVATE'},usage:{requests:2}},{status:502})});
+ const first=await (await s.handler(req())).json();
+ const saved=s.calls.find(c=>c.url?.endsWith('ch78_max_miniapp_finish')).body.p_result;
+ assert.deepEqual(saved.diagnostic,{stage:'assistant_response',code:'invalid_citation',http_status:502});
+ assert.deepEqual(first,{state:'failed',result:{error:'answer_unavailable'}});
+ assert.deepEqual(await (await s.handler(req())).json(),first);assert.equal(s.models,1);
+ assert.ok(!JSON.stringify(saved).includes('PRIVATE'));
+});
+test('unrecognized upstream error and thrown exceptions never persist arbitrary error text',async()=>{
+ for(const options of [{assistantResponse:()=>Response.json({error:'PRIVATE_ERROR'},{status:503})},{modelError:true}]){
+  const s=setup(options);await s.handler(req());const saved=s.calls.find(c=>c.url?.endsWith('ch78_max_miniapp_finish')).body.p_result;
+  assert.ok(!JSON.stringify(saved).includes('PRIVATE'));assert.ok(['assistant_failed','processing_failed'].includes(saved.diagnostic.code));
+ }
+});
+test('malformed assistant payload and invalid cited source distinguish decode from validation',async()=>{
+ for(const [response,stage,code] of [
+  [()=>new Response('PRIVATE_NON_JSON',{headers:{'Content-Type':'application/json'}}),'assistant_decode','invalid_response'],
+  [()=>Response.json({found:true,sources:[]}), 'result_validation','answer_shape'],
+  [()=>Response.json({...answer,sources:[{...source,message_ts:'invalid'}]}),'result_validation','source_shape']
+ ]){const s=setup({assistantResponse:response});await s.handler(req());const d=s.calls.find(c=>c.url?.endsWith('ch78_max_miniapp_finish')).body.p_result.diagnostic;assert.equal(d.stage,stage);assert.equal(d.code,code);}
+});
+test('real assistant with simulated model supports answer and no-evidence outcomes without diagnostics leaking on replay',async()=>{
+ for(const draft of [{found:true,answer:'Из архива [S1]',citations:['S1']},{found:false,answer:'Недостаточно сведений',citations:[]}]){
+  const s=setup({realAssistant:true,openAIAnswer:draft});const d=await (await s.handler(req())).json();assert.equal(d.state,'done');assert.equal(d.result.found,draft.found);assert.equal(s.models,2);
+  assert.deepEqual(await (await s.handler(req())).json(),d);assert.equal(s.models,2);
+ }
 });

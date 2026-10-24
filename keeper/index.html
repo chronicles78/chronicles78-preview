@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://st.max.ru; style-src 'self'; img-src 'self' data:; connect-src https://fnwpkmjjdhflnqghnogj.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Читальный зал · Хранитель Хроник‑78</title>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<div class="shell">
+<header class="masthead"><a class="brand" href="./" aria-label="Хранитель, главная"><span class="seal" aria-hidden="true">78</span><span><span class="eyebrow">ХРОНИКИ НАШЕГО КЛАССА</span><b>Хранитель</b></span></a><span class="edition">Читальный зал</span></header>
+<div id="demo-banner" class="demo-banner" hidden>Образец оформления · все истории и имена вымышлены · без сети и ИИ</div>
+<main>
+<section class="intro"><div><span class="eyebrow accent">ПАМЯТЬ, К КОТОРОЙ МОЖНО ВЕРНУТЬСЯ</span><h1>Давайте вспомним.</h1><p>Задайте вопрос Хранителю или найдите знакомые слова в сообщениях нашего класса.</p></div><div class="book" aria-hidden="true"><span>ХРОНИКИ</span><strong>78</strong><i>Люди. Истории. Мы.</i></div></section>
+<div class="archive-line"><span class="dot" aria-hidden="true"></span><span id="archive-label">Проверяем доступ к архиву…</span></div>
+<nav class="tabs" aria-label="Разделы читального зала"><button type="button" id="tab-answer" aria-pressed="true">Спросить Хранителя</button><button type="button" id="tab-search" aria-pressed="false">Поиск по словам</button><button type="button" id="tab-about" aria-pressed="false">Как это работает</button></nav>
+<section id="workspace" class="panel">
+<div class="panel-title"><span class="chapter" aria-hidden="true">01</span><div><h2 id="form-title">О чём хотите вспомнить?</h2><p id="form-description">Хранитель соберёт ответ из сообщений и покажет, на что опирается.</p></div></div>
+<form id="question-form"><label for="question" id="question-label">Ваш вопрос</label><textarea id="question" name="question" rows="3" maxlength="300" placeholder="Например: что рассказывали о школьных походах?" required disabled></textarea><div class="form-meta"><span id="mode-wrap" hidden><label for="mode">Искать</label><select id="mode"><option value="forms">Формы слов</option><option value="literal">Точное сочетание букв</option></select></span><span id="counter">0 / 300</span></div><div class="submit-line"><button class="primary" id="submit" disabled>Спросить Хранителя <span aria-hidden="true">↗</span></button><span id="cost-note">Поиск по словам обходится без ИИ.</span></div></form>
+<div class="examples"><span>Можно начать так</span><button type="button" data-question="Что вспоминали о школьных походах?">Школьные походы</button><button type="button" data-question="Как проводили время после уроков?">После уроков</button></div>
+</section>
+<section id="about" class="panel about" hidden><span class="eyebrow accent">НЕСКОЛЬКО СЛОВ О ХРАНИТЕЛЕ</span><h2>Сначала — воспоминания.<br>Потом — ответ.</h2><p>Хранитель ищет сообщения нашего класса и помогает связать их в рассказ. Если сведений мало, он скажет об этом. Разные версии одного события могут существовать рядом.</p><ol><li><b>Спросить Хранителя.</b> Вопрос и отобранные сообщения обрабатывает OpenAI. Ответ ИИ может содержать ошибки — проверяйте источники.</li><li><b>Поиск по словам.</b> Находит сообщения без обращения к ИИ. Формы слов помогают искать «школа», «школы», «школе»; буквальный режим ищет введённое сочетание.</li><li><b>Источники.</b> Откройте карточку под ответом, чтобы прочитать найденное сообщение и дату его публикации по Самаре.</li></ol><p>Архив хранится на сервере проекта. Доступ — участникам нашей группы после проверки через MAX. Результаты остаются в этом окне: приложение само не публикует их в чат.</p><p class="notice">Сейчас подключается тестовый чат. Основную историю перенесём отдельным этапом.</p></section>
+<div id="status" class="status" role="status" aria-live="polite"></div>
+<div id="recovery" class="recovery" hidden><button type="button" id="check-result">Проверить результат</button><button type="button" id="new-question">Начать новый вопрос</button><p>Проверка использует прежний номер запроса и не запускает ИИ повторно.</p></div>
+<section id="results" aria-label="Результат" tabindex="-1" hidden></section>
+<section id="welcome" class="welcome"><span class="small-book" aria-hidden="true">❧</span><h2>У каждой истории есть продолжение.</h2><p>Иногда достаточно одного вопроса,<br>чтобы знакомый эпизод зазвучал по-новому.</p></section>
+</main>
+<footer><b>Хранитель Хроник‑78</b><span>Помогает вспомнить. Не придумывает за вас.</span><small>Ответы ИИ требуют проверки по источникам.</small><nav class="legal-links" aria-label="Документы приложения"><a href="privacy.html" target="_blank" rel="noopener noreferrer">Обработка данных</a><a href="terms.html" target="_blank" rel="noopener noreferrer">Условия использования</a></nav></footer>
+</div>
+</body></html>

@@ -15,3 +15,8 @@ entrypoint = "./functions/ch78-max-assistant/index.ts"
 # Dedicated worker secret; no public or archive-read API.
 verify_jwt = false
 entrypoint = "./functions/ch78-max-worker/index.ts"
+
+# MAX signed launch data + live group membership are verified inside the handler.
+# Not deployed until mini-app review and separate installation approval.
+[functions.ch78-max-miniapp]
+verify_jwt = false

@@ -1908,3 +1908,59 @@ typing_enabled for test group only; reaction_mode remains draft. Rolled-back
 live SQL verified private grants, default off, enabled answer, wrong lease,
 search/draft denial and expired lease. No fixtures committed or test MAX/model
 calls. Client display awaits an ordinary live question. Main chat not imported.
+
+### CH78 mini-app — prepared for review 2026-10-23, not deployed
+
+Local keeper/ UI provides ask/search/help and expandable cited sources in the
+approved ivory/ink/red style. Six-file mini-app Edge bundle uses signed MAX launch
+HMAC (WebAppData, one-hour expiry), bot identity and current fixed-group membership
+before private data. Service-only migration defaults mini-app and AI flags off;
+separate proposal: five AI questions and 200 lexical searches per group/Samara day.
+Atomic UUID/fingerprint binding prevents automatic model replay after uncertainty;
+results stored privately and old rows pruned after seven days on use. UI does not
+publish to MAX. Existing chat budgets/worker/webhook unchanged. Approved avatar
+copied into assets/keeper for joint profile submission; no profile write performed.
+178 checks (96 Node/73 DB/9 Python), four Deno entrypoints, browser demo interactions
+and 390/320 iframe layouts pass. Offline self-contained fictional preview and
+screenshot in previews/keeper-miniapp-v1.*. MAX_MINIAPP.md/MAX_MODERATION.md describe
+pending hosting URL verification, privacy/terms requirements and real MAX launch
+acceptance. No server/database/site changes, no paid model calls or test chat posts.
+Test archive is 394 messages; main 2–3k archive remains a separate future import.
+
+### CH78 mini-app — design approved; release prepared 2026-10-23
+
+User approved the reviewed UI. Prepared publication of exactly five keeper/ static
+files without merging the bot branch/PR #7 or altering root website pages. Existing
+public site HTTP 200; public GitHub deployment 7046639469 identifies main at
+e999eb5af8117d2aa2e5eef52520680bb773b491. Browser Settings/Pages was logged out
+and returned 404, so no private settings were inferred or changed. Separate app
+privacy/terms pages use the contact already published in main/privacy.html.
+MAX_LAUNCH.md states the proposed additional five AI questions/group/Samara day
+(up to ten model calls) and 200 no-model searches. Release ZIP has 18 files plus
+SHA-256 manifest and no archive messages/secrets. Relative links, offline CSP,
+checksums, JS syntax and whitespace pass. Existing 178 functional checks remain
+applicable; no functional handler changes in this preparation step. Read-only live
+SQL confirms no mini-app columns/table yet, reaction_mode=draft, typing=true.
+No publication/deployment/MAX profile change performed. Await installation and
+budget approval; then real HTTPS verification and joint MAX configuration.
+
+
+## 2026-10-24 — мини-приложение установлено, ожидает кабинета MAX
+
+После разрешения Игоря опубликованы ровно пять keeper/ файлов в main,
+коммит 982bf5354311b4bb0c1c8a4b9761c5c50e5d9604. GitHub Pages успешно
+завершил публикацию (run 40126068216); HTTP 200 и точное совпадение всех пяти
+файлов подтверждены. Публичный интерфейс открыт браузером.
+Установлена ch78-max-miniapp v1 ACTIVE; шесть файлов сверены с сервером.
+Миграция применена транзакцией execute_sql, так как apply_migration дважды
+вернул Invalid or expired requestState; версия 20261023183326 отдельно
+зафиксирована в supabase_migrations.schema_migrations после проверки схемы.
+Права, RLS, повторное получение и изоляция пользователей проверены на живой БД
+с откатом тестовых записей. 96 Node + 73 DB + 9 Python = 178 проверок PASS.
+miniapp_enabled=false, miniapp_ai_enabled=false, лимит 5: включение ожидает
+регистрации в MAX по согласованной последовательности запуска.
+Кабинет business.max.ru/self/ перенаправил на пустую страницу авторизации;
+одна перезагрузка не помогла. Привязка, аватар и описание не изменены.
+Существующий бот, режим draft, кнопки и typing сохранены. Тестовый архив
+на момент проверки содержит 412 сообщений; основной архив не переносился.
+Платных запросов OpenAI и тестовых публикаций MAX не выполняли.

@@ -5,7 +5,7 @@ import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite();let serial=0;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
- for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql','20261023182008_ch78_max_typing.sql'])
+ for(const name of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql','20261023182008_ch78_max_typing.sql','20261025160656_ch78_max_reaction_memory_filter.sql'])
   await db.exec(await readFile(new URL('../../supabase/migrations/'+name,import.meta.url),'utf8'));
 });
 beforeEach(async()=>{
@@ -258,4 +258,17 @@ test('typing requires enabled answer, current lease and all effect switches',asy
  for(const action of ['search','reaction']){await db.exec(`update ch78_max_jobs set action='${action}'`);assert.equal(await gate(),false);}
  await db.exec("update ch78_max_jobs set action='answer',lease_until=clock_timestamp()-interval '1 second'");assert.equal(await gate(),false);
  await assert.rejects(db.exec('set role anon;select ch78_max_typing_gate(null,null)'),/permission denied/);
+});
+
+// Regression: the initial live auto-publication trial was rejected before model evaluation.
+test('memory noun inflections pass topic admission, with unrelated text still excluded',async()=>{
+ await reactions('auto');
+ const text='В целом работа с фотографиями у нас несколько притихла, нет новых поступлений и нет инициатив внести комментарии к опубликованным на сайте. Могу предположить - общая занятость каждого своими проблемами. А может интерес к воспоминаниям имеет волнообразный характер ...';
+ await insert({text:'Обычный длинный текст '.repeat(8)});assert.equal((await jobs()).length,0);
+ const id=await insert({text});const rows=await jobs();
+ assert.equal(rows.length,1);assert.equal(rows[0].message_id,id);assert.equal(rows[0].action,'reaction');assert.equal(rows[0].review_required,false);
+ for(const word of ['воспоминание','воспоминания','воспоминаниям','воспоминаний']){
+  assert.equal((await db.query("select $1 ~* '(помн|вспомин|воспомин|школ|класс|учител|урок|встреч|двор|лагер|дискот|Куйбыш|Самар|Волг)' ok",[word])).rows[0].ok,true);
+ }
+ await insert({text});assert.equal((await jobs()).length,1);
 });

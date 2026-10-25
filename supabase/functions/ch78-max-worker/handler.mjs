@@ -1,5 +1,5 @@
 import {withTyping} from './typing.mjs';
-import {keyboard} from '../ch78-max-ui/controls.mjs';
+import {keyboard,compactReply} from '../ch78-max-ui/controls.mjs';
 import {configureUI} from '../ch78-max-ui/configure.mjs';
 import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
 const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co';
@@ -49,11 +49,7 @@ export function renderReply(data,action,compact=false){
  }else if(action==='search')text+='\n\nПодходящих сообщений не найдено. Попробуйте другие слова.';
  text+=footer;
  if(text.length>4000)throw Error('reply_too_large');
- if(compact){
-  if(action==='search')return visibleSources.length?'Найдено сообщений: '+visibleSources.length+'.':'Подходящих сообщений не найдено. Попробуйте другие слова.';
-  const answer=data.answer.replace(/\s*\[S[1-8](?:\s*[,;]\s*S[1-8])*\]/g,'').replace(/ +([.,;:!?])/g,'$1').trim();
-  return escapedClip(answer,action==='reaction'?650:1800);
- }
+ if(compact)return compactReply({action,result:data});
  return text;
 }
 async function bodyJSON(response,max=262144,timeout=0){

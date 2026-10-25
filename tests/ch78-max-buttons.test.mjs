@@ -5,21 +5,21 @@ import {configureUI} from '../supabase/functions/ch78-max-ui/configure.mjs';
 import {createHandler} from '../supabase/functions/ch78-max-webhook/handler.mjs';
 const parent='11111111-1111-1111-1111-111111111111';
 const source={ref:'S4',message_ts:1000,author:'Автор <b>имя</b>',text:'Школьный архив <script> & '.repeat(500)};
-const job={id:parent,action:'answer',result:{found:true,citations:['S4'],sources:[{...source,ref:'S1',text:'Постороннее'},source]}};
+const job={id:parent,action:'answer',result:{found:true,answer:'Проверенный ответ [S4].',citations:['S4'],sources:[{...source,ref:'S1',text:'Постороннее'},source]}};
 const config={CH78_MAX_INGEST_ENABLED:'true',CH78_MAX_CHAT_ID:'-78143291213122',CH78_MAX_WEBHOOK_SECRET:'s'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'db-test',CH78_MAX_TOKEN:'max-test'};
 const response=x=>new Response(JSON.stringify(x));
 function event(){return {update_type:'message_callback',timestamp:Date.now(),callback:{callback_id:'click-1',user:{user_id:123,is_bot:false},payload:'ch78:source:'+parent+':S4'},message:{recipient:{chat_id:-78143291213122},sender:{user_id:531401311,is_bot:true},body:{mid:'mid.parent'}}};}
 function req(e=event(),secret=config.CH78_MAX_WEBHOOK_SECRET){return new Request('https://local.test',{method:'POST',headers:{'content-type':'application/json','X-Max-Bot-Api-Secret':secret},body:JSON.stringify(e)});}
-function setup({claimed=true,wrongBot=false,sendFailure=null,saveFailure=false}={}){
+function setup({claimed=true,wrongBot=false,sendFailure=null,saveFailure=false,effect='show',editRejected=false}={}){
  const calls=[];let consumed=false;
  const handler=createHandler({env:n=>config[n],fetchImpl:async(url,opts)=>{
-  const body=opts.body?JSON.parse(opts.body):{};calls.push({url,body});
-  if(url.endsWith('ch78_max_claim_callback')){if(consumed||!claimed)return response(null);consumed=true;return response({parent_id:parent,action:job.action,result:job.result});}
+  const body=opts.body?JSON.parse(opts.body):{};calls.push({url,body,method:opts.method});
+  if(url.endsWith('ch78_max_claim_callback')){if(consumed||!claimed)return response(null);consumed=true;return response({parent_id:parent,action:job.action,result:job.result,source_effect:effect,edit_mid:'mid.parent'});}
   if(url.endsWith('ch78_max_buttons_enabled'))return response(true);
   if(url.endsWith('ch78_max_finish_callback')){if(saveFailure)throw Error('PRIVATE');return response(true);}
   if(url.endsWith('/me'))return response({user_id:wrongBot?999:531401311,is_bot:true});
   if(url.includes('/answers?'))return response({success:true});
-  if(url.includes('/messages?')){if(sendFailure==='network')throw Error('PRIVATE');if(sendFailure)return new Response('PRIVATE',{status:sendFailure});return response({message:{body:{mid:'mid.source'}}});}
+  if(url.includes('/messages?')){if(sendFailure==='network')throw Error('PRIVATE');if(sendFailure)return new Response('PRIVATE',{status:sendFailure});return opts.method==='PUT'?response({success:!editRejected}):response({message:{body:{mid:'mid.source'}}});}
   throw Error('Unexpected '+url);
  }});return {handler,calls};
 }
@@ -41,9 +41,9 @@ test('foreign chat, bots, stale events and malformed payloads are ignored before
   const e=event();change(e);const x=setup();assert.equal((await x.handler(req(e))).status,200);assert.equal(x.calls.length,0);
  }
 });
-test('callback claims first, replies in the same group and never invokes OpenAI',async()=>{
+test('source callback edits only the verified original answer and never posts or invokes OpenAI',async()=>{
  const x=setup();assert.equal((await (await x.handler(req())).json()).state,'done');assert.ok(x.calls[0].url.endsWith('ch78_max_claim_callback'));
- const sent=x.calls.find(c=>c.url.includes('/messages?'));assert.ok(sent.url.includes('-78143291213122'));assert.equal(sent.body.link.mid,'mid.parent');assert.equal(sent.body.format,'html');assert.equal(sent.body.notify,false);
+ const sent=x.calls.find(c=>c.url.includes('/messages?'));assert.ok(sent.url.endsWith('message_id=mid.parent'));assert.equal(sent.method,'PUT');assert.ok(!x.calls.some(c=>c.method==='POST'&&c.url.includes('/messages?')));assert.equal(sent.body.format,'html');assert.equal(sent.body.notify,false);
  assert.ok(!x.calls.some(c=>c.url.includes('openai')));assert.ok(!x.calls.some(c=>c.url.includes('ch78_max_messages')));
 });
 test('duplicate delivery and a rejected claim have no repeated MAX effect',async()=>{
@@ -77,4 +77,16 @@ test('configuration refuses wrong bot and missing subscription before modifying 
    calls.push({url,method:opts.method});return url.endsWith('/me')?response({user_id:wrong?999:531401311,is_bot:true}):response({subscriptions:[]});
   }}));assert.ok(calls.every(c=>c.method==='GET'));
  }
+});
+
+test('repeated source click collapses content and restores the single source button',async()=>{
+ const x=setup({effect:'hide'});assert.equal((await (await x.handler(req())).json()).state,'done');
+ const edit=x.calls.find(c=>c.url.includes('/messages?'));assert.equal(edit.method,'PUT');assert.equal(edit.body.text,'Проверенный ответ.');
+ assert.equal(edit.body.attachments[0].payload.buttons.flat().length,1);assert.equal(edit.body.attachments[0].payload.buttons[0][0].text,'Источники');
+});
+test('expanded source has a hide button, escaped bounded text, and treats HTTP 200 rejection as failed',async()=>{
+ const x=setup();await x.handler(req());const edit=x.calls.find(c=>c.url.includes('/messages?'));
+ assert.ok(edit.body.text.length<=4000);assert.ok(edit.body.text.includes('&lt;script&gt;'));assert.ok(!edit.body.text.includes('<script>'));
+ assert.equal(edit.body.attachments[0].payload.buttons[0][0].text,'Скрыть источники');
+ const y=setup({editRejected:true});assert.equal((await (await y.handler(req())).json()).state,'failed');
 });

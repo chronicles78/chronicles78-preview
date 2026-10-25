@@ -1,5 +1,7 @@
+import {handleCallback} from './callbacks.mjs';
 // CH78-MAX-001: authenticated, insert-only message_created receiver.
-// No MAX/OpenAI client, user-facing archive API, or background work here.
+// message_created remains insert-only. Authenticated callbacks use a separate
+// bounded, deduplicated MAX reply branch; no OpenAI calls in this function.
 export const PROJECT_URL = 'https://fnwpkmjjdhflnqghnogj.supabase.co';
 export const MAX_BYTES = 262144;
 const encoder = new TextEncoder();
@@ -87,7 +89,19 @@ export async function normalize(update, chatId) {
   };
 }
 
-export function createHandler({ env, fetchImpl = fetch }) {
+// Temporary owner-only discovery during the approved move to the main group.
+// Emits only the candidate ID, never the message, invite URL, archive or secrets.
+export function targetProbe(update,configuredChat,now){
+ const m=update?.message,id=m?.recipient?.chat_id;
+ if(now>=Date.parse('2026-10-27T00:00:00Z')||update?.update_type!=='message_created'||
+  !Number.isSafeInteger(update.timestamp)||Math.abs(now-update.timestamp)>300000||
+  !Number.isSafeInteger(m?.timestamp)||Math.abs(now-m.timestamp)>300000||
+  !Number.isSafeInteger(id)||id>=0||String(id)===configuredChat||
+  m?.sender?.user_id!==17770818||m.sender.is_bot!==false||m.link!=null||
+  typeof m.body?.text!=='string'||m.body.text.trim()!=='Хранитель, проверка подключения.')return null;
+ return String(id);
+}
+export function createHandler({ env, fetchImpl = fetch, now=()=>Date.now(), logProbe=entry=>console.info(JSON.stringify(entry)) }) {
   return async req => {
     if (req.method !== 'POST') return reply(405, { error: 'method_not_allowed' });
     const enabled = env('CH78_MAX_INGEST_ENABLED') === 'true';
@@ -105,7 +119,11 @@ export function createHandler({ env, fetchImpl = fetch }) {
       return reply(415, { error: 'json_required' });
     }
     try {
-      const row = await normalize(await readBody(req), chatId);
+      const update=await readBody(req);
+      const candidate=targetProbe(update,chatId,now());
+      if(candidate){logProbe({event:'ch78_target_probe',chat_id:candidate});return reply(200,{ok:true,ignored:true});}
+      if(update?.update_type==='message_callback')return await handleCallback(update,{env,fetchImpl});
+      const row = await normalize(update, chatId);
       if (row === null) return reply(200, { ok: true, ignored: true });
       // A single atomic INSERT + composite PK gives idempotence even under races.
       // Do not ACK until PostgREST confirms the commit. Do not return message data.

@@ -6,6 +6,23 @@ function requestId(){
  const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join('-');
 }
 let tab='answer',access=false,ai=false,busy=false,pending=null;
+function closeReader(){
+ const failed=()=>status('Закройте окно крестиком в верхней панели MAX.','error');
+ const bridge=window.WebApp;
+ if(typeof bridge?.close!=='function'){failed();return;}
+ try{Promise.resolve(bridge.close()).catch(failed);}catch{failed();}
+}
+function setupExit(){
+ const bridge=window.WebApp,supported=typeof bridge?.close==='function';
+ $('close-reader').hidden=!supported;
+ if(!supported)return;
+ try{
+  if(typeof bridge.BackButton?.onClick==='function'&&typeof bridge.BackButton?.show==='function'){
+   bridge.BackButton.onClick(closeReader);bridge.BackButton.show();
+  }
+ }catch{/* The in-page close button remains available if native Back is unsupported. */}
+}
+
 const demoSources=[{ref:'S1',author:'Анна · вымышленный участник',message_ts:Date.UTC(2026,8,3,10),text:'Помните наш поход к Волге? На обратном пути пошёл дождь. Мы спрятались под сосной, а Саша достал из рюкзака термос. Чай делили на всех.'},{ref:'S2',author:'Саша · вымышленный участник',message_ts:Date.UTC(2026,8,3,11),text:'А в том походе мы ещё потеряли компас. Дорогу к остановке нам показал местный рыбак. Зато вернулись с целым пакетом шишек.'},{ref:'S3',author:'Вера · вымышленный участник',message_ts:Date.UTC(2026,8,4,10),text:'После уроков часто оставались во дворе школы. Сначала играли в мяч, потом шли провожать друг друга и делали большой круг по району.'}];
 function status(text='',kind=''){$('status').textContent=text;$('status').className='status '+kind;}
 function controls(){
@@ -74,11 +91,13 @@ $('question-form').addEventListener('submit',event=>{event.preventDefault();if(b
 $('question').addEventListener('input',()=>{$('counter').textContent=$('question').value.length+' / 300';});
 for(const name of ['answer','search','about'])$('tab-'+name).addEventListener('click',()=>switchTab(name));
 for(const button of document.querySelectorAll('[data-question]'))button.addEventListener('click',()=>{if(!access||busy||pending)return;$('question').value=tab==='search'?(button.textContent.includes('поход')?'поход':'после уроков'):button.dataset.question;$('question').dispatchEvent(new Event('input'));$('question').focus();});
+$('close-reader').addEventListener('click',closeReader);
 $('check-result').addEventListener('click',()=>{if(pending&&!busy)submit(pending)});
 $('new-question').addEventListener('click',()=>{if(busy)return;pending=null;$('recovery').hidden=true;status('Можно задать новый вопрос. Это отдельный запрос; предыдущая попытка могла уже израсходовать лимит.');controls();});
 async function start(){
  if(demo){$('demo-banner').hidden=false;document.querySelector('.brand').href='?demo=1';access=true;ai=true;$('archive-label').textContent='Образец · 3 вымышленных сообщения';switchTab('answer');return;}
  if(!window.WebApp){await new Promise(resolve=>{const script=document.createElement('script');script.src='https://st.max.ru/js/max-web-app.js';const timer=setTimeout(resolve,8000);script.onload=script.onerror=()=>{clearTimeout(timer);resolve();};document.head.append(script);});}
+ setupExit();
  if(!window.WebApp?.initData){$('archive-label').textContent='Закрытый архив участников';switchTab('about');status(errors.invalid_launch);return;}
  try{const d=await api({action:'status'});access=true;ai=d.ai_enabled;$('archive-label').textContent='Тестовый архив · '+d.messages+' сообщений';switchTab(ai?'answer':'search');await submit({action:'recover'});}
  catch(e){$('archive-label').textContent='Архив пока недоступен';switchTab('about');status(errors[e.code]??errors.connection_unavailable,'error');}

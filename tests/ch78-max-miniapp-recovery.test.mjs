@@ -17,11 +17,11 @@ class Element {
  replaceChildren(...nodes){this.children=[...nodes];}
  focus(){} scrollIntoView(){}
 }
-async function app(transport,{latest=null}={}){
+async function app(transport,{latest=null,bridge={}}={}){
  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
  get('mode').value='forms';get('recovery').hidden=true;get('question').disabled=true;
  const requests=[],brand=new Element();
- const context=vm.createContext({document:{getElementById:get,createElement:()=>new Element(),createTextNode:text=>({textContent:text}),querySelectorAll:()=>[],querySelector:()=>brand,head:new Element()},location:{href:'https://fixture.invalid/keeper/'},window:{WebApp:{initData:'fake-launch'}},URL,Uint8Array,crypto:{randomUUID,getRandomValues:webcrypto.getRandomValues.bind(webcrypto)},AbortSignal,Event,matchMedia:()=>({matches:true}),setTimeout,clearTimeout,fetch:async(_url,options)=>{
+ const context=vm.createContext({document:{getElementById:get,createElement:()=>new Element(),createTextNode:text=>({textContent:text}),querySelectorAll:()=>[],querySelector:()=>brand,head:new Element()},location:{href:'https://fixture.invalid/keeper/'},window:{WebApp:{initData:'fake-launch',...bridge}},URL,Uint8Array,crypto:{randomUUID,getRandomValues:webcrypto.getRandomValues.bind(webcrypto)},AbortSignal,Event,matchMedia:()=>({matches:true}),setTimeout,clearTimeout,fetch:async(_url,options)=>{
   const b=JSON.parse(options.body);if(b.action==='status')return Response.json({messages:10,ai_enabled:true});if(b.action==='recover'&&!b.request_id)return typeof latest==='function'?latest():Response.json(latest??{state:'none'});requests.push(b);return transport(b,requests.length);
  }});
  vm.runInContext(code,context);await flush();
@@ -86,4 +86,25 @@ test('restored answer keeps source text behind a closed source disclosure',async
  assert.equal(panel.children[0].textContent,'Источники · 1');
  assert.equal(panel.children.at(-1).children[1].textContent,'Вымышленный источник');
  assert.equal(a.requests.length,0);
+});
+
+test('close and native Back request MAX closure without archive or model calls',async()=>{
+ let closed=0,back,shown=0;
+ const a=await app(()=>{throw Error('must not generate');},{bridge:{close:()=>closed++,BackButton:{onClick:fn=>{back=fn;},show:()=>shown++}}});
+ assert.equal(a.get('close-reader').hidden,false);assert.equal(shown,1);assert.equal(typeof back,'function');
+ a.fire('close-reader');assert.equal(closed,1);back();assert.equal(closed,2);assert.equal(a.requests.length,0);
+});
+test('close remains available during processing and does not resubmit the question',async()=>{
+ let closed=0,release;
+ const a=await app(()=>new Promise(r=>{release=r;}),{bridge:{close:()=>closed++}});
+ enter(a);send(a);assert.equal(a.get('submit').disabled,true);a.fire('close-reader');
+ assert.equal(closed,1);assert.equal(a.requests.length,1);
+ release(Response.json({state:'done',result}));await a.flush();assert.equal(a.requests.length,1);
+});
+test('unsupported or failing MAX close does not simulate navigation or new requests',async()=>{
+ const missing=await app(()=>{throw Error('must not generate');});assert.equal(missing.get('close-reader').hidden,true);
+ for(const close of [()=>{throw Error('unsupported');},()=>Promise.reject(Error('unsupported'))]){
+  const a=await app(()=>{throw Error('must not generate');},{bridge:{close,BackButton:{onClick:()=>{throw Error('unsupported');},show:()=>{}}}});
+  assert.equal(a.get('close-reader').hidden,false);a.fire('close-reader');await a.flush();assert.match(a.get('status').textContent,/верхней панели MAX/);assert.equal(a.requests.length,0);
+ }
 });

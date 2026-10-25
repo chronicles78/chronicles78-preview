@@ -37,6 +37,9 @@ test('answer plans bounded queries, deduplicates sources and cites real source',
  assert.equal(response.status,200);const result=await response.json();assert.equal(result.found,true);assert.equal(result.sources.length,1);assert.deepEqual(result.citations,['S1']);
  assert.equal(calls.filter(c=>c.url==='https://api.openai.com/v1/responses').length,2);
  for(const call of calls.filter(c=>c.url.includes('openai.com'))){assert.equal(call.body.store,false);assert.equal(call.body.text.format.strict,true);assert.equal(call.body.model,'gpt-5-mini');}
+ const phases=calls.filter(c=>c.url.includes('openai.com'));
+ assert.equal(phases[0].body.instructions.includes('Голос Хранителя:'),false);
+ assert.equal(phases[1].body.instructions.includes('Голос Хранителя:'),true);
 });
 test('answer with no sources does not call the answer generator',async()=>{
  const {handler,calls}=setup({rows:[]});const result=await (await handler(req({action:'answer',q:'Неизвестная тема'}))).json();
@@ -197,6 +200,7 @@ test('reaction uses one decision-and-draft call with post, prior context and dat
  const x=setup({plan:{found:true,answer:'А где именно в школьном дворе вы собирались?',citations:[]}});
  const r=await x.handler(req(reactionBody()));assert.equal(r.status,200);const data=await r.json();assert.equal(data.found,true);assert.equal(data.mode,'reaction');
  const calls=x.calls.filter(c=>c.url.includes('openai.com'));assert.equal(calls.length,1);
+ assert.equal(calls[0].body.instructions.includes('Голос Хранителя:'),true);
  const input=JSON.parse(calls[0].body.input);assert.equal(input.new_post.text,post.content);assert.equal(input.conversation_context[0].text,'А где встречались?');
  assert.equal(input.archive_sources[0].message_id,row.message_id);assert.equal(data.usage.requests,1);
 });

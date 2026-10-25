@@ -16,7 +16,7 @@ function escapedClip(value,budget){
  let out='';for(const piece of pieces){if(out.length+piece.length>budget-1)break;out+=piece;}
  return out+'…';
 }
-export function renderReply(data,action){
+export function renderReply(data,action,compact=false){
  if(!data||!Array.isArray(data.sources)||data.sources.length>8||!['answer','search','reaction'].includes(action))throw Error('invalid_result');
  let visibleSources=data.sources;
  const title=action==='reaction'?'К слову о воспоминаниях':action==='answer'?'Ответ по архиву':'Найдено в архиве';
@@ -48,7 +48,13 @@ export function renderReply(data,action){
   }
  }else if(action==='search')text+='\n\nПодходящих сообщений не найдено. Попробуйте другие слова.';
  text+=footer;
- if(text.length>4000)throw Error('reply_too_large');return text;
+ if(text.length>4000)throw Error('reply_too_large');
+ if(compact){
+  if(action==='search')return visibleSources.length?'Найдено сообщений: '+visibleSources.length+'.':'Подходящих сообщений не найдено. Попробуйте другие слова.';
+  const answer=data.answer.replace(/\s*\[S[1-8](?:\s*[,;]\s*S[1-8])*\]/g,'').replace(/ +([.,;:!?])/g,'$1').trim();
+  return escapedClip(answer,action==='reaction'?650:1800);
+ }
+ return text;
 }
 async function bodyJSON(response,max=262144,timeout=0){
  const reader=response.body?.getReader();if(!reader)throw Error('invalid_response');
@@ -140,6 +146,8 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    }
    const showButtons=await rpc('ch78_max_buttons_enabled',{});
    const attachments=showButtons===true?keyboard(job):null;
+   // Formatting only: preserve stored evidence and never regenerate during send.
+   const replyText=showButtons===true&&job.result?.reply_format==='html'&&!job.result?.error?renderReply(job.result,job.action,true):job.reply_text;
    // Refuse an accidentally configured token of another bot (e.g. IT HAB).
    try{
     const me=await fetchImpl('https://platform-api2.max.ru/me',{method:'GET',redirect:'error',signal:AbortSignal.timeout(8000),headers:{Authorization:env('CH78_MAX_TOKEN')}});
@@ -152,7 +160,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    try{
     const r=await fetchImpl('https://platform-api2.max.ru/messages?chat_id='+CHAT+'&disable_link_preview=true',{
      method:'POST',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:env('CH78_MAX_TOKEN'),'Content-Type':'application/json'},
-     body:JSON.stringify({text:job.reply_text,attachments,link:{type:'reply',mid:job.message_id},notify:false,...(job.result?.reply_format==='html'?{format:'html'}:{})})});
+     body:JSON.stringify({text:replyText,attachments,link:{type:'reply',mid:job.message_id},notify:false,...(job.result?.reply_format==='html'?{format:'html'}:{})})});
     if(!r.ok){const state=r.status>=500?'delivery_unknown':'failed';r.body?.cancel().catch(()=>{});
      await finish(state,{p_error:'max_rejected'});return json(200,{ok:true,state});}
     sent=await bodyJSON(r);

@@ -77,3 +77,13 @@ test('startup recovery network failure locks new generation and offers explicit 
  const a=await app(()=>{throw Error('unexpected');},{latest:()=>{throw Error('offline');}});assert.equal(a.get('submit').disabled,true);assert.equal(a.get('recovery').hidden,false);assert.equal(a.requests.length,0);
  a.fire('new-question');assert.equal(a.get('submit').disabled,false);assert.match(a.get('status').textContent,/предыдущая попытка/);
 });
+
+test('restored answer keeps source text behind a closed source disclosure',async()=>{
+ const a=await app(()=>{throw Error('must not generate');},{latest:{state:'done',action:'answer',result}});
+ const nodes=a.get('results').children;
+ const card=nodes.find(n=>n.className==='answer-card');assert.equal(card.children[0].textContent,'Пели Алла и Павел.');
+ const panel=nodes.find(n=>n.className==='extras source-panel');assert.ok(panel);assert.notEqual(panel.open,true);
+ assert.equal(panel.children[0].textContent,'Источники · 1');
+ assert.equal(panel.children.at(-1).children[1].textContent,'Вымышленный источник');
+ assert.equal(a.requests.length,0);
+});

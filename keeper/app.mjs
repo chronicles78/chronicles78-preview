@@ -20,7 +20,7 @@ function switchTab(next){
  for(const name of ['answer','search','about'])$('tab-'+name).setAttribute('aria-pressed',String(name===tab));
  $('workspace').hidden=tab==='about';$('about').hidden=tab!=='about';$('results').hidden=true;$('welcome').hidden=tab==='about';status();
  $('form-title').textContent=tab==='search'?'Какие слова запомнились?':'О чём хотите вспомнить?';
- $('form-description').textContent=tab==='search'?'Найдём сообщения по словам. Без обращения к искусственному интеллекту.':'Хранитель соберёт ответ из сообщений и покажет, на что опирается.';
+ $('form-description').textContent=tab==='search'?'Найдём сообщения по словам. Без обращения к искусственному интеллекту.':'Напишите вопрос обычными словами.';
  $('question-label').textContent=tab==='search'?'Слова для поиска':'Ваш вопрос';
  $('question').placeholder=tab==='search'?'Например: поход':'Например: что рассказывали о школьных походах?';
  $('submit').replaceChildren(document.createTextNode(tab==='search'?'Найти в архиве':'Спросить Хранителя'));
@@ -33,12 +33,12 @@ function render(data,action){
  const root=$('results');root.replaceChildren();root.hidden=false;$('welcome').hidden=true;
  const heading=element('div','result-header');heading.append(element('h2','',action==='answer'?'Ответ Хранителя':'Найденные сообщения'),element('span','',demo?'Вымышленный пример':'По архиву группы'));root.append(heading);
  if(action==='answer'){
-  const card=element('div','answer-card');card.append(element('p','',data.answer));root.append(card);
-  root.append(element('p','result-note','Проверьте ответ по источникам. Даты сообщений — по Самаре.'));
+  const card=element('div','answer-card');card.append(element('p','',data.answer.replace(/\s*\[S[1-8](?:\s*[,;]\s*S[1-8])*\]/g,'').replace(/ +([.,;:!?])/g,'$1').trim()));root.append(card);
+
  }else root.append(element('p','result-note',data.sources.length?'Совпадение слов не гарантирует ответа на вопрос.':'Подходящих сообщений не найдено. Попробуйте другие слова.'));
- if(data.sources.length){root.append(element('div','sources-label','Источники · '+data.sources.length));for(const source of data.sources){
+ if(data.sources.length){const sourcePanel=element('details','extras source-panel');sourcePanel.append(element('summary','','Источники · '+data.sources.length),element('p','result-note','Даты сообщений — по Самаре. Ответ ИИ может содержать ошибки.'));root.append(sourcePanel);for(const source of data.sources){
   const details=element('details','source'),summary=element('summary'),title=element('span'),time=element('time','',new Date(source.message_ts).toLocaleString('ru-RU',{timeZone:'Europe/Samara',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}));
-  time.dateTime=new Date(source.message_ts).toISOString();title.append(element('strong','',source.author),time);summary.append(element('span','ref',source.ref),title);details.append(summary,element('blockquote','',source.text));if(source.truncated)details.append(element('small','','Показан фрагмент сообщения.'));root.append(details);
+  time.dateTime=new Date(source.message_ts).toISOString();title.append(element('strong','',source.author),time);summary.append(element('span','ref',source.ref),title);details.append(summary,element('blockquote','',source.text));if(source.truncated)details.append(element('small','','Показан фрагмент сообщения.'));sourcePanel.append(details);
  }}
  root.focus({preventScroll:true});root.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});
 }

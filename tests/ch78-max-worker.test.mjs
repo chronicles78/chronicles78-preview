@@ -165,11 +165,12 @@ test('automatic reaction prepares one ready reply; errors stay silent instead of
  }
 });
 
-test('enabled buttons add source/help/examples/site controls without generation',async()=>{
- const x=setup({buttons:true,badJob:{result:data}});await x.handler(req('send'));
+test('enabled buttons show one source control and compact answer without generation',async()=>{
+ const x=setup({buttons:true,badJob:{result:{...data,reply_format:'html'}}});await x.handler(req('send'));
  const sent=x.calls.find(c=>c.url?.includes('/messages?'));assert.equal(sent.body.attachments[0].type,'inline_keyboard');
- const all=sent.body.attachments[0].payload.buttons.flat();assert.ok(all.some(b=>b.text==='Показать источники'));
- assert.ok(all.some(b=>b.text==='Как пользоваться'));assert.ok(all.some(b=>b.type==='link'));
+ const all=sent.body.attachments[0].payload.buttons.flat();assert.equal(all.length,1);assert.equal(all[0].text,'Источники');
+ assert.equal(sent.body.text,'Подтверждено');assert.ok(!sent.body.text.includes('Тестовый источник'));
+ assert.equal(data.sources[0].text,'Тестовый источник');
  assert.ok(!x.calls.some(c=>c.type==='model'));
 });
 
@@ -184,4 +185,11 @@ test('only answer generation checks typing; searches, drafts and send never star
   assert.equal(x.calls.filter(c=>c.url?.endsWith('ch78_max_typing_gate')).length,action==='answer'&&stage==='generate'?1:0);
   assert.equal(x.calls.filter(c=>c.url?.endsWith('/actions')).length,0);
  }
+});
+
+test('compact formatting retains citation validation, escaping and full fallback evidence',()=>{
+ assert.equal(renderReply({...data,answer:'<b>Факт</b> [S1].'},'answer',true),'&lt;b&gt;Факт&lt;/b&gt;.');
+ assert.equal(renderReply(data,'search',true),'Найдено сообщений: 1.');
+ assert.throws(()=>renderReply({...data,citations:['S8']},'answer',true));
+ assert.ok(renderReply(data,'answer').includes('Тестовый источник'));
 });

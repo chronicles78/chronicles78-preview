@@ -23,9 +23,10 @@ function setup({claimed=true,wrongBot=false,sendFailure=null,saveFailure=false}=
   throw Error('Unexpected '+url);
  }});return {handler,calls};
 }
-test('keyboards contain only cited source IDs and fixed commands/site links',()=>{
- const buttons=keyboard(job,true)[0].payload.buttons.flat();assert.ok(buttons.some(b=>b.payload==='ch78:source:'+parent+':S4'));
- assert.ok(!buttons.some(b=>b.payload?.endsWith(':S1')));assert.equal(buttons.find(b=>b.type==='link').url,SITE_URL);
+test('keyboards expose only cited sources, with no repeated help or website links',()=>{
+ const buttons=keyboard(job)[0].payload.buttons.flat();assert.ok(buttons.some(b=>b.payload==='ch78:source:'+parent+':S4'));
+ assert.ok(!buttons.some(b=>b.payload?.endsWith(':S1')));assert.ok(buttons.every(b=>b.type==='callback'&&b.payload.startsWith('ch78:source:')));
+ assert.equal(keyboard(job)[0].payload.buttons.flat().length,1);assert.deepEqual(keyboard(job,true),[]);assert.deepEqual(keyboard({...job,result:{found:false,sources:[]}}),[]);
  assert.deepEqual(COMMANDS.map(c=>c.name),['ask','find','help']);assert.throws(()=>keyboard({id:'arbitrary'}));
 });
 test('source display is escaped, bounded and refuses unrelated IDs',()=>{

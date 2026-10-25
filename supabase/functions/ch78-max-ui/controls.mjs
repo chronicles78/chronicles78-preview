@@ -13,13 +13,10 @@ export function citedSources(job){
 }
 export function keyboard(job,sourceLinks=false){
  if(!uuid(job?.id))throw Error('invalid_job');
- const button=(text,action)=>({type:'callback',text,payload:'ch78:'+action+':'+job.id});
  const sources=citedSources(job),buttons=[];
- if(sourceLinks&&sources.length){for(let i=0;i<sources.length;i+=4)buttons.push(sources.slice(i,i+4).map(s=>({type:'callback',text:'['+s.ref+']',payload:'ch78:source:'+job.id+':'+s.ref})));}
- else if(sources.length)buttons.push([{type:'callback',text:'Показать источники',payload:'ch78:source:'+job.id+':'+sources[0].ref}]);
- buttons.push([button('Как пользоваться','help'),button('Примеры вопросов','examples')]);
- buttons.push([{type:'link',text:'Открыть Хроники-78',url:SITE_URL}]);
- return [{type:'inline_keyboard',payload:{buttons}}];
+ if(sourceLinks){if(sources.length>1){for(let i=0;i<sources.length;i+=4)buttons.push(sources.slice(i,i+4).map(s=>({type:'callback',text:'['+s.ref+']',payload:'ch78:source:'+job.id+':'+s.ref})));}}
+ else if(sources.length)buttons.push([{type:'callback',text:'Источники',payload:'ch78:source:'+job.id+':'+sources[0].ref}]);
+ return buttons.length?[{type:'inline_keyboard',payload:{buttons}}]:[];
 }
 const escape=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 function clip(x,n){let out='';for(const c of String(x??'').replace(/[\x00-\x08\x0b-\x1f\x7f\u202a-\u202e\u2066-\u2069]/g,'')){const e=escape(c);if(out.length+e.length>n-1)return out+'…';out+=e;}return out;}

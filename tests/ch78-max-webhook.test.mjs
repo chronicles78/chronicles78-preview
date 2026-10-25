@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHandler, PROJECT_URL, MAX_BYTES } from '../supabase/functions/ch78-max-webhook/handler.mjs';
+import { createHandler, PROJECT_URL, MAX_BYTES, targetProbe } from '../supabase/functions/ch78-max-webhook/handler.mjs';
 const secret = 's'.repeat(40), key = 'synthetic-service-key';
 const config = { CH78_MAX_INGEST_ENABLED: 'true', CH78_MAX_WEBHOOK_SECRET: secret,
   CH78_MAX_CHAT_ID: '-78143291213122', SUPABASE_URL: PROJECT_URL, SUPABASE_SERVICE_ROLE_KEY: key };
@@ -85,4 +85,22 @@ test('forward-only messages with null body retain source and have stable explici
   const a=JSON.parse(calls[0].options.body),b=JSON.parse(calls[1].options.body);
   assert.match(a.message_id,/^forward-only:[a-f0-9]{64}$/);assert.equal(a.message_id,b.message_id);
   assert.equal(a.source_message.body,null);assert.equal(a.text,'');
+});
+
+test('temporary target probe accepts only the owner exact fresh unforwarded phrase outside the configured group',()=>{
+ const time=Date.parse('2026-10-25T20:00:00Z');
+ const probe=()=>({update_type:'message_created',timestamp:time,message:{timestamp:time,recipient:{chat_id:-12345},sender:{user_id:17770818,is_bot:false},body:{text:'Хранитель, проверка подключения.'}}});
+ assert.equal(targetProbe(probe(),config.CH78_MAX_CHAT_ID,time),'-12345');
+ for(const mutate of [e=>e.message.sender.user_id=42,e=>e.message.sender.is_bot=true,e=>e.message.body.text='Просто разговор',e=>e.message.link={type:'forward'},e=>e.timestamp-=400000,e=>e.message.timestamp-=400000,e=>e.message.recipient.chat_id=42,e=>e.update_type='message_edited']){
+  const e=probe();mutate(e);assert.equal(targetProbe(e,config.CH78_MAX_CHAT_ID,time),null);
+ }
+ assert.equal(targetProbe(probe(),'-12345',time),null);
+ assert.equal(targetProbe(probe(),config.CH78_MAX_CHAT_ID,Date.parse('2026-10-27T00:00:00Z')),null);
+});
+test('authenticated target probe logs only ID without database/model/message calls; wrong secret logs nothing',async()=>{
+ const time=Date.parse('2026-10-25T20:00:00Z'),logs=[],calls=[];
+ const handler=createHandler({env:n=>config[n],now:()=>time,logProbe:x=>logs.push(x),fetchImpl:async()=>{calls.push(1);throw Error('unexpected');}});
+ const e={update_type:'message_created',timestamp:time,message:{timestamp:time,recipient:{chat_id:-12345},sender:{user_id:17770818,is_bot:false},body:{text:'Хранитель, проверка подключения.'}}};
+ assert.equal((await handler(req(e,{'X-Max-Bot-Api-Secret':'wrong'}))).status,403);assert.equal(logs.length,0);
+ assert.equal((await handler(req(e))).status,200);assert.deepEqual(logs,[{event:'ch78_target_probe',chat_id:'-12345'}]);assert.equal(calls.length,0);
 });

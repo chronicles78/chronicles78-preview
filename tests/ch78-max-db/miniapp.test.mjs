@@ -5,7 +5,7 @@ import {PGlite} from '@electric-sql/pglite';
 const db=new PGlite();let serial=0;
 before(async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role bypassrls;');
- for(const n of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql','20261023183326_ch78_max_miniapp.sql'])await db.exec(await readFile(new URL('../../supabase/migrations/'+n,import.meta.url),'utf8'));
+ for(const n of ['20261020200734_ch78_max_ingest.sql','20261021183218_ch78_max_jobs.sql','20261021193637_ch78_max_group_conversation.sql','20261023173750_ch78_max_reactions.sql','20261023183326_ch78_max_miniapp.sql','20261025154122_ch78_max_miniapp_recovery.sql'])await db.exec(await readFile(new URL('../../supabase/migrations/'+n,import.meta.url),'utf8'));
 });
 beforeEach(async()=>{await db.exec('reset role;delete from ch78_max_miniapp_requests;update ch78_max_bot_config set miniapp_enabled=false,miniapp_ai_enabled=false,miniapp_ai_daily_limit=5,generation_enabled=true');});
 after(()=>db.close());
@@ -58,4 +58,32 @@ test('archive remains private; app roles cannot read requests or invoke service 
  }finally{await db.exec('reset role');}}
  const status=(await backend('select ch78_max_miniapp_status() s'))[0].s;assert.equal(status.test_archive,true);assert.equal(status.messages,0);
  assert.ok((await db.query("select prosecdef from pg_proc where proname like 'ch78_max_miniapp_%'")).rows.every(r=>!r.prosecdef));
+});
+
+async function recover(user='123',id=null){return (await backend('select ch78_max_miniapp_recover($1,$2) result',[user,id]))[0].result;}
+test('recovery returns only own latest result; foreign IDs are indistinguishable from missing',async()=>{
+ await enable();const id=newId(),r=await claim({id});await backend("select ch78_max_miniapp_finish($1,$2,'{\"found\":false,\"sources\":[]}',true)",[id,r.lease]);
+ assert.equal((await recover()).kind,'done');assert.equal((await recover()).id,id);
+ assert.equal((await recover('999',id)).kind,'none');assert.equal((await recover('999')).kind,'none');
+ assert.equal((await recover('123',newId())).kind,'none');
+ const second=newId();await claim({id:second,user:'124'});assert.equal((await recover('123')).id,id);
+ assert.equal((await db.query('select count(*) n from ch78_max_miniapp_requests')).rows[0].n,2);
+});
+test('recovery never claims missing work; stale processing stays unknown and cannot finish',async()=>{
+ await enable();assert.equal((await recover()).kind,'none');assert.equal((await recover('0')).kind,'none');
+ const id=newId(),r=await claim({id});assert.equal((await recover()).kind,'processing');
+ await db.exec("update ch78_max_miniapp_requests set created_at=clock_timestamp()-interval '121 seconds'");
+ assert.equal((await recover()).kind,'unknown');assert.equal((await recover()).kind,'unknown');
+ assert.equal((await backend("select ch78_max_miniapp_finish($1,$2,'{}',true) ok",[id,r.lease]))[0].ok,false);
+ assert.equal((await db.query('select count(*) n from ch78_max_miniapp_requests')).rows[0].n,1);
+});
+test('seven-day horizon and app disable close recovery; disabling new AI leaves saved results readable',async()=>{
+ await enable();const id=newId(),r=await claim({id});await backend("select ch78_max_miniapp_finish($1,$2,'{}',false)",[id,r.lease]);
+ await db.exec('update ch78_max_bot_config set miniapp_ai_enabled=false,generation_enabled=false');assert.equal((await recover()).kind,'failed');
+ await db.exec('update ch78_max_bot_config set miniapp_enabled=false');assert.equal((await recover()).kind,'disabled');
+ await enable();await db.exec("update ch78_max_miniapp_requests set created_at=clock_timestamp()-interval '8 days'");assert.equal((await recover()).kind,'none');
+});
+test('recovery RPC is service-only and remains SECURITY INVOKER',async()=>{
+ for(const role of ['anon','authenticated']){await db.exec('set role '+role);try{await assert.rejects(db.query("select ch78_max_miniapp_recover('123',null)"),/permission denied/);}finally{await db.exec('reset role');}}
+ assert.equal((await db.query("select prosecdef from pg_proc where proname='ch78_max_miniapp_recover'")).rows[0].prosecdef,false);
 });

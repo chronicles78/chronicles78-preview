@@ -35,8 +35,9 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null,now=()=>Da
   if(req.method!=='POST')return reply(405,{error:'method_not_allowed'});
   const token=env('CH78_MAX_TOKEN'),key=env('SUPABASE_SERVICE_ROLE_KEY');
   if(!token||!key||env('SUPABASE_URL')!==PROJECT||env('CH78_MAX_CHAT_ID')!==CHAT||!env('CH78_MAX_WEBHOOK_SECRET'))return reply(503,{error:'configuration'});
-  let b;try{b=await inputJSON(req);if(!b||!['status','search','answer'].includes(b.action))throw Error();
-   if(b.action!=='status'&&(!uuid(b.request_id)||typeof b.q!=='string'||!b.q.trim()||b.q.length>300||!['forms','literal'].includes(b.mode??'forms')))throw Error();
+  let b;try{b=await inputJSON(req);if(!b||!['status','recover','search','answer'].includes(b.action))throw Error();
+   if(b.action==='recover'&&b.request_id!==undefined&&!uuid(b.request_id))throw Error();
+   if(['search','answer'].includes(b.action)&&(!uuid(b.request_id)||typeof b.q!=='string'||!b.q.trim()||b.q.length>300||!['forms','literal'].includes(b.mode??'forms')))throw Error();
   }catch{return reply(400,{error:'invalid_request'});}
   let identity;try{identity=await validateLaunch(b.init_data,token,now())}catch(e){return reply(401,{error:e.message==='launch_expired'?'launch_expired':'invalid_launch'});}
   const rpc=async(name,body={})=>{
@@ -57,6 +58,15 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null,now=()=>Da
    if(!Array.isArray(members?.members)||members.members.length>1)throw Error('membership');
    if(!members.members.some(u=>String(u.user_id)===identity.userId&&u.is_bot===false))return reply(403,{error:'not_member'});
    if(b.action==='status')return reply(200,{messages:status.messages,test_archive:true,ai_enabled:status.ai_enabled===true,ai_daily_limit:status.ai_daily_limit});
+   // Recovery can only read an existing request; it never claims/generates work.
+   if(b.action==='recover'){
+    const saved=await rpc('ch78_max_miniapp_recover',{p_user_id:identity.userId,p_id:b.request_id??null});
+    if(saved?.kind==='disabled')return reply(503,{error:'disabled'});
+    if(saved?.kind==='none')return reply(200,{state:'none'});
+    if(!uuid(saved?.id)||!['search','answer'].includes(saved?.action)||!['done','failed','processing','unknown'].includes(saved?.kind))throw Error('invalid_recovery');
+    return reply(200,{state:saved.kind,request_id:saved.id,action:saved.action,
+     ...(['done','failed'].includes(saved.kind)?{result:saved.kind==='failed'?{error:'answer_unavailable'}:publicResult(saved.result,saved.action)}:{})});
+   }
    const fingerprint=hex(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([b.action,b.q.trim(),b.mode??'forms']))));
    const claim=await rpc('ch78_max_miniapp_claim',{p_id:b.request_id,p_user_id:identity.userId,p_action:b.action,p_fingerprint:fingerprint});
    if(['done','failed'].includes(claim?.kind))return reply(200,{state:claim.kind,result:claim.kind==='failed'?{error:'answer_unavailable'}:publicResult(claim.result,b.action)});

@@ -60,13 +60,14 @@ async function api(body){
  if(!r.ok)throw {code:d.error??'connection_unavailable',uncertain:['result_unknown','connection_unavailable'].includes(d.error)};return d;
 }
 async function submit(attempt){
- busy=true;controls();$('results').hidden=true;$('welcome').hidden=true;status(attempt.action==='answer'?'Хранитель читает архив и готовит ответ…':'Ищем сообщения…','busy');
+ busy=true;controls();$('results').hidden=true;$('welcome').hidden=true;status(attempt.action==='recover'?'Проверяем сохранённый запрос…':attempt.action==='answer'?'Хранитель читает архив и готовит ответ…':'Ищем сообщения…','busy');
  try{
   const d=demo?{state:'done',result:demoResult(attempt.action,attempt.q,attempt.mode)}:await api(attempt);
-  if(d.state==='done'){pending=null;$('recovery').hidden=true;status();render(d.result,attempt.action);}
+  if(d.state==='none'){pending=null;$('recovery').hidden=true;$('welcome').hidden=tab==='about';status(attempt.request_id?'Сохранённый запрос не найден или срок хранения истёк. Можно начать новый вопрос.':'');}
+  else if(d.state==='done'){pending=null;$('recovery').hidden=true;status(attempt.action==='recover'?'Восстановлен сохранённый результат. Новый запрос к ИИ не выполнялся.':'');render(d.result,d.action??attempt.action);}
   else if(d.state==='failed'){pending=null;$('recovery').hidden=true;status(errors[d.result?.error]??errors.answer_unavailable,'error');}
-  else{pending=attempt;$('recovery').hidden=false;status(d.state==='processing'?'Запрос ещё обрабатывается. Через несколько секунд можно проверить результат.':'Не удалось подтвердить итог запроса. Автоматически ИИ повторно не вызываем.','error');}
- }catch(e){if(e.uncertain){pending=attempt;$('recovery').hidden=false;}status(errors[e.code]??errors.connection_unavailable,'error');}
+  else{pending={action:'recover',request_id:d.request_id??attempt.request_id};$('recovery').hidden=false;status(d.state==='processing'?'Запрос ещё обрабатывается. Через несколько секунд можно проверить результат.':'Не удалось подтвердить итог запроса. Автоматически ИИ повторно не вызываем.','error');}
+ }catch(e){if(e.uncertain||attempt.action==='recover'){pending={action:'recover',...(attempt.request_id?{request_id:attempt.request_id}:{})};$('recovery').hidden=false;}status(errors[e.code]??errors.connection_unavailable,'error');}
  finally{busy=false;controls();}
 }
 $('question-form').addEventListener('submit',event=>{event.preventDefault();if(busy||pending||!access||!$('question').value.trim())return;submit({action:tab,q:$('question').value.trim(),mode:$('mode').value,request_id:requestId()});});
@@ -74,12 +75,12 @@ $('question').addEventListener('input',()=>{$('counter').textContent=$('question
 for(const name of ['answer','search','about'])$('tab-'+name).addEventListener('click',()=>switchTab(name));
 for(const button of document.querySelectorAll('[data-question]'))button.addEventListener('click',()=>{if(!access||busy||pending)return;$('question').value=tab==='search'?(button.textContent.includes('поход')?'поход':'после уроков'):button.dataset.question;$('question').dispatchEvent(new Event('input'));$('question').focus();});
 $('check-result').addEventListener('click',()=>{if(pending&&!busy)submit(pending)});
-$('new-question').addEventListener('click',()=>{if(busy)return;pending=null;$('recovery').hidden=true;status('Можно задать новый вопрос. Это будет отдельный запрос.');controls();});
+$('new-question').addEventListener('click',()=>{if(busy)return;pending=null;$('recovery').hidden=true;status('Можно задать новый вопрос. Это отдельный запрос; предыдущая попытка могла уже израсходовать лимит.');controls();});
 async function start(){
  if(demo){$('demo-banner').hidden=false;document.querySelector('.brand').href='?demo=1';access=true;ai=true;$('archive-label').textContent='Образец · 3 вымышленных сообщения';switchTab('answer');return;}
  if(!window.WebApp){await new Promise(resolve=>{const script=document.createElement('script');script.src='https://st.max.ru/js/max-web-app.js';const timer=setTimeout(resolve,8000);script.onload=script.onerror=()=>{clearTimeout(timer);resolve();};document.head.append(script);});}
  if(!window.WebApp?.initData){$('archive-label').textContent='Закрытый архив участников';switchTab('about');status(errors.invalid_launch);return;}
- try{const d=await api({action:'status'});access=true;ai=d.ai_enabled;$('archive-label').textContent='Тестовый архив · '+d.messages+' сообщений';switchTab(ai?'answer':'search');}
+ try{const d=await api({action:'status'});access=true;ai=d.ai_enabled;$('archive-label').textContent='Тестовый архив · '+d.messages+' сообщений';switchTab(ai?'answer':'search');await submit({action:'recover'});}
  catch(e){$('archive-label').textContent='Архив пока недоступен';switchTab('about');status(errors[e.code]??errors.connection_unavailable,'error');}
 }
 start();

@@ -15,7 +15,7 @@ const requestId='11111111-1111-4111-8111-111111111111',lease='22222222-2222-4222
 const source={ref:'S4',author:'Тест',text:'Сообщение <script>PRIVATE</script>',message_ts:1000};
 const answer={found:true,answer:'Факт [S4]',citations:['S4'],sources:[{...source,ref:'S1',text:'Не процитировано'},source]};
 function req(body={},options={}){return new Request('https://local.test',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,...options.headers},body:JSON.stringify({action:'answer',q:'Вопрос',request_id:requestId,init_data:signed(),...body})});}
-function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=false,save=false,network=false,realAssistant=false,assistantResponse=null,openAIAnswer=null}={}){
+function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=false,save=false,network=false,realAssistant=false,assistantResponse=null,openAIAnswer=null,recovery=null}={}){
  const calls=[],stored=new Map();let models=0;
  const env=n=>({CH78_MAX_TOKEN:token,SUPABASE_SERVICE_ROLE_KEY:'PRIVATE_DB',CH78_MAX_WEBHOOK_SECRET:'x'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'PRIVATE_OPENAI'})[n];
  const handler=createHandler({env,now:()=>now,assistantImpl:realAssistant?null:async r=>{models++;calls.push({model:await r.json()});if(modelError)throw Error('PRIVATE_ERROR');return assistantResponse?assistantResponse():Response.json(answer);},fetchImpl:async(url,opts)=>{
@@ -24,6 +24,7 @@ function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=fa
   if(url.endsWith('/me'))return Response.json({user_id:wrongBot?99:531401311,is_bot:true});
   if(url.includes('/members?user_ids='))return Response.json({members:member?[{user_id:uid,is_bot:false}]:[]});
   if(url.endsWith('ch78_max_miniapp_claim')){if(claim)return Response.json(claim);if(stored.has(body.p_id))return Response.json(stored.get(body.p_id));stored.set(body.p_id,{kind:'processing'});return Response.json({kind:'claimed',lease});}
+  if(url.endsWith('ch78_max_miniapp_recover'))return Response.json(recovery??{kind:'none'});
   if(url.endsWith('ch78_max_search'))return Response.json([{message_id:'mid.fixture',message_ts:1000,author:'Тест',content:'Архивный текст',score:1}]);
   if(url==='https://api.openai.com/v1/responses'&&openAIAnswer){models++;const value=body.text.format.name==='archive_queries'?{queries:['архив']}:openAIAnswer;return Response.json({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(value)}]}],usage:{input_tokens:10,output_tokens:5,total_tokens:15}});}
   if(url.endsWith('ch78_max_miniapp_finish')){if(save)throw Error('PRIVATE_SAVE');stored.set(body.p_id,{kind:body.p_ok?'done':'failed',result:body.p_result});return Response.json(true);}
@@ -109,5 +110,23 @@ test('real assistant with simulated model supports answer and no-evidence outcom
  for(const draft of [{found:true,answer:'Из архива [S1]',citations:['S1']},{found:false,answer:'Недостаточно сведений',citations:[]}]){
   const s=setup({realAssistant:true,openAIAnswer:draft});const d=await (await s.handler(req())).json();assert.equal(d.state,'done');assert.equal(d.result.found,draft.found);assert.equal(s.models,2);
   assert.deepEqual(await (await s.handler(req())).json(),d);assert.equal(s.models,2);
+ }
+});
+
+test('recover latest and by ID uses signed user only, has no claim or model effect, and strips private fields',async()=>{
+ for(const body of [{action:'recover'},{action:'recover',request_id:requestId,user_id:'999'}]){
+  const s=setup({recovery:{kind:'done',id:requestId,action:'answer',result:{...answer,diagnostic:{secret:'PRIVATE'},usage:{requests:2}}}});
+  const d=await (await s.handler(req({...body,q:undefined}))).json();assert.equal(d.state,'done');assert.deepEqual(d.result.sources,[{...source,truncated:false}]);
+  assert.equal(s.models,0);assert.ok(!s.calls.some(c=>c.url?.endsWith('ch78_max_miniapp_claim')));
+  assert.equal(s.calls.find(c=>c.url?.endsWith('ch78_max_miniapp_recover')).body.p_user_id,String(uid));
+  assert.equal(d.result.diagnostic,undefined);assert.equal(d.result.usage,undefined);
+ }
+});
+test('recovery missing, failed and processing/unknown cannot generate, even with no question',async()=>{
+ for(const kind of ['none','failed','processing','unknown']){const s=setup({recovery:{kind,id:requestId,action:'answer',result:{error:'PRIVATE',diagnostic:{secret:'PRIVATE'}}}});const d=await (await s.handler(req({action:'recover',q:undefined}))).json();assert.equal(d.state,kind);assert.equal(s.models,0);assert.ok(!JSON.stringify(d).includes('PRIVATE'));}
+});
+test('recovery rejects wrong member, forged launch and invalid ID before lookup',async()=>{
+ for(const [options,body] of [[{member:false},{action:'recover'}],[{},{action:'recover',init_data:'forged'}],[{},{action:'recover',request_id:'invalid'}]]){
+  const s=setup(options);const r=await s.handler(req(body));assert.ok([400,401,403].includes(r.status));assert.ok(!s.calls.some(c=>c.url?.endsWith('ch78_max_miniapp_recover')));assert.equal(s.models,0);
  }
 });

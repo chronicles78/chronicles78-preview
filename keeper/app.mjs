@@ -99,7 +99,7 @@ async function start(){
  if(!window.WebApp){await new Promise(resolve=>{const script=document.createElement('script');script.src='https://st.max.ru/js/max-web-app.js';const timer=setTimeout(resolve,8000);script.onload=script.onerror=()=>{clearTimeout(timer);resolve();};document.head.append(script);});}
  setupExit();
  if(!window.WebApp?.initData){$('archive-label').textContent='Закрытый архив участников';switchTab('about');status(errors.invalid_launch);return;}
- try{const d=await api({action:'status'});access=true;ai=d.ai_enabled;$('archive-label').textContent='Тестовый архив · '+d.messages+' сообщений';switchTab(ai?'answer':'search');await submit({action:'recover'});}
+ try{const d=await api({action:'status'});access=true;ai=d.ai_enabled;$('archive-label').textContent=(d.test_archive?'Тестовый архив · ':'Архив группы · ')+d.messages+' сообщений';switchTab(ai?'answer':'search');await submit({action:'recover'});}
  catch(e){$('archive-label').textContent='Архив пока недоступен';switchTab('about');status(errors[e.code]??errors.connection_unavailable,'error');}
 }
 start();

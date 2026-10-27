@@ -34,7 +34,7 @@ test('RLS remains effective if a table SELECT is accidentally granted later',asy
   }finally{await db.exec('rollback');}
 });
 test('handler + PostgreSQL: concurrent redelivery creates one durable row and cannot overwrite it',async()=>{
-  const env={CH78_MAX_INGEST_ENABLED:'true',CH78_MAX_WEBHOOK_SECRET:'s'.repeat(40),CH78_MAX_CHAT_ID:'-78143291213122',SUPABASE_URL:PROJECT_URL,SUPABASE_SERVICE_ROLE_KEY:'synthetic'};
+  const env={CH78_MAX_INGEST_ENABLED:'true',CH78_MAX_WEBHOOK_SECRET:'s'.repeat(40),CH78_MAX_CHAT_ID:'-72977812571458',SUPABASE_URL:PROJECT_URL,SUPABASE_SERVICE_ROLE_KEY:'synthetic'};
   const handler=createHandler({env:n=>env[n],fetchImpl:async(url,options)=>{
     assert.equal(url,PROJECT_URL+'/rest/v1/ch78_max_messages?on_conflict=chat_id,message_id');
     const r=JSON.parse(options.body);
@@ -44,7 +44,7 @@ test('handler + PostgreSQL: concurrent redelivery creates one durable row and ca
       [r.chat_id,r.message_id,r.message_ts,r.event_ts,r.text,r.sender===null?null:JSON.stringify(r.sender),JSON.stringify(r.attachments),r.linked_message===null?null:JSON.stringify(r.linked_message),JSON.stringify(r.source_message)]);
     return new Response(null,{status:201});
   }});
-  const request=text=>new Request('https://local.test',{method:'POST',headers:{'content-type':'application/json','X-Max-Bot-Api-Secret':env.CH78_MAX_WEBHOOK_SECRET},body:JSON.stringify({update_type:'message_created',timestamp:2000,message:{recipient:{chat_id:-78143291213122},timestamp:1000,body:{mid:'concurrent',text}}})});
+  const request=text=>new Request('https://local.test',{method:'POST',headers:{'content-type':'application/json','X-Max-Bot-Api-Secret':env.CH78_MAX_WEBHOOK_SECRET},body:JSON.stringify({update_type:'message_created',timestamp:2000,message:{recipient:{chat_id:-72977812571458},timestamp:1000,body:{mid:'concurrent',text}}})});
   await role('service_role',async()=>{
     const responses=await Promise.all(Array.from({length:20},()=>handler(request('Исходный тестовый текст'))));
     assert.ok(responses.every(r=>r.status===200));

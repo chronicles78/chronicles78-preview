@@ -2,11 +2,11 @@
 -- Separate mini-app budget: five AI questions per Samara day for the entire test group.
 begin;
 do $$ begin
- if not exists(select 1 from public.ch78_max_bot_config where id and chat_id='-78143291213122'
+ if not exists(select 1 from public.ch78_max_bot_config where id and chat_id='-72977812571458'
  and generation_enabled and reaction_mode='draft') then raise exception 'Expected test-chat configuration missing';end if;
 end $$;
 update public.ch78_max_bot_config set miniapp_enabled=true,miniapp_ai_enabled=true,miniapp_ai_daily_limit=5
- where id and chat_id='-78143291213122';
+ where id and chat_id='-72977812571458';
 commit;
 select chat_id,miniapp_enabled,miniapp_ai_enabled,miniapp_ai_daily_limit,reaction_mode from public.ch78_max_bot_config where id;
 -- Disable all mini-app access: update public.ch78_max_bot_config set miniapp_enabled=false where id;

@@ -6,9 +6,9 @@ import {createHandler} from '../supabase/functions/ch78-max-webhook/handler.mjs'
 const parent='11111111-1111-1111-1111-111111111111';
 const source={ref:'S4',message_ts:1000,author:'Автор <b>имя</b>',text:'Школьный архив <script> & '.repeat(500)};
 const job={id:parent,action:'answer',result:{found:true,answer:'Проверенный ответ [S4].',citations:['S4'],sources:[{...source,ref:'S1',text:'Постороннее'},source]}};
-const config={CH78_MAX_INGEST_ENABLED:'true',CH78_MAX_CHAT_ID:'-78143291213122',CH78_MAX_WEBHOOK_SECRET:'s'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'db-test',CH78_MAX_TOKEN:'max-test'};
+const config={CH78_MAX_INGEST_ENABLED:'true',CH78_MAX_CHAT_ID:'-72977812571458',CH78_MAX_WEBHOOK_SECRET:'s'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'db-test',CH78_MAX_TOKEN:'max-test'};
 const response=x=>new Response(JSON.stringify(x));
-function event(){return {update_type:'message_callback',timestamp:Date.now(),callback:{callback_id:'click-1',user:{user_id:123,is_bot:false},payload:'ch78:source:'+parent+':S4'},message:{recipient:{chat_id:-78143291213122},sender:{user_id:531401311,is_bot:true},body:{mid:'mid.parent'}}};}
+function event(){return {update_type:'message_callback',timestamp:Date.now(),callback:{callback_id:'click-1',user:{user_id:123,is_bot:false},payload:'ch78:source:'+parent+':S4'},message:{recipient:{chat_id:-72977812571458},sender:{user_id:531401311,is_bot:true},body:{mid:'mid.parent'}}};}
 function req(e=event(),secret=config.CH78_MAX_WEBHOOK_SECRET){return new Request('https://local.test',{method:'POST',headers:{'content-type':'application/json','X-Max-Bot-Api-Secret':secret},body:JSON.stringify(e)});}
 function setup({claimed=true,wrongBot=false,sendFailure=null,saveFailure=false,effect='show',editRejected=false}={}){
  const calls=[];let consumed=false;

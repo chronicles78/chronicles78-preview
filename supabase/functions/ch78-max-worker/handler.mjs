@@ -1,9 +1,11 @@
+import {importMainArchive} from './main-archive.mjs';
 import {withTyping} from './typing.mjs';
 import {keyboard,compactReply} from '../ch78-max-ui/controls.mjs';
 import {configureUI} from '../ch78-max-ui/configure.mjs';
 import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
+import {validConversationInput,reactionPreflight} from '../ch78-max-assistant/conversation.mjs';
 const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co';
-const CHAT='-78143291213122';
+const CHAT='-72977812571458';
 const encoder=new TextEncoder();
 const json=(status,data)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(x);
@@ -68,27 +70,58 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
   if(req.method!=='POST')return json(405,{error:'method_not_allowed'});
   const expected=env('CH78_MAX_WORKER_SECRET')??'',given=req.headers.get('X-CH78-Worker-Secret')??'';
   const key=env('SUPABASE_SERVICE_ROLE_KEY')??'';
-  if(!/^[A-Za-z0-9_-]{32,128}$/.test(expected)||!key||env('SUPABASE_URL')!==PROJECT||env('CH78_MAX_CHAT_ID')!==CHAT)return json(503,{error:'worker_configuration'});
+  if(!/^[A-Za-z0-9_-]{32,128}$/.test(expected)||!key||env('SUPABASE_URL')!==PROJECT||!['-78143291213122',CHAT].includes(env('CH78_MAX_CHAT_ID')))return json(503,{error:'worker_configuration'});
   if(!given||given.length>256)return json(403,{error:'forbidden'});
   const hash=x=>crypto.subtle.digest('SHA-256',encoder.encode(x));
   const [a,b]=await Promise.all([hash(given),hash(expected)]);let diff=0;
   const aa=new Uint8Array(a),bb=new Uint8Array(b);for(let i=0;i<aa.length;i++)diff|=aa[i]^bb[i];
   if(diff)return json(403,{error:'forbidden'});
-  let stage;
+  let stage,stageInput;
   try{
    if(req.headers.get('content-type')?.split(';')[0]!=='application/json')throw Error();
    // Stream/time bounds apply before any claim or paid/network effect.
-   const b=await bodyJSON(req,8192,5000);
-   if(!b||!['generate','send','configure_ui'].includes(b.stage))throw Error();stage=b.stage;
+   const b=await bodyJSON(req,32768,5000);
+   if(!b||!['generate','send','configure_ui','inspect_main_chat','import_main_archive','preview_answer','preview_reaction'].includes(b.stage))throw Error();stage=b.stage;stageInput=b;
+   if(['preview_answer','preview_reaction'].includes(stage)&&(!uuid(b.id)||typeof b.q!=='string'||!b.q.trim()||b.q.length>300))throw Error();
+   if(stage==='preview_reaction'&&!validConversationInput(b.post,b.context))throw Error();
   }catch{return json(400,{error:'invalid_request'});}
+  if(stage==='preview_reaction'){
+   const conversation=reactionPreflight(stageInput.post,stageInput.context);
+   if(conversation)return json(200,{ok:true,preview:true,kind:'done',budget_reserved:false,result:{found:false,answer:'',citations:[],sources:[],mode:'reaction',conversation,
+    usage:{version:1,requests:0,reported_requests:0,complete:true,input_tokens:0,output_tokens:0,total_tokens:0,cached_input_tokens:0,reasoning_tokens:0,reports:[]}}});
+  }
   const rpc=async(name,body,signal)=>{
    const r=await fetchImpl(PROJECT+'/rest/v1/rpc/'+name,{method:'POST',redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(8000),...(signal?[signal]:[])]),
     headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(body)});
    if(!r.ok){r.body?.cancel().catch(()=>{});throw Error('database_unavailable');}return bodyJSON(r);
   };
-  if(['send','configure_ui'].includes(stage)&&!env('CH78_MAX_TOKEN'))return json(503,{error:'max_token_missing'});
+  if(['send','configure_ui','inspect_main_chat','import_main_archive'].includes(stage)&&!env('CH78_MAX_TOKEN'))return json(503,{error:'max_token_missing'});
   try{
+   if(['preview_answer','preview_reaction'].includes(stage)){
+    // Private administrative test: same assistant, no chat job, MAX send or typing.
+    // Share the mini-app daily budget; separate system user prevents changing
+    // a participant's recovered request. A repeated UUID never regenerates.
+    const q=stageInput.q.trim(),reaction=stage==='preview_reaction';
+    const input={action:reaction?'reaction':'answer',q,...(reaction?{post:stageInput.post,context:stageInput.context}:{})};
+    const fingerprint=Array.from(new Uint8Array(await hash(reaction?'preview_reaction:'+JSON.stringify(input):'preview_answer:'+q)),x=>x.toString(16).padStart(2,'0')).join('');
+    const claim=await rpc('ch78_max_miniapp_claim',{p_id:stageInput.id,p_user_id:'531401311',p_action:'answer',p_fingerprint:fingerprint});
+    if(claim?.kind!=='claimed')return json(200,{ok:true,preview:true,...claim});
+    const r=await runAssistant(new Request(PROJECT+'/functions/v1/ch78-max-assistant',{method:'POST',headers:{'Content-Type':'application/json','X-Max-Bot-Api-Secret':env('CH78_MAX_WEBHOOK_SECRET')??''},body:JSON.stringify(input)}));
+    const result=await bodyJSON(r),ok=r.ok;
+    const display=ok&&(!reaction||result.found===true)?renderReply(result,input.action,true):null;
+    if(await rpc('ch78_max_miniapp_finish',{p_id:stageInput.id,p_lease:claim.lease,p_result:result,p_ok:ok})!==true)throw Error('preview_lease_lost');
+    return json(200,{ok:true,preview:true,kind:ok?'done':'failed',result,...(display?{display_text:display}:{})});
+   }
+   if(stage==='import_main_archive')return json(200,await importMainArchive({env,fetchImpl,read:bodyJSON,before:stageInput.before??null}));
    if(stage==='configure_ui')return json(200,await configureUI({env,fetchImpl}));
+   if(stage==='inspect_main_chat'){
+    const get=async path=>{const r=await fetchImpl('https://platform-api2.max.ru'+path,{method:'GET',redirect:'error',signal:AbortSignal.timeout(10000),headers:{Authorization:env('CH78_MAX_TOKEN')}});if(!r.ok){r.body?.cancel().catch(()=>{});throw Error('max_inspection');}return bodyJSON(r);};
+    const me=await get('/me');if(me.user_id!==531401311||me.is_bot!==true)throw Error('max_identity');
+    const id='-72977812571458',chat=await get('/chats/'+id),member=await get('/chats/'+id+'/members/me');
+    if(String(chat.chat_id)!==id||chat.type!=='chat'||member.user_id!==531401311||member.is_bot!==true)throw Error('max_target');
+    const hash=typeof chat.link==='string'?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(chat.link))),x=>x.toString(16).padStart(2,'0')).join(''):null;
+    return json(200,{ok:true,chat_id:id,title:chat.title,status:chat.status,participants_count:chat.participants_count,messages_count:chat.messages_count,owner_id:chat.owner_id,link_sha256:hash,is_admin:member.is_admin===true,is_owner:member.is_owner===true,permissions:member.permissions??[]});
+   }
    const rows=await rpc('ch78_max_claim_job',{p_stage:stage});
    if(!Array.isArray(rows)||rows.length>1)throw Error('invalid_claim');
    if(!rows.length)return json(200,{ok:true,idle:true});
@@ -111,7 +144,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
     try{
      let extra={};
      if(reaction){
-      const context=await rpc('ch78_max_reaction_context',{p_message_id:job.message_id});
+      const context=await rpc('ch78_max_reaction_context_v2',{p_message_id:job.message_id});
       if(!Array.isArray(context)||!context.length||context.length>5||context[0].message_id!==job.message_id) return await fail('reaction_context');
       extra={post:context[0],context:context.slice(1)};
      }

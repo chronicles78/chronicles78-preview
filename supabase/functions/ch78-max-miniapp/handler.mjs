@@ -1,7 +1,7 @@
 import {validateLaunch} from './auth.mjs';
 import {readJSON} from '../ch78-max-ui/http.mjs';
 import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
-const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co',CHAT='-78143291213122',ORIGIN='https://chronicles78.github.io';
+const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co',CHAT='-72977812571458',ORIGIN='https://chronicles78.github.io';
 const uuid=x=>typeof x==='string'&&/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(x);
 const hex=bytes=>Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 // Store only known internal codes, never upstream text, inputs or credentials.
@@ -34,7 +34,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null,now=()=>Da
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'300'}});
   if(req.method!=='POST')return reply(405,{error:'method_not_allowed'});
   const token=env('CH78_MAX_TOKEN'),key=env('SUPABASE_SERVICE_ROLE_KEY');
-  if(!token||!key||env('SUPABASE_URL')!==PROJECT||env('CH78_MAX_CHAT_ID')!==CHAT||!env('CH78_MAX_WEBHOOK_SECRET'))return reply(503,{error:'configuration'});
+  if(!token||!key||env('SUPABASE_URL')!==PROJECT||!['-78143291213122',CHAT].includes(env('CH78_MAX_CHAT_ID'))||!env('CH78_MAX_WEBHOOK_SECRET'))return reply(503,{error:'configuration'});
   let b;try{b=await inputJSON(req);if(!b||!['status','recover','search','answer'].includes(b.action))throw Error();
    if(b.action==='recover'&&b.request_id!==undefined&&!uuid(b.request_id))throw Error();
    if(['search','answer'].includes(b.action)&&(!uuid(b.request_id)||typeof b.q!=='string'||!b.q.trim()||b.q.length>300||!['forms','literal'].includes(b.mode??'forms')))throw Error();
@@ -57,7 +57,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null,now=()=>Da
    const members=await max('/chats/'+CHAT+'/members?user_ids='+identity.userId);
    if(!Array.isArray(members?.members)||members.members.length>1)throw Error('membership');
    if(!members.members.some(u=>String(u.user_id)===identity.userId&&u.is_bot===false))return reply(403,{error:'not_member'});
-   if(b.action==='status')return reply(200,{messages:status.messages,test_archive:true,ai_enabled:status.ai_enabled===true,ai_daily_limit:status.ai_daily_limit});
+   if(b.action==='status')return reply(200,{messages:status.messages,test_archive:status.test_archive===true,ai_enabled:status.ai_enabled===true,ai_daily_limit:status.ai_daily_limit});
    // Recovery can only read an existing request; it never claims/generates work.
    if(b.action==='recover'){
     const saved=await rpc('ch78_max_miniapp_recover',{p_user_id:identity.userId,p_id:b.request_id??null});

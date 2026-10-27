@@ -1,6 +1,6 @@
 import {readJSON as read} from '../ch78-max-ui/http.mjs';
 import {keyboard,callbackText,compactReply} from '../ch78-max-ui/controls.mjs';
-const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co',CHAT='-78143291213122',MAX='https://platform-api2.max.ru';
+const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co',CHAT='-72977812571458',MAX='https://platform-api2.max.ru';
 const json=(status,data)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 const ignored=()=>json(200,{ok:true,ignored:true});
 // Called only after the webhook's shared-secret and bounded-body authentication.

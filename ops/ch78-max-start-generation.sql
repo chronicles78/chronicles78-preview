@@ -13,7 +13,7 @@ select cron.schedule('ch78-max-generate','10 seconds', $job$
  with expired as (
   update public.ch78_max_jobs set state='generation_unknown',error_code='lease_expired',
     lease=null,lease_until=null,updated_at=clock_timestamp()
-  where chat_id='-78143291213122' and state='generating' and lease_until<clock_timestamp()
+  where chat_id='-72977812571458' and state='generating' and lease_until<clock_timestamp()
   returning id
  ) select net.http_post(
   url:='https://fnwpkmjjdhflnqghnogj.supabase.co/functions/v1/ch78-max-worker',

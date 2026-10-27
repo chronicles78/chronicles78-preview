@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHandler,renderReply} from '../supabase/functions/ch78-max-worker/handler.mjs';
 const secret='w'.repeat(40),PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co';
-const config={CH78_MAX_WORKER_SECRET:secret,SUPABASE_URL:PROJECT,SUPABASE_SERVICE_ROLE_KEY:'db-secret',CH78_MAX_CHAT_ID:'-78143291213122',CH78_MAX_TOKEN:'max-secret'};
+const config={CH78_MAX_WORKER_SECRET:secret,SUPABASE_URL:PROJECT,SUPABASE_SERVICE_ROLE_KEY:'db-secret',CH78_MAX_CHAT_ID:'-72977812571458',CH78_MAX_TOKEN:'max-secret'};
 const job={id:'11111111-1111-1111-1111-111111111111',lease:'22222222-2222-2222-2222-222222222222',chat_id:config.CH78_MAX_CHAT_ID,message_id:'mid.command',action:'answer',question:'Вопрос',state:'generating',reply_text:'Сохранённый ответ'};
 const data={found:true,answer:'Подтверждено [S1]',citations:['S1'],sources:[{ref:'S1',message_ts:1000,author:'Тест',text:'Тестовый источник'}]};
 const response=x=>new Response(JSON.stringify(x),{headers:{'Content-Type':'application/json'}});
@@ -15,7 +15,7 @@ function setup({overrides={},gate=true,empty=false,badJob={},sendFailure=null,mo
  },fetchImpl:async(url,opts)=>{
   const body=opts.body?JSON.parse(opts.body):{};calls.push({type:'fetch',url,body,headers:opts.headers});
   if(url.endsWith('ch78_max_claim_job'))return response(empty||done?[]:[{...job,state:body.p_stage==='send'?'sending':'generating',...badJob}]);
-  if(url.endsWith('ch78_max_reaction_context'))return response([{message_id:job.message_id,message_ts:1000,content:'Воспоминание о школе',author:'Тест'}]);
+  if(url.endsWith('ch78_max_reaction_context_v2'))return response([{message_id:job.message_id,message_ts:1000,content:'Воспоминание о школе',author:'Тест'}]);
   if(url.endsWith('ch78_max_typing_gate'))return response(false);
   if(url.endsWith('ch78_max_buttons_enabled'))return response(buttons);
   if(url.endsWith('ch78_max_job_gate'))return response(gate);
@@ -46,7 +46,7 @@ test('send uses stored text, reply link, fixed group and header token; never reg
  const x=setup();assert.deepEqual(await (await x.handler(req('send'))).json(),{ok:true,state:'sent'});
  const sent=x.calls.find(c=>c.url?.includes('/messages?'));assert.equal(sent.body.text,job.reply_text);assert.equal(sent.headers.Authorization,'max-secret');
  assert.deepEqual(sent.body.link,{type:'reply',mid:'mid.command'});assert.equal(sent.body.notify,false);assert.equal(sent.body.format,undefined);
- assert.ok(!sent.url.includes('max-secret'));assert.ok(sent.url.includes('chat_id=-78143291213122'));
+ assert.ok(!sent.url.includes('max-secret'));assert.ok(sent.url.includes('chat_id=-72977812571458'));
  assert.ok(!x.calls.some(c=>c.type==='model'));assert.equal(x.calls.find(c=>c.body?.p_state==='sent').body.p_sent_id,'mid.sent');
  assert.equal((await (await x.handler(req('send'))).json()).idle,true);
 });

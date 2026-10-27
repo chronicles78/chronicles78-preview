@@ -3,7 +3,7 @@
 with scoped as (
  select (created_at at time zone 'Europe/Samara')::date as day,action,state,
   case when result->'usage'->>'version'='1' then result->'usage' end as usage
- from public.ch78_max_jobs where chat_id='-78143291213122'
+ from public.ch78_max_jobs where chat_id=(select chat_id from public.ch78_max_bot_config where id)
 ), days as (
  select day,count(*) as jobs,
   count(*) filter(where action='answer') as answer_jobs,

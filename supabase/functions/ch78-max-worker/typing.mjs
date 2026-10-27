@@ -15,7 +15,7 @@ export async function withTyping(task,{env,fetchImpl,gate,schedule=setTimeout,ca
    if(stopped||!env('CH78_MAX_TOKEN')||await gate(controller.signal)!==true||stopped)return;
    if(!verified){const me=await request('/me');if(me.user_id!==531401311||me.is_bot!==true||stopped)return;verified=true;}
    if(stopped)return;
-   const result=await request('/chats/-78143291213122/actions',{action:'typing_on'});
+   const result=await request('/chats/-72977812571458/actions',{action:'typing_on'});
    if(stopped||result.success!==true)return;
    if(++count<18)timer=schedule(()=>{pending=pulse();},5000);
   }catch{/* No model retry and no user-visible error for a cosmetic failure. */}

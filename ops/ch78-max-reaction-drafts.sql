@@ -4,5 +4,5 @@
 begin;
 update public.ch78_max_bot_config
 set reaction_mode='draft',reactions_activated_at=clock_timestamp()
-where id and chat_id='-78143291213122';
+where id and chat_id='-72977812571458';
 commit;

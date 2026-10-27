@@ -1,0 +1,72 @@
+{
+  "checked_date": "2026-10-27",
+  "components": [
+    {
+      "name": "ch78-max-worker",
+      "version": 23,
+      "deployed_sha256": "809c7c1a6bdd563bf2ae62df063e4cea8b94c8efffd8427cacf28d8dba698509",
+      "matching_files": [
+        "functions/ch78-max-worker/index.ts",
+        "functions/ch78-max-worker/handler.mjs",
+        "functions/ch78-max-worker/main-archive.mjs",
+        "functions/ch78-max-webhook/handler.mjs",
+        "functions/ch78-max-webhook/callbacks.mjs",
+        "functions/ch78-max-ui/http.mjs",
+        "functions/ch78-max-ui/controls.mjs",
+        "functions/ch78-max-worker/typing.mjs",
+        "functions/ch78-max-ui/configure.mjs",
+        "functions/ch78-max-assistant/handler.mjs",
+        "functions/ch78-max-assistant/conversation.mjs",
+        "functions/ch78-max-worker/max-ca.mjs"
+      ],
+      "different_files": []
+    },
+    {
+      "name": "ch78-max-miniapp",
+      "version": 8,
+      "deployed_sha256": "10e54168dfb639126d0daff1a395b43ca7400d8c6158faa3569b55939a30c83c",
+      "matching_files": [
+        "functions/ch78-max-miniapp/index.ts",
+        "functions/ch78-max-miniapp/handler.mjs",
+        "functions/ch78-max-miniapp/auth.mjs",
+        "functions/ch78-max-ui/http.mjs",
+        "functions/ch78-max-worker/max-ca.mjs"
+      ],
+      "different_files": [
+        "functions/ch78-max-assistant/handler.mjs"
+      ]
+    },
+    {
+      "name": "ch78-max-webhook",
+      "version": 9,
+      "deployed_sha256": "d5814aca80355536b13b941220641ecc5069666fe75bef67a7b7c333fa9db29e",
+      "matching_files": [
+        "functions/ch78-max-webhook/index.ts",
+        "functions/ch78-max-webhook/handler.mjs",
+        "functions/ch78-max-webhook/callbacks.mjs",
+        "functions/ch78-max-ui/http.mjs",
+        "functions/ch78-max-ui/controls.mjs",
+        "functions/ch78-max-worker/max-ca.mjs"
+      ],
+      "different_files": []
+    }
+  ],
+  "recovered_applied_migrations": [
+    {
+      "version": "20261026165900",
+      "name": "ch78_max_main_chat"
+    },
+    {
+      "version": "20261026172038",
+      "name": "ch78_max_month_retrieval"
+    },
+    {
+      "version": "20261026181050",
+      "name": "ch78_max_author_context"
+    },
+    {
+      "version": "20261027173833",
+      "name": "ch78_max_reaction_reply_context_v2"
+    }
+  ]
+}

@@ -17,7 +17,7 @@ const answer={found:true,answer:'Факт [S4]',citations:['S4'],sources:[{...so
 function req(body={},options={}){return new Request('https://local.test',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,...options.headers},body:JSON.stringify({action:'answer',q:'Вопрос',request_id:requestId,init_data:signed(),...body})});}
 function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=false,save=false,network=false,realAssistant=false,assistantResponse=null,openAIAnswer=null,recovery=null}={}){
  const calls=[],stored=new Map();let models=0;
- const env=n=>({CH78_MAX_TOKEN:token,SUPABASE_SERVICE_ROLE_KEY:'PRIVATE_DB',CH78_MAX_WEBHOOK_SECRET:'x'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',CH78_MAX_CHAT_ID:'-78143291213122',OPENAI_API_KEY:'PRIVATE_OPENAI'})[n];
+ const env=n=>({CH78_MAX_TOKEN:token,SUPABASE_SERVICE_ROLE_KEY:'PRIVATE_DB',CH78_MAX_WEBHOOK_SECRET:'x'.repeat(40),SUPABASE_URL:'https://fnwpkmjjdhflnqghnogj.supabase.co',CH78_MAX_CHAT_ID:'-72977812571458',OPENAI_API_KEY:'PRIVATE_OPENAI'})[n];
  const handler=createHandler({env,now:()=>now,assistantImpl:realAssistant?null:async r=>{models++;calls.push({model:await r.json()});if(modelError)throw Error('PRIVATE_ERROR');return assistantResponse?assistantResponse():Response.json(answer);},fetchImpl:async(url,opts)=>{
   const body=opts.body?JSON.parse(opts.body):{};calls.push({url,body});if(network)throw Error('PRIVATE_NETWORK');
   if(url.endsWith('ch78_max_miniapp_status'))return Response.json({enabled,ai_enabled:true,messages:394,ai_daily_limit:5});
@@ -25,6 +25,7 @@ function setup({enabled=true,member=true,wrongBot=false,claim=null,modelError=fa
   if(url.includes('/members?user_ids='))return Response.json({members:member?[{user_id:uid,is_bot:false}]:[]});
   if(url.endsWith('ch78_max_miniapp_claim')){if(claim)return Response.json(claim);if(stored.has(body.p_id))return Response.json(stored.get(body.p_id));stored.set(body.p_id,{kind:'processing'});return Response.json({kind:'claimed',lease});}
   if(url.endsWith('ch78_max_miniapp_recover'))return Response.json(recovery??{kind:'none'});
+  if(url.endsWith('ch78_max_thread_context'))return Response.json([]);
   if(url.endsWith('ch78_max_search'))return Response.json([{message_id:'mid.fixture',message_ts:1000,author:'Тест',content:'Архивный текст',score:1}]);
   if(url==='https://api.openai.com/v1/responses'&&openAIAnswer){models++;const value=body.text.format.name==='archive_queries'?{queries:['архив']}:openAIAnswer;return Response.json({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(value)}]}],usage:{input_tokens:10,output_tokens:5,total_tokens:15}});}
   if(url.endsWith('ch78_max_miniapp_finish')){if(save)throw Error('PRIVATE_SAVE');stored.set(body.p_id,{kind:body.p_ok?'done':'failed',result:body.p_result});return Response.json(true);}
@@ -54,7 +55,7 @@ test('disabled config does not contact MAX; nonmember and wrong bot cannot read 
 });
 test('current membership overrides forged launch chat and caller user_id',async()=>{
  const s=setup();const r=await s.handler(req({user_id:99,chat_id:'-99',init_data:signed({extra:{chat:'{"id":-99,"type":"CHAT"}'}})}));assert.equal(r.status,200);
- assert.ok(s.calls.some(c=>c.url?.includes('/chats/-78143291213122/members?user_ids='+uid)));
+ assert.ok(s.calls.some(c=>c.url?.includes('/chats/-72977812571458/members?user_ids='+uid)));
  assert.equal(s.calls.find(c=>c.url?.endsWith('ch78_max_miniapp_claim')).body.p_user_id,String(uid));
 });
 test('answers return only cited sources; no attachment URL or uncited candidate leaks',async()=>{
@@ -75,7 +76,7 @@ test('database or persistence uncertainty does not repeat model work',async()=>{
  const save=setup({save:true});assert.equal((await save.handler(req())).status,503);assert.equal(save.models,1);await save.handler(req());assert.equal(save.models,1);
 });
 test('status returns archive metadata only after live membership; no assistant calls',async()=>{
- const s=setup();const r=await s.handler(req({action:'status'}));assert.deepEqual(await r.json(),{messages:394,test_archive:true,ai_enabled:true,ai_daily_limit:5});assert.equal(s.models,0);assert.equal(r.headers.get('Cache-Control'),'no-store');
+ const s=setup();const r=await s.handler(req({action:'status'}));assert.deepEqual(await r.json(),{messages:394,test_archive:false,ai_enabled:true,ai_daily_limit:5});assert.equal(s.models,0);assert.equal(r.headers.get('Cache-Control'),'no-store');
 });
 
 test('real search path retrieves sources without any OpenAI call',async()=>{

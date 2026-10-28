@@ -96,6 +96,18 @@ function topicQuery(query,scope){
   return !questionStops.has(word.toLowerCase())&&!/^(?:год|года|году|годом|годы|годов|годах|гг)$/iu.test(word);
  }).join(' '));
 }
+export function reactionQueries(text){
+ const period=questionPeriod(text),scope=period?authorDateScope(text):{month:null,year:null,day:null};
+ const greetings=new Set('ребята друзья напомните напомни подскажите подскажи всем привет'.split(' '));
+ const clean=query=>questionQuery([...topicQuery(query,scope).matchAll(/"([^"]+)"/g)].map(m=>m[1]).filter(w=>!greetings.has(w.toLowerCase())).join(' '));
+ // A title is a bounded phrase of lexical tokens, never raw search syntax.
+ const phrases=[...text.matchAll(/«([^«»\n]{1,100})»|“([^“”\n]{1,100})”|"([^"\n]{1,100})"/gu)]
+  .map(m=>(m[1]??m[2]??m[3]).match(/[\p{L}\p{N}]+/gu)?.join(' ')??'')
+  .filter(p=>p.length>0&&p.length<=80).slice(0,2).map(p=>'"'+p+'"');
+ const seed=questionQuery(text),topic=clean(seed),focus=[...new Set([...phrases,...focusQueries(text).map(clean)].filter(Boolean))];
+ const topical=[...new Set([...focus,topic].filter(q=>q&&q!==seed))].slice(0,4),queries=[...topical,...(seed?[seed]:[])];
+ return {queries,focus:focus.filter(q=>queries.includes(q)),period,month_query:period?(focus[0]||topic||seed):null};
+}
 function boundedRefusal(selection){
  if(!selection)return 'По найденным текстовым сообщениям я пока не могу уверенно ответить. Проверена только эта подборка; в других сообщениях могут быть нужные сведения.';
  const dated=Object.values(selection.publication_scope).some(v=>v!==null);
@@ -235,7 +247,15 @@ export function createHandler({env,fetchImpl=fetch,now=()=>Date.now()}){
     }
    }
    if(b.action==='search'){rows=await search(q)}
-   else if(b.action==='reaction'){rows=(await search(questionQuery(q))).filter(r=>r.message_id!==b.post.message_id&&Number(r.message_ts)<=Number(b.post.message_ts)).slice(0,8)}
+   else if(b.action==='reaction'){
+    const plan=reactionQueries(q),eligible=items=>items.filter(r=>r.message_id!==b.post.message_id&&Number(r.message_ts)<=Number(b.post.message_ts));
+    const [batches,monthly]=await Promise.all([
+     Promise.all(plan.queries.map(async query=>[query,eligible(await search(query))])),
+     plan.month_query?search(plan.month_query,plan.period).then(eligible):Promise.resolve([])
+    ]);
+    const monthlyKey='month:'+plan.month_query,periodRows=rankSources([[monthlyKey,monthly]],[monthlyKey],q).slice(0,4),ids=new Set(periodRows.map(s=>s.message_id));
+    rows=[...periodRows,...rankSources(batches,plan.focus,q).filter(s=>!ids.has(s.message_id))].slice(0,8);
+   }
    else if(!authorSelection){
     // No hidden model calls in search. Answer explicitly requests at most two calls.
     // Always retain a deterministic search of the original question. Planning

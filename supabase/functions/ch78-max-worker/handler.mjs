@@ -4,6 +4,7 @@ import {keyboard,compactReply} from '../ch78-max-ui/controls.mjs';
 import {configureUI} from '../ch78-max-ui/configure.mjs';
 import {createHandler as assistant} from '../ch78-max-assistant/handler.mjs';
 import {validConversationInput,reactionPreflight} from '../ch78-max-assistant/conversation.mjs';
+import {publicationDecision} from './publication.mjs';
 const PROJECT='https://fnwpkmjjdhflnqghnogj.supabase.co';
 const CHAT='-72977812571458';
 const encoder=new TextEncoder();
@@ -30,7 +31,7 @@ export function renderReply(data,action,compact=false){
     typeof ref!=='string'||!/^S[1-8]$/.test(ref)||!data.sources.some(s=>s.ref===ref)))throw Error('invalid_citation');
    visibleSources=data.sources.filter(s=>data.citations.includes(s.ref));
   }else visibleSources=[];
-  lines.push(escapedClip(data.answer,action==='reaction'?650:1800));
+  lines.push(action==='reaction'?escape(clean(data.answer)):escapedClip(data.answer,1800));
  }
  const footer='\n\n<i>'+(action==='reaction'?'Отклик Хранителя. Уточнения участников приветствуются.':action!=='search'?'По сообщениям архива. Детали могут требовать уточнения.':'Совпадение слов не гарантирует ответа на вопрос.')+' Даты сообщений — по Самаре.</i>';
  let text=lines.join('\n\n');
@@ -51,6 +52,11 @@ export function renderReply(data,action,compact=false){
  }else if(action==='search')text+='\n\nПодходящих сообщений не найдено. Попробуйте другие слова.';
  text+=footer;
  if(text.length>4000)throw Error('reply_too_large');
+ if(compact&&action==='reaction'){
+  const full=escape(clean(data.answer.replace(/\s*\[S[1-8](?:\s*[,;]\s*S[1-8])*\]/g,'').replace(/ +([.,;:!?])/g,'$1').trim()));
+  if(full.length>4000)throw Error('reply_too_large');
+  return full;
+ }
  if(compact)return compactReply({action,result:data});
  return text;
 }
@@ -138,7 +144,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
     await finish('failed',{p_error:'effect_disabled'});return json(200,{ok:true,disabled:true});
    }
    if(stage==='generate'){
-    let data;
+    let data,archiveContext;
     const reaction=job.action==='reaction';
     const fail=async(code,usage)=>{await finish('failed',{p_error:code,p_result:{error:code,...(usage?{usage}:{})}});return json(200,{ok:true,state:'failed'});};
     try{
@@ -147,6 +153,7 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
       const context=await rpc('ch78_max_reaction_context_v2',{p_message_id:job.message_id});
       if(!Array.isArray(context)||!context.length||context.length>5||context[0].message_id!==job.message_id) return await fail('reaction_context');
       extra={post:context[0],context:context.slice(1)};
+      archiveContext=extra;
      }
      const generate=()=>runAssistant(new Request(PROJECT+'/functions/v1/ch78-max-assistant',{method:'POST',
       headers:{'Content-Type':'application/json','X-Max-Bot-Api-Secret':env('CH78_MAX_WEBHOOK_SECRET')??''},
@@ -167,8 +174,18 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
     }
     if(reaction&&data?.found===false){await finish('skipped',{p_result:data});return json(200,{ok:true,state:'skipped'});}
     let text;try{text=renderReply(data,job.action)}catch{if(reaction)return await fail('invalid_result',data?.usage);await finish('ready',{p_reply:'Не удалось проверить ответ и его источники. Попробуйте переформулировать вопрос или используйте /find и ключевые слова.',p_error:'invalid_result',p_result:{error:'invalid_result',...(data?.usage?{usage:data.usage}:{})}});return json(200,{ok:true,state:'ready'});}
-    const next=reaction&&job.review_required?'review':'ready';
-    await finish(next,{p_reply:text,p_result:{...data,reply_format:'html'}});return json(200,{ok:true,state:next});
+    const admission=reaction?publicationDecision(data,archiveContext.post,archiveContext.context):null;
+    const next=reaction&&(job.review_required||!admission.allowed)?'review':'ready';
+    await finish(next,{p_reply:text,p_result:{...data,...(admission?{publication_gate:admission}:{}),reply_format:'html'}});return json(200,{ok:true,state:next});
+   }
+   if(job.action==='reaction'){
+    // Revalidate persisted evidence and the current conversation before any MAX call.
+    const context=await rpc('ch78_max_reaction_context_v2',{p_message_id:job.message_id});
+    const admission=Array.isArray(context)&&context.length>0&&context.length<=5&&context[0].message_id===job.message_id?
+     publicationDecision(job.result,context[0],context.slice(1)):{allowed:false,reason:'invalid_context'};
+    if(job.review_required||!admission.allowed){
+     await finish('failed',{p_error:'publication_blocked'});return json(200,{ok:true,state:'failed',blocked:true});
+    }
    }
    if(typeof job.reply_text!=='string'||!job.reply_text.length||Array.from(job.reply_text).length>4000){
     await finish('failed',{p_error:'invalid_reply'});return json(200,{ok:true,state:'failed'});
@@ -176,7 +193,8 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
    const showButtons=await rpc('ch78_max_buttons_enabled',{});
    const attachments=showButtons===true?keyboard(job):null;
    // Formatting only: preserve stored evidence and never regenerate during send.
-   const replyText=showButtons===true&&job.result?.reply_format==='html'&&!job.result?.error?renderReply(job.result,job.action,true):job.reply_text;
+   const replyText=job.action==='reaction'?renderReply(job.result,'reaction',showButtons===true):
+    showButtons===true&&job.result?.reply_format==='html'&&!job.result?.error?renderReply(job.result,job.action,true):job.reply_text;
    // Refuse an accidentally configured token of another bot (e.g. IT HAB).
    try{
     const me=await fetchImpl('https://platform-api2.max.ru/me',{method:'GET',redirect:'error',signal:AbortSignal.timeout(8000),headers:{Authorization:env('CH78_MAX_TOKEN')}});
@@ -184,6 +202,10 @@ export function createHandler({env,fetchImpl=fetch,assistantImpl=null}){
     const identity=await bodyJSON(me);
     if(identity.user_id!==531401311||identity.is_bot!==true)throw Error();
    }catch{await finish('failed',{p_error:'max_identity'});return json(200,{ok:true,state:'failed'});}
+   // Recheck the kill switch/lease after formatting and identity lookup.
+   if(await rpc('ch78_max_job_gate',{p_id:job.id,p_lease:job.lease})!==true){
+    await finish('failed',{p_error:'effect_disabled'});return json(200,{ok:true,disabled:true});
+   }
    // A single send attempt. Ambiguous outcomes require owner review, not retry.
    let sent;
    try{

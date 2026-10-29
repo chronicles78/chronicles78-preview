@@ -201,7 +201,7 @@ test('reaction uses one decision-and-draft call with post, prior context and dat
  const x=setup({plan:reactionDraft()});
  const r=await x.handler(req(reactionBody()));assert.equal(r.status,200);const data=await r.json();assert.equal(data.found,true);assert.equal(data.mode,'reaction');
  const calls=x.calls.filter(c=>c.url.includes('openai.com'));assert.equal(calls.length,1);
- assert.equal(calls[0].body.instructions.includes('Голос Хранителя:'),true);
+ assert.equal(calls[0].body.instructions.includes('Протокол keeper-reaction/1.0'),true);
  const input=JSON.parse(calls[0].body.input);assert.equal(input.new_post.text,post.content);assert.equal(input.conversation_context[0].text,'А где встречались?');
  assert.equal(input.archive_sources[0].message_id,row.message_id);assert.equal(data.usage.requests,1);
 });

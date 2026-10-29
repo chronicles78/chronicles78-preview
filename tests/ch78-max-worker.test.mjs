@@ -156,9 +156,9 @@ test('reaction drafts persist for review and do not send; silence becomes skippe
   const input=x.calls.find(c=>c.type==='model').body;assert.equal(input.post.message_id,job.message_id);assert.ok(Array.isArray(input.context));
  }
 });
-test('automatic reaction prepares one ready reply; errors stay silent instead of posting failure notices',async()=>{
+test('uncited automatic clarification stays in review; errors stay silent instead of posting failure notices',async()=>{
  const x=setup({badJob:{action:'reaction',review_required:false},assistantData:{found:true,answer:'Кто помнит эту школьную встречу?',citations:[],sources:[]}});
- assert.equal((await (await x.handler(req())).json()).state,'ready');
+ assert.equal((await (await x.handler(req())).json()).state,'review');
  for(const modelFailure of ['network','model_limit']){
   const y=setup({badJob:{action:'reaction',review_required:false},modelFailure});assert.equal((await (await y.handler(req())).json()).state,'failed');
   assert.ok(!y.calls.some(c=>c.body?.p_state==='ready'));assert.equal(y.calls.filter(c=>c.type==='model').length,1);

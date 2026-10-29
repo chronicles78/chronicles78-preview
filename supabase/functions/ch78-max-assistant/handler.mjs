@@ -104,17 +104,29 @@ export function reactionQueries(text){
  const phrases=[...text.matchAll(/«([^«»\n]{1,100})»|“([^“”\n]{1,100})”|"([^"\n]{1,100})"/gu)]
   .map(m=>(m[1]??m[2]??m[3]).match(/[\p{L}\p{N}]+/gu)?.join(' ')??'')
   .filter(p=>p.length>0&&p.length<=80).slice(0,2).map(p=>'"'+p+'"');
- const seed=questionQuery(text),topic=clean(seed),focus=[...new Set([...phrases,...focusQueries(text).map(clean)].filter(Boolean))];
- const topical=[...new Set([...focus,topic].filter(q=>q&&q!==seed))].slice(0,4),queries=[...topical,...(seed?[seed]:[])];
- return {queries,focus:focus.filter(q=>queries.includes(q)),period,month_query:period?(focus[0]||topic||seed):null};
+ const seed=questionQuery(text),topic=clean(seed),legacy=focusQueries(text).map(clean).filter(Boolean);
+ // Broad OR queries can rank a match on one common name above the requested
+ // object. Reserve bounded two-term conjunctions before the broad fallback.
+ // Terms still come only from the question; no source/answer vocabulary is added.
+ const terms=[...topic.matchAll(/"([^"]+)"/g)].map(m=>m[1]).filter(w=>w.length>=3);
+ const pairs=[];for(let i=0;i+1<terms.length&&pairs.length<3;i++){
+  const pair='"'+terms[i]+'" "'+terms[i+1]+'"';
+  if(pair.length<=300&&!pairs.includes(pair))pairs.push(pair);
+ }
+ // Existing title, singing and order lanes keep priority over generic pairs.
+ const protectedQueries=new Set([clean(singingQuery),clean(subjectActionQuery(text))].filter(Boolean));
+ const focused=legacy.filter(query=>protectedQueries.has(query));
+ const focus=[...new Set([...phrases,...focused,...(pairs.length?[]:legacy)].filter(Boolean))];
+ const topical=[...new Set([...focus,...pairs,...legacy,topic].filter(q=>q&&q!==seed))].slice(0,4),queries=[...topical,...(seed?[seed]:[])];
+ return {queries,focus:focus.filter(q=>queries.includes(q)),conjunctions:pairs.filter(q=>queries.includes(q)),period,month_query:period?(focus[0]||topic||seed):null};
 }
 function boundedRefusal(selection){
  if(!selection)return 'По найденным текстовым сообщениям я пока не могу уверенно ответить. Проверена только эта подборка; в других сообщениях могут быть нужные сведения.';
  const dated=Object.values(selection.publication_scope).some(v=>v!==null);
  return 'По текстовой подборке участника «'+selection.author.slice(0,100)+'» (сообщений: '+selection.source_count+') я пока не могу уверенно ответить. Проверены только '+(dated?'сообщения за указанный период':'последние сообщения')+'; вложения здесь не анализировались.';
 }
-export function rankSources(batches,focus=[],question=''){
- const merged=new Map(),lanes=focus.map(()=>new Set());
+export function rankSources(batches,focus=[],question='',conjunctions=[]){
+ const merged=new Map(),lanes=focus.map(()=>new Set()),precision=new Map();
  for(const [query,rows] of batches){for(const [i,s] of rows.entries()){
   // Russian stemming can also return unrelated words for very short verbs.
   const actionMatches=query.replace(/^month:/,'')!==singingQuery||/(?:^|[^\p{L}])(?:(?:с?пел[аои]?)(?:сь)?|петь(?:ся)?|пени(?:ем?|я|ю|и)|по[её](?:т|м|те|шь)|поют|пою)(?:$|[^\p{L}])/iu.test(s.content);
@@ -122,12 +134,18 @@ export function rankSources(batches,focus=[],question=''){
   const old=merged.get(s.message_id);merged.set(s.message_id,{...s,fusion:(old?.fusion??0)+1/(60+i+1)});
   const lane=focus.indexOf(query);
   if(lane>=0)lanes[lane].add(s.message_id);
+  // Compare scores only across these equal-width two-term conjunctions.
+  // Never compare their score to a broad OR query or a title/action lane.
+  if(conjunctions.includes(query))precision.set(s.message_id,Math.max(precision.get(s.message_id)??0,Number(s.score)));
  }}
  const ranked=[...merged.values()].sort((a,b)=>b.fusion-a.fusion||Number(b.message_ts)-Number(a.message_ts)||b.message_id.localeCompare(a.message_id));
  const focused=lanes.find(ids=>ids.size)??new Set();
  const eventMatch=s=>/встреч/iu.test(question)&&/встре[чт]/iu.test(s.content)?1:0;
  const reserved=ranked.filter(s=>focused.has(s.message_id)).sort((a,b)=>eventMatch(b)-eventMatch(a)).slice(0,4),ids=new Set(reserved.map(s=>s.message_id));
- return [...reserved,...ranked.filter(s=>!ids.has(s.message_id))].slice(0,8);
+ const precise=ranked.filter(s=>precision.has(s.message_id)&&!ids.has(s.message_id))
+  .sort((a,b)=>precision.get(b.message_id)-precision.get(a.message_id)||b.fusion-a.fusion||Number(b.message_ts)-Number(a.message_ts)||b.message_id.localeCompare(a.message_id)).slice(0,4);
+ for(const s of precise)ids.add(s.message_id);
+ return [...reserved,...precise,...ranked.filter(s=>!ids.has(s.message_id))].slice(0,8);
 }
 export function validatedQueries(plan){
   if(!Array.isArray(plan?.queries)||plan.queries.length<1||plan.queries.length>3)throw new Failure('model_invalid');
@@ -254,7 +272,7 @@ export function createHandler({env,fetchImpl=fetch,now=()=>Date.now()}){
      plan.month_query?search(plan.month_query,plan.period).then(eligible):Promise.resolve([])
     ]);
     const monthlyKey='month:'+plan.month_query,periodRows=rankSources([[monthlyKey,monthly]],[monthlyKey],q).slice(0,4),ids=new Set(periodRows.map(s=>s.message_id));
-    rows=[...periodRows,...rankSources(batches,plan.focus,q).filter(s=>!ids.has(s.message_id))].slice(0,8);
+    rows=[...periodRows,...rankSources(batches,plan.focus,q,plan.conjunctions).filter(s=>!ids.has(s.message_id))].slice(0,8);
    }
    else if(!authorSelection){
     // No hidden model calls in search. Answer explicitly requests at most two calls.

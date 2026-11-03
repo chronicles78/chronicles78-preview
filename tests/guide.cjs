@@ -18,7 +18,7 @@ function check(value,message){assert.ok(value,message);count++}
    const u=new URL(r.request().url());
    if(u.hostname==='cdn.jsdelivr.net'){
     let body='('+stub.toString()+')()';
-    if(options.authDelay)body+=';(()=>{const create=supabase.createClient;supabase.createClient=(...args)=>{const client=create(...args),get=client.auth.getSession;client.auth.getSession=()=>new Promise(resolve=>setTimeout(async()=>resolve(await get()),1800));return client}})()';
+    if(options.authDelay)body+=';(()=>{const create=supabase.createClient;supabase.createClient=(...args)=>{const client=create(...args),get=client.auth.getSession;let held=false;client.auth.getSession=()=>{if(held)return get();held=true;return new Promise(resolve=>{window.auditReleaseAuth=async()=>resolve(await get())})};return client}})()';
     return r.fulfill({body,contentType:'application/javascript'});
    }
    if(u.hostname!=='guide.local'){p.remote.push(u.hostname);return r.abort()}
@@ -27,15 +27,15 @@ function check(value,message){assert.ok(value,message);count++}
    const types={'.html':'text/html','.css':'text/css','.js':'application/javascript','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
    try{return r.fulfill({body:fs.readFileSync(file),contentType:types[path.extname(file)]||'application/octet-stream'})}catch{return r.fulfill({status:404,body:''})}
   });
-  await p.goto('http://guide.local/');
-  if(options.authDelay){await p.waitForTimeout(600);check(!await p.locator('.guideInvitation').isVisible(),'invitation waits for delayed session restore');check(!await p.evaluate(()=>appNavEnabled),'auth restore still pending')}
+  await p.goto('http://guide.local/',{waitUntil:'domcontentloaded'});
+  if(options.authDelay){await p.waitForFunction(()=>typeof window.auditReleaseAuth==='function');check(!await p.locator('.guideInvitation').isVisible(),'invitation waits for delayed session restore');check(!await p.evaluate(()=>appNavEnabled),'auth restore still pending');await p.evaluate(()=>window.auditReleaseAuth())}
   await p.waitForFunction(()=>typeof appNavEnabled!=='undefined'&&appNavEnabled);
   await p.locator('#accountShade.open').waitFor();return p;
  }
  async function settle(p){await p.waitForTimeout(80)}
  async function member(p){await p.evaluate(async()=>{auditSession={user:{id:'audit-user'},access_token:'fixture'};await hydrateProfileFromSession(auditSession,{render:false});renderProfile();closeAccountModal()})}
  async function manual(p,width){
-  if(width<=760){await p.locator('#mobileMenuBtn').click();await p.locator('#moreNavMenu [data-guide-start]').click()}
+  if(width<1280){await p.locator('#mobileMenuBtn').click();await p.locator('#moreNavMenu [data-guide-start]').click()}
   else await p.locator('.guideHomeEntry').click();await settle(p);
  }
  async function bounds(p,target){
@@ -71,17 +71,17 @@ function check(value,message){assert.ok(value,message);count++}
    await manual(p,width);
    check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
    const callsBefore=await p.evaluate(()=>auditCalls.filter(x=>x.table).length);
-   const mobile=width<=760;
+   const mobile=width<1280;
    const ids=mobile?['home','people','stories','chat','menu','photos','city','questions','account','finish']:['home','people','stories','photos','city','questions','chat','account','finish'];
    for(let i=0;i<ids.length;i++){
     const id=ids[i];check(await p.locator('#guideProgress').textContent()==='Шаг '+(i+1)+' из '+ids.length,'progress matches scenario');
     let target=null;
     if(mobile&&id!=='finish')target=id==='menu'?'#mobileMenuBtn':id==='account'?'#moreNavMenu .accountEntryBtn':'#moreNavMenu [data-more-view="'+id+'"]';
-    else if(!mobile&&id!=='finish'&&id!=='questions')target=id==='home'?'#home2Stage':id==='account'?'#accountBtnHome':'.h2Nav [data-home-view="'+id+'"]';
+    else if(!mobile&&id!=='finish')target=id==='home'?'#home2Stage':id==='account'?'#accountBtnHome':'.h2Nav [data-home-view="'+id+'"]';
     await bounds(p,target);
     if(['people','stories','photos','city','questions','chat'].includes(id))check((await p.locator('#guideText').textContent()).includes('потребуется вход')===!signedIn,'access wording follows active membership');
     if(id==='account')check((await p.locator('#guideText').textContent()).includes('8-значным')===!signedIn,'current OTP explanation');
-    if(id==='questions'&&!mobile)check((await p.locator('#guideNote').textContent()).includes('отдельной кнопки'),'desktop questions fallback');
+    if(id==='questions'&&!mobile)check(!(await p.locator('#guideNote').textContent()).includes('отдельной кнопки'),'desktop questions has a real target');
     if(i===2){await p.locator('[data-guide-back]').click();await settle(p);check((await p.locator('#guideProgress').textContent()).startsWith('Шаг 2 '),'back returns to previous step');await p.locator('[data-guide-next]').click();await settle(p)}
     if(i<ids.length-1){await p.locator('[data-guide-next]').click();await settle(p)}
    }
@@ -96,12 +96,12 @@ function check(value,message){assert.ok(value,message);count++}
  // Internal desktop/tablet navigation and mobile navigation still run normally.
  for(const width of [390,820,1366]){
   const p=await page(width,844,{dismissed:true});await member(p);await p.evaluate(()=>showView('people'));await settle(p);
-  if(width<=760){await p.locator('#mobileMenuBtn').click();await p.locator('#moreNavMenu [data-guide-start]').click()}
-  else await p.locator(width<1024?'.bottom [data-guide-start]':'.desktopTopNav [data-guide-start]').click();
+  if(width<1280){await p.locator('#mobileMenuBtn').click();await p.locator('#moreNavMenu [data-guide-start]').click()}
+  else await p.locator(width<1280?'#moreNavMenu [data-guide-start]':'.desktopTopNav [data-guide-start]').click();
   await p.locator('[data-guide-next]').click();await settle(p);
-  await bounds(p,width<=760?'#moreNavMenu [data-more-view="people"]':width<1024?'.bottom [data-view="people"]':'.desktopTopNav [data-view="people"]');
+  await bounds(p,width<1280?'#moreNavMenu [data-more-view="people"]':width<1280?'#moreNavMenu [data-more-view="people"]':'.desktopTopNav [data-view="people"]');
   await p.locator('[data-guide-next]').click();await settle(p);
-  const destination=width<=760?'#moreNavMenu [data-more-view="stories"]':width<1024?'.bottom [data-view="stories"]':'.desktopTopNav [data-view="stories"]';
+  const destination=width<1280?'#moreNavMenu [data-more-view="stories"]':width<1280?'#moreNavMenu [data-more-view="stories"]':'.desktopTopNav [data-view="stories"]';
   check(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'internal navigation has no horizontal overflow');
   // A real navigation click ends the tour and is handled by the original router.
   await p.locator(destination).click();await settle(p);

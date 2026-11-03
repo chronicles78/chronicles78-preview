@@ -21,5 +21,5 @@
 /* A persistent entry on Home also fits narrow desktop/tablet layouts. */
 .guideHomeEntry{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:30;min-height:44px;padding:9px 12px;border:1px solid var(--line,#dac9ad);border-radius:8px;background:var(--paper,#fffaf1);color:var(--ink,#302923);font:600 15px/1.2 var(--font-interface,sans-serif)}
 body:not(:has(#home.active)) .guideHomeEntry{display:none}
-@media(max-width:760px){.guideHomeEntry{display:none}.guideCard,.guideInvitation{padding:16px}.guideCard h2{font-size:22px}}
-@media(min-width:761px) and (max-width:1023px){body:not(:has(#home.active)) .guideInvitation{bottom:calc(var(--nav,60px) + env(safe-area-inset-bottom) + 12px)}}
+@media(max-width:1279px){.guideHomeEntry{display:none}.guideCard,.guideInvitation{padding:16px}.guideCard h2{font-size:22px}}
+

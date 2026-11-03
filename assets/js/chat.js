@@ -1,6 +1,21 @@
 const chatSignedCache=new Map();
 let chatStickToBottom=true,chatLastScrollTop=0;
+function positionChatMenu(details){
+ const panel=details.querySelector('.msgMenuPanel'),anchor=details.getBoundingClientRect();
+ const vv=window.visualViewport,left=vv?.offsetLeft||0,top=vv?.offsetTop||0;
+ const width=vv?.width||innerWidth,height=vv?.height||innerHeight,margin=8;
+ panel.style.maxHeight=Math.max(44,height-2*margin)+'px';
+ panel.style.width=Math.min(240,width-2*margin)+'px';
+ const box=panel.getBoundingClientRect();
+ const y=anchor.bottom+box.height+margin<=top+height?anchor.bottom+4:anchor.top-box.height-4;
+ panel.style.left=Math.max(left+margin,Math.min(anchor.right-box.width,left+width-box.width-margin))+'px';
+ panel.style.top=Math.max(top+margin,Math.min(y,top+height-box.height-margin))+'px';
+}
+window.addEventListener('resize',closeChatMenus);
+window.visualViewport?.addEventListener('resize',closeChatMenus);
+window.visualViewport?.addEventListener('scroll',closeChatMenus);
 $("messages").addEventListener("scroll",()=>{
+ closeChatMenus();
  const box=$("messages");
  if(box.scrollTop<chatLastScrollTop-4)chatStickToBottom=false;
  else if(box.scrollHeight-box.clientHeight-box.scrollTop<=64)chatStickToBottom=true;
@@ -80,6 +95,7 @@ async function markRoomRead(room){
 }
 async function loadRoom({preserveScroll=false}={}){
  if(!user||!profile?.is_active)return;
+ closeChatMenus();
  const seq=++chatLoadSeq,room=currentRoom,uid=user.id;
  const box=$("messages");
  chatStickToBottom=!preserveScroll&&(!lastMessages.length||box.scrollHeight-box.clientHeight-box.scrollTop<=64);
@@ -156,7 +172,7 @@ async function loadRoom({preserveScroll=false}={}){
    ).join("");
 
    const menuPanel=
-     '<div class="msgMenuPanel">'+
+     '<div class="msgMenuPanel" popover="manual" aria-label="Действия с сообщением">'+
        '<button class="menuBtn" data-reply="'+m.id+'">↩ Ответить</button>'+
        (m.body?'<button class="menuBtn" data-copy-message="'+m.id+'">⧉ Копировать текст</button>':'')+
        '<div class="menuSep"></div>'+
@@ -200,9 +216,12 @@ async function loadRoom({preserveScroll=false}={}){
    const openMenu=()=>{
      const d=bubble.querySelector("details.footMenu");
      if(!d)return;
-     $("messages").querySelectorAll("details.footMenu[open]").forEach(x=>{if(x!==d)x.removeAttribute("open")});
-     d.setAttribute("open","");
      bubble.classList.remove("longPressing");
+     closeChatMenus();
+     d.setAttribute("open","");
+     const panel=d.querySelector('.msgMenuPanel');
+     if(panel.showPopover)panel.showPopover();
+     positionChatMenu(d);
      opened=true;
    };
    const cancel=()=>{
@@ -226,6 +245,16 @@ async function loadRoom({preserveScroll=false}={}){
      if(wasOpened){e.preventDefault();e.stopPropagation()}
    });
    bubble.addEventListener("pointercancel",cancel);
+   // Suppress the click synthesized by the same completed long press.
+   bubble.addEventListener('click',e=>{
+     if(opened&&!e.target.closest('.msgMenuPanel')){opened=false;e.preventDefault();e.stopPropagation()}
+   },true);
+   bubble.tabIndex=0;
+   bubble.addEventListener('keydown',e=>{
+     if(e.key==='ContextMenu'||(e.shiftKey&&e.key==='F10')){
+       e.preventDefault();openMenu();bubble.querySelector('.menuBtn')?.focus();
+     }
+   });
    bubble.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse")cancel()});
    bubble.addEventListener("contextmenu",e=>{
      e.preventDefault();
@@ -233,7 +262,7 @@ async function loadRoom({preserveScroll=false}={}){
    });
  });
 
- $("messages").querySelectorAll(".msgMenuPanel button").forEach(b=>b.addEventListener("click",()=>b.closest("details")?.removeAttribute("open")));
+ $("messages").querySelectorAll(".msgMenuPanel button").forEach(b=>b.addEventListener("click",()=>closeChatMenus()));
  $("messages").querySelectorAll("[data-reply]").forEach(b=>b.onclick=()=>{replyTo=b.dataset.reply;renderReply();$("composer").focus()});
  $("messages").querySelectorAll("[data-copy-message]").forEach(b=>b.onclick=async()=>{const m=lastMessages.find(x=>x.id===b.dataset.copyMessage);if(m?.body)await navigator.clipboard.writeText(m.body)});
  $("messages").querySelectorAll("[data-react]").forEach(b=>b.onclick=()=>toggleReaction(b.dataset.mid,b.dataset.react));

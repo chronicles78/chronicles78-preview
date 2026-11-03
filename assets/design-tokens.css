@@ -1,7 +1,7 @@
 /* Home 2.0, 20261006-1. Scoped until the other chapters are approved. */
 body.home2App #home.home2,.home2Search {
   --desk:#ede1c9; --paper:#fff9eb; --paper-deep:#f0e2c5; --paper-light:#fffdf6;
-  --ink:#082e4b; --ink-muted:#354f65; --accent:#b76b28; --line:#93846c40;
+  --ink:#082e4b; --ink-muted:#354f65; --accent:#a6524b; --line:#93846c40;
   --photo-frame:#fff9ed; --shadow-photo:0 .55cqw 1.2cqw #3c281d50;
   --shadow-paper:0 .45cqw .7cqw #3c281d3d,0 .1cqw .15cqw #3c281d33;
   --font-editorial:Georgia,"Times New Roman",serif;
@@ -9,7 +9,7 @@ body.home2App #home.home2,.home2Search {
   --font-handwritten:"Segoe Print","Comic Sans MS",cursive;
   --title-size:3.65cqw; --heading-size:1.85cqw; --body-size:1.18cqw; --label-size:.8cqw;
   --space-1:.35cqw; --space-2:.7cqw; --space-3:1.1cqw; --space-4:1.9cqw; --space-5:3.4cqw;
-  --photo-border:.65cqw; --button-radius:3px; --button-bg:#07334e; --button-ink:#fffaf0;
+  --photo-border:.65cqw; --button-radius:3px; --button-bg:#a6524b; --button-ink:#fffaf0;
   --focus-ring:#b27835; --grain-opacity:.14;
 }
 html[data-theme="dark"] body.home2App #home.home2,html[data-theme="dark"] .home2Search {

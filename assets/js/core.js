@@ -770,9 +770,19 @@ document.addEventListener("click",e=>{
  else document.querySelectorAll("details.overflowMenu[open]").forEach(d=>{if(d!==menu)d.removeAttribute("open")});
 });
 function closeChatMenus(){
- document.querySelectorAll("details.footMenu[open]").forEach(d=>d.removeAttribute("open"));
+ document.querySelectorAll("details.footMenu[open]").forEach(d=>{
+   const panel=d.querySelector('.msgMenuPanel');
+   if(panel?.hidePopover&&panel.matches(':popover-open'))panel.hidePopover();
+   d.removeAttribute('open');
+ });
 }
 document.addEventListener("click",e=>{if(!e.target.closest("details.footMenu"))closeChatMenus()});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){
+   const menu=document.querySelector('details.footMenu[open]');
+   if(menu){e.preventDefault();closeChatMenus();menu.closest('.bubble')?.focus()}
+ }
+});
 async function activateTag(tag){
  tag=String(tag||"").trim();
  if(!tag)return;
@@ -1193,6 +1203,8 @@ function syncAccountNavigation(){
 function initAccountUi(){
  const host=$("accountAuthHost")||$("accountModalBody");
  if(host){
+   const welcome=$("archiveWelcome");
+   if(welcome&&welcome.parentElement!==host)host.prepend(welcome);
    const login=$("loginBox"),consent=$("consentGateBox");
    if(login&&login.parentElement!==host)host.appendChild(login);
    if(consent&&consent.parentElement!==host)host.appendChild(consent);

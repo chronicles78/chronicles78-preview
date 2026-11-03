@@ -96,7 +96,7 @@
  .profileUserActions{grid-column:1/-1}
  .profileUserMain{min-width:0;overflow-wrap:anywhere}
  .profileUserMain b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
- .chat{height:calc(100dvh - 64px - env(safe-area-inset-bottom))!important;display:flex!important;flex-direction:column!important;min-width:0}
+ .chat{display:flex!important;flex-direction:column!important;min-width:0}
  .rooms{flex-shrink:0;max-width:100%;overflow-x:auto}
  .bubble{max-width:90%!important;overflow-wrap:anywhere;font-size:16px}
  .composeTools{max-width:100%;overflow-x:auto}
